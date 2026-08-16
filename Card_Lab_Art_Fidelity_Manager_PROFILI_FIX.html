@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Card_Lab_Art — Fidelity Manager</title>
+<style>
+:root{color-scheme:light dark;--bg:#f5f6f8;--card:#fff;--text:#15171c;--muted:#687080;--line:#e1e4e9;--input:#fff;--soft:#eef1f5;--primary:#111827;--danger:#991b1b;--success:#166534;--warning:#92400e}
+@media(prefers-color-scheme:dark){:root{--bg:#0f1115;--card:#181b22;--text:#f5f7fa;--muted:#aeb4bf;--line:#2b3039;--input:#171a21;--soft:#242933;--primary:#f3f4f6;--danger:#b91c1c;--success:#4ade80;--warning:#fbbf24}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.app{max-width:1220px;margin:0 auto;padding:20px}.top{display:flex;gap:14px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;margin-bottom:18px}.brand h1{font-size:24px;margin:0 0 5px}.brand p{margin:0;color:var(--muted);font-size:14px}.actions,.tabs,.row-actions{display:flex;gap:8px;flex-wrap:wrap}button,.file-label{border:0;border-radius:10px;min-height:44px;padding:0 14px;font-weight:750;cursor:pointer;font-size:14px;display:inline-flex;align-items:center;justify-content:center}.primary{background:#111827;color:#fff}.secondary,.file-label,.ghost{background:var(--card);color:var(--text);border:1px solid var(--line)}.danger{background:var(--danger);color:#fff}.mini{min-height:34px;padding:0 10px;font-size:12px;border-radius:8px}.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}.stat,.card{background:var(--card);border:1px solid var(--line);border-radius:14px}.stat{padding:15px}.stat small{display:block;color:var(--muted);font-size:12px;margin-bottom:7px}.stat strong{font-size:24px}.tabs{margin-bottom:14px}.tab{background:var(--soft);color:var(--text)}.tab.active{background:#111827;color:#fff}.panel{display:none}.panel.active{display:block}.card{padding:16px;margin-bottom:14px}.card h2,.card h3{margin:0 0 14px}.card h2{font-size:18px}.card h3{font-size:16px}.formgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.span2{grid-column:span 2}.span4{grid-column:span 4}label{display:block;font-size:12px;font-weight:750;color:var(--muted);margin-bottom:6px}input,select,textarea{width:100%;min-height:44px;border-radius:10px;border:1px solid var(--line);background:var(--input);color:var(--text);padding:9px 11px;font-size:16px;outline:none}textarea{min-height:86px;resize:vertical}input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(100,116,139,.16)}.submitrow{display:flex;align-items:end}.notice{font-size:13px;min-height:20px;margin-top:10px;color:var(--muted)}.notice.ok{color:var(--success)}.notice.error{color:#dc2626}.storage-warning{display:none;background:#fff7ed;border:1px solid #fdba74;color:#9a3412;padding:11px 13px;border-radius:12px;margin-bottom:14px;font-size:13px}.searchrow{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}.searchrow input{max-width:420px}.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:12px}table{border-collapse:collapse;width:100%;min-width:900px;background:var(--card)}th,td{padding:11px 12px;border-bottom:1px solid var(--line);text-align:left;font-size:13px;vertical-align:middle}th{font-size:12px;color:var(--muted);background:var(--bg);position:sticky;top:0}tr:last-child td{border-bottom:0}.pill{display:inline-flex;align-items:center;border-radius:999px;padding:5px 8px;font-size:11px;font-weight:800;background:var(--soft)}.empty{text-align:center;padding:30px;color:var(--muted)}.reward{font-size:12px;color:var(--muted)}.settings{display:grid;grid-template-columns:180px 1fr;gap:12px;align-items:end}.rewards{display:grid;gap:8px}.rewardrow{display:grid;grid-template-columns:120px 1fr;gap:10px}.profile-head{display:flex;gap:12px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap}.profile-title{display:flex;gap:10px;align-items:center}.profile-title h2{margin:0}.profile-meta{font-size:12px;color:var(--muted);margin-top:4px}.profile-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:14px 0}.profile-stat{padding:12px;border:1px solid var(--line);border-radius:12px}.profile-stat small{display:block;color:var(--muted);margin-bottom:5px}.modal{position:fixed;inset:0;background:rgba(0,0,0,.52);display:none;align-items:flex-start;justify-content:center;padding:22px;overflow:auto;z-index:1000}.modal.open{display:flex}.modal-box{width:min(960px,100%);background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 25px 70px rgba(0,0,0,.3)}.modal-close{min-height:38px}.divider{height:1px;background:var(--line);margin:16px 0}.muted{color:var(--muted)}
+@media(max-width:850px){.stats,.profile-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.formgrid{grid-template-columns:repeat(2,minmax(0,1fr))}.span4{grid-column:span 2}.settings{grid-template-columns:1fr}}
+@media(max-width:560px){.app{padding:13px}.stats{gap:8px}.stat{padding:12px}.stat strong{font-size:20px}.formgrid{grid-template-columns:1fr}.span2,.span4{grid-column:span 1}.submitrow{display:block}.actions{width:100%}.actions>*{flex:1}.modal{padding:8px}.modal-box{padding:14px;border-radius:14px}.profile-stats{grid-template-columns:1fr 1fr}.row-actions{width:100%}.row-actions button{flex:1}}
+</style>
+</head>
+<body>
+<div class="app" id="cla-root">
+  <div class="top">
+    <div class="brand"><h1>Card_Lab_Art — Gestione fedeltà</h1><p>Clienti, profili, ordini, punti e premi. E-mail disattivate per ora.</p></div>
+    <div class="actions">
+      <button class="secondary" id="exportBtn" type="button">Esporta backup</button>
+      <label class="file-label" for="importFile">Importa backup</label><input id="importFile" type="file" accept="application/json" hidden>
+      <button class="ghost" id="csvBtn" type="button">Esporta CSV</button>
+    </div>
+  </div>
+  <div id="storageWarning" class="storage-warning">⚠️ Il browser non permette il salvataggio permanente in questa modalità. Apri il gestionale in Safari/Chrome come pagina web per conservare i dati dopo la chiusura.</div>
+
+  <div class="stats">
+    <div class="stat"><small>Clienti</small><strong id="sClients">0</strong></div>
+    <div class="stat"><small>Ordini</small><strong id="sOrders">0</strong></div>
+    <div class="stat"><small>Fatturato registrato</small><strong id="sRevenue">EUR 0,00</strong></div>
+    <div class="stat"><small>Punti in circolazione</small><strong id="sPoints">0</strong></div>
+  </div>
+
+  <div class="tabs" role="tablist">
+    <button class="tab active" data-tab="clients" type="button">Clienti</button>
+    <button class="tab" data-tab="orders" type="button">Ordini</button>
+    <button class="tab" data-tab="rewards" type="button">Premi</button>
+    <button class="tab" data-tab="settings" type="button">Impostazioni</button>
+  </div>
+
+  <section class="panel active" id="panel-clients">
+    <div class="card">
+      <h2>Nuovo profilo cliente</h2>
+      <form id="clientForm" class="formgrid" novalidate>
+        <div><label for="clientFirstName">Nome *</label><input id="clientFirstName" autocomplete="given-name" required placeholder="Marco"></div>
+        <div><label for="clientLastName">Cognome *</label><input id="clientLastName" autocomplete="family-name" required placeholder="Rossi"></div>
+        <div><label for="clientEmail">E-mail</label><input id="clientEmail" type="email" autocomplete="email" placeholder="cliente@email.it"></div>
+        <div><label for="clientPhone">Telefono</label><input id="clientPhone" type="tel" autocomplete="tel" placeholder="+39 ..."></div>
+        <div class="span2"><label for="clientAddress">Indirizzo</label><input id="clientAddress" autocomplete="street-address" placeholder="Via e numero civico"></div>
+        <div><label for="clientZip">CAP</label><input id="clientZip" inputmode="numeric" autocomplete="postal-code" placeholder="00000"></div>
+        <div><label for="clientCity">Città</label><input id="clientCity" autocomplete="address-level2" placeholder="Roma"></div>
+        <div><label for="clientProvince">Provincia</label><input id="clientProvince" maxlength="2" autocomplete="address-level1" placeholder="RM"></div>
+        <div><label for="clientInstagram">Instagram</label><input id="clientInstagram" placeholder="@username"></div>
+        <div><label for="clientCode">Codice cliente</label><input id="clientCode" readonly></div>
+        <div class="submitrow"><button class="primary" type="submit">Salva profilo</button></div>
+        <div class="span4"><label for="clientNotes">Note cliente</label><textarea id="clientNotes" placeholder="Preferenze, dettagli utili, richieste..."></textarea></div>
+      </form>
+      <div class="notice" id="clientNotice" aria-live="polite"></div>
+    </div>
+
+    <div class="card">
+      <div class="searchrow"><input id="clientSearch" placeholder="Cerca nome, codice, e-mail, telefono, città..."></div>
+      <div class="tablewrap"><table><thead><tr><th>Codice</th><th>Cliente</th><th>Contatti</th><th>Città</th><th>Totale speso</th><th>Saldo punti</th><th>Premio</th><th>Profilo</th></tr></thead><tbody id="clientRows"></tbody></table></div>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-orders">
+    <div class="card"><h2>Registra un ordine</h2>
+      <form id="orderForm" class="formgrid">
+        <div><label for="orderDate">Data</label><input type="date" id="orderDate" required></div>
+        <div class="span2"><label for="orderClient">Cliente</label><select id="orderClient" required><option value="">Seleziona cliente</option></select></div>
+        <div><label for="orderAmount">Importo ordine (€)</label><input id="orderAmount" type="number" min="0" step="0.01" required placeholder="30"></div>
+        <div class="span2"><label for="orderProduct">Prodotto acquistato</label><select id="orderProduct" required><option value="">— Scegli il prodotto —</option><option>Custom Card</option><option>Custom Card + Stand</option><option>Extended Art</option><option>Classic Box</option><option>Premium Box</option><option>Deluxe Box</option><option>Ultimate Collector Box</option><option>Altro</option></select></div>
+        <div><label for="orderRedeem">Punti da utilizzare</label><input id="orderRedeem" type="number" min="0" step="1" value="0"></div>
+        <div class="submitrow"><button class="primary" type="submit">Registra ordine</button></div>
+        <div class="span4"><label for="orderNote">Note ordine</label><input id="orderNote" placeholder="Dettagli dell’ordine"></div>
+      </form><div class="notice" id="orderNotice" aria-live="polite"></div>
+    </div>
+    <div class="card"><div class="tablewrap"><table><thead><tr><th>Data</th><th>Cliente</th><th>Importo</th><th>+ Punti</th><th>- Punti</th><th>Saldo</th><th>Prodotto / note</th><th></th></tr></thead><tbody id="orderRows"></tbody></table></div></div>
+  </section>
+
+  <section class="panel" id="panel-rewards">
+    <div class="card"><h2>Avanzamento premi</h2><div class="tablewrap"><table><thead><tr><th>Cliente</th><th>Saldo</th><th>Premio attuale</th><th>Prossimo premio</th><th>Punti mancanti</th></tr></thead><tbody id="rewardRows"></tbody></table></div></div>
+  </section>
+
+  <section class="panel" id="panel-settings">
+    <div class="card"><h2>Regole dei punti</h2><div class="settings"><div><label for="eurosPerPoint">Euro spesi per 1 punto</label><input id="eurosPerPoint" type="number" min="1" step="1"></div><button class="primary" type="button" id="saveSettings">Salva impostazioni</button></div><div class="notice" id="settingsNotice"></div></div>
+    <div class="card"><h2>Soglie premi</h2><div id="rewardSettings" class="rewards"></div><button type="button" class="secondary" id="addReward" style="margin-top:12px">+ Aggiungi soglia</button></div>
+    <div class="card"><h2>Gestione dati</h2><p class="reward">Il gestionale prova a salvare automaticamente i dati nel browser. Fai comunque un backup JSON periodico.</p><button class="danger" type="button" id="resetBtn">Azzera tutti i dati</button></div>
+  </section>
+</div>
+
+<div class="modal" id="profileModal" aria-hidden="true">
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="profileHeading">
+    <div class="profile-head"><div><div class="profile-title"><h2 id="profileHeading">Profilo cliente</h2><span class="pill" id="profileCode"></span></div><div class="profile-meta" id="profileMeta"></div></div><button type="button" class="secondary modal-close" id="closeProfile">Chiudi</button></div>
+    <div class="profile-stats"><div class="profile-stat"><small>Totale speso</small><strong id="pSpent">—</strong></div><div class="profile-stat"><small>Punti guadagnati</small><strong id="pEarned">—</strong></div><div class="profile-stat"><small>Saldo punti</small><strong id="pBalance">—</strong></div><div class="profile-stat"><small>Premio</small><strong id="pReward">—</strong></div></div>
+    <div class="divider"></div>
+    <form id="profileForm" class="formgrid">
+      <input type="hidden" id="profileId">
+      <div><label for="pFirstName">Nome *</label><input id="pFirstName" required></div>
+      <div><label for="pLastName">Cognome *</label><input id="pLastName" required></div>
+      <div><label for="pEmail">E-mail</label><input id="pEmail" type="email"></div>
+      <div><label for="pPhone">Telefono</label><input id="pPhone" type="tel"></div>
+      <div class="span2"><label for="pAddress">Indirizzo</label><input id="pAddress"></div>
+      <div><label for="pZip">CAP</label><input id="pZip" inputmode="numeric"></div>
+      <div><label for="pCity">Città</label><input id="pCity"></div>
+      <div><label for="pProvince">Provincia</label><input id="pProvince" maxlength="2"></div>
+      <div><label for="pInstagram">Instagram</label><input id="pInstagram"></div>
+      <div class="span2"><label for="pNotes">Note cliente</label><textarea id="pNotes"></textarea></div>
+      <div class="span4 row-actions"><button class="primary" type="submit">Salva modifiche</button><button class="danger" type="button" id="deleteClient">Elimina cliente</button></div>
+    </form>
+    <div class="notice" id="profileNotice"></div>
+    <div class="divider"></div>
+    <h3>Storico ordini</h3>
+    <div class="tablewrap"><table><thead><tr><th>Data</th><th>Importo</th><th>+ Punti</th><th>- Punti</th><th>Prodotto / note</th></tr></thead><tbody id="profileOrders"></tbody></table></div>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+var root=document.getElementById('cla-root');
+function $(s,ctx){return (ctx||document).querySelector(s)}
+function $$(s,ctx){return Array.prototype.slice.call((ctx||document).querySelectorAll(s))}
+var STORAGE_KEY='card-lab-art-fidelity-profiles-v2';
+function defaultState(){return {clients:[],orders:[],settings:{eurosPerPoint:10,rewards:[{points:5,name:'Sticker o piccolo gadget'},{points:10,name:'Upgrade olografico o gadget 3D'},{points:15,name:'10 EUR di sconto sul prossimo ordine'},{points:20,name:'Prodotto personalizzato o stand base'}]}}}
+function text(v){return v==null?'':String(v)}
+function esc(v){return text(v).replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]})}
+function uid(){try{if(window.crypto&&typeof window.crypto.randomUUID==='function')return window.crypto.randomUUID()}catch(e){}return 'id-'+Date.now()+'-'+Math.random().toString(16).slice(2)}
+function migrateClient(c){
+  c=c||{}; var pieces=text(c.name).trim().split(/\s+/).filter(Boolean);
+  var first=text(c.firstName||pieces[0]||''); var last=text(c.lastName||pieces.slice(1).join(' '));
+  return {id:c.id||uid(),code:c.code||'',firstName:first,lastName:last,name:(first+' '+last).trim(),email:text(c.email),phone:text(c.phone),address:text(c.address),zip:text(c.zip),city:text(c.city),province:text(c.province),instagram:text(c.instagram||c.contact),notes:text(c.notes)};
+}
+function normalizeState(data){
+  var d=defaultState(); if(!data||!Array.isArray(data.clients)||!Array.isArray(data.orders))return d;
+  d.clients=data.clients.map(migrateClient); d.orders=data.orders.map(function(o){return Object.assign({},o,{amount:Number(o.amount)||0,earned:Number(o.earned)||0,redeemed:Number(o.redeemed)||0})});
+  if(data.settings){d.settings.eurosPerPoint=Math.max(1,Number(data.settings.eurosPerPoint)||10);if(Array.isArray(data.settings.rewards)&&data.settings.rewards.length)d.settings.rewards=data.settings.rewards.map(function(r){return {points:Math.max(1,Number(r.points)||1),name:text(r.name||'Premio')}})}
+  return d;
+}
+var storageOK=true;
+function loadState(){try{var raw=localStorage.getItem(STORAGE_KEY);return raw?normalizeState(JSON.parse(raw)):defaultState()}catch(e){storageOK=false;return defaultState()}}
+var state=loadState();
+function saveState(){
+  try{
+    var payload=JSON.stringify(state);
+    localStorage.setItem(STORAGE_KEY,payload);
+    var check=localStorage.getItem(STORAGE_KEY);
+    if(check!==payload)throw new Error('Verifica salvataggio non riuscita');
+    storageOK=true;showStorageStatus();return true;
+  }catch(e){storageOK=false;showStorageStatus();console.error('Errore salvataggio:',e);return false}
+}
+function verifyClientSaved(client){
+  try{
+    var raw=localStorage.getItem(STORAGE_KEY);if(!raw)return false;
+    var saved=JSON.parse(raw),found=(saved.clients||[]).find(function(x){return x.id===client.id});
+    if(!found)return false;
+    var fields=['code','firstName','lastName','name','email','phone','address','zip','city','province','instagram','notes'];
+    return fields.every(function(k){return text(found[k])===text(client[k])});
+  }catch(e){return false}
+}
+function showStorageStatus(){var box=$('#storageWarning');if(box)box.style.display=storageOK?'none':'block'}
+function money(n){return new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR'}).format(Number(n)||0)}
+function today(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function nextCode(){var max=0;state.clients.forEach(function(c){var m=text(c.code).match(/^CL(\d+)$/);if(m)max=Math.max(max,Number(m[1]))});return 'CL'+String(max+1).padStart(3,'0')}
+function ensureCodes(){state.clients.forEach(function(c){if(!c.code)c.code=nextCode()})}
+function clientStats(id){var orders=state.orders.filter(function(o){return o.clientId===id});var spent=orders.reduce(function(a,o){return a+(Number(o.amount)||0)},0);var earned=orders.reduce(function(a,o){return a+(Number(o.earned)||0)},0);var used=orders.reduce(function(a,o){return a+(Number(o.redeemed)||0)},0);return {spent:spent,earned:earned,used:used,balance:earned-used}}
+function rewardFor(points){var sorted=state.settings.rewards.slice().sort(function(a,b){return a.points-b.points});var current=null,next=null;sorted.forEach(function(r){if(points>=r.points)current=r;else if(!next)next=r});return {current:current,next:next}}
+function clientContactHtml(c){var parts=[];if(c.email)parts.push(esc(c.email));if(c.phone)parts.push(esc(c.phone));if(c.instagram)parts.push(esc(c.instagram));return parts.length?parts.join('<br>'):'—'}
+function renderRewardsSettings(){var box=$('#rewardSettings');box.innerHTML='';state.settings.rewards.slice().sort(function(a,b){return a.points-b.points}).forEach(function(r,i){var row=document.createElement('div');row.className='rewardrow';row.innerHTML='<div><label>Punti</label><input type="number" min="1" step="1" data-rp="'+i+'" value="'+esc(r.points)+'"></div><div><label>Premio</label><input data-rn="'+i+'" value="'+esc(r.name)+'"></div>';box.appendChild(row)})}
+function render(){
+  ensureCodes();showStorageStatus();
+  $('#clientCode').value=nextCode();$('#eurosPerPoint').value=state.settings.eurosPerPoint;
+  $('#sClients').textContent=state.clients.length;$('#sOrders').textContent=state.orders.length;$('#sRevenue').textContent=money(state.orders.reduce(function(a,o){return a+(Number(o.amount)||0)},0));$('#sPoints').textContent=state.clients.reduce(function(a,c){return a+clientStats(c.id).balance},0);
+  var q=$('#clientSearch').value.trim().toLowerCase();var clients=state.clients.filter(function(c){return [c.code,c.firstName,c.lastName,c.name,c.email,c.phone,c.address,c.zip,c.city,c.province,c.instagram,c.notes].some(function(v){return text(v).toLowerCase().indexOf(q)!==-1})});
+  $('#clientRows').innerHTML=clients.length?clients.map(function(c){var s=clientStats(c.id),rw=rewardFor(s.balance).current;return '<tr><td><span class="pill">'+esc(c.code)+'</span></td><td><strong>'+esc(c.name||'Cliente')+'</strong></td><td>'+clientContactHtml(c)+'</td><td>'+esc(c.city||'—')+'</td><td>'+money(s.spent)+'</td><td><strong>'+s.balance+'</strong></td><td class="reward">'+(rw?esc(rw.name):'—')+'</td><td><button class="mini primary open-profile" type="button" data-id="'+esc(c.id)+'">Apri</button></td></tr>'}).join(''):'<tr><td colspan="8" class="empty">Nessun cliente registrato.</td></tr>';
+  $('#orderClient').innerHTML='<option value="">Seleziona cliente</option>'+state.clients.map(function(c){return '<option value="'+esc(c.id)+'">'+esc(c.code)+' — '+esc(c.name)+'</option>'}).join('');
+  $('#orderRows').innerHTML=state.orders.length?state.orders.slice().reverse().map(function(o){var c=state.clients.find(function(x){return x.id===o.clientId});var idx=state.orders.indexOf(o);var prior=state.orders.slice(0,idx+1).filter(function(x){return x.clientId===o.clientId}).reduce(function(a,x){return a+(Number(x.earned)||0)-(Number(x.redeemed)||0)},0);return '<tr><td>'+esc(o.date)+'</td><td>'+(c?esc(c.name):'Cliente rimosso')+'</td><td>'+money(o.amount)+'</td><td>+'+(o.earned||0)+'</td><td>'+(o.redeemed?'-'+o.redeemed:'—')+'</td><td><strong>'+prior+'</strong></td><td>'+esc(o.note||'—')+'</td><td><button type="button" class="mini ghost delete-order" data-id="'+esc(o.id)+'">Elimina</button></td></tr>'}).join(''):'<tr><td colspan="8" class="empty">Nessun ordine registrato.</td></tr>';
+  var rewardData=state.clients.map(function(c){var s=clientStats(c.id);return {c:c,s:s,r:rewardFor(s.balance)}}).sort(function(a,b){return b.s.balance-a.s.balance});
+  $('#rewardRows').innerHTML=rewardData.length?rewardData.map(function(x){return '<tr><td><strong>'+esc(x.c.name)+'</strong><div class="reward">'+esc(x.c.code)+'</div></td><td><span class="pill">'+x.s.balance+' pt</span></td><td>'+(x.r.current?esc(x.r.current.name):'—')+'</td><td>'+(x.r.next?esc(x.r.next.name):'Soglia massima raggiunta')+'</td><td>'+(x.r.next?Math.max(0,x.r.next.points-x.s.balance)+' pt':'—')+'</td></tr>'}).join(''):'<tr><td colspan="5" class="empty">Aggiungi clienti per vedere i premi.</td></tr>';
+  renderRewardsSettings();
+}
+function setNotice(el,msg,type){el.textContent=msg;el.className='notice'+(type?' '+type:'')}
+function openProfile(id){var c=state.clients.find(function(x){return x.id===id});if(!c)return;var s=clientStats(id),rw=rewardFor(s.balance).current;$('#profileId').value=c.id;$('#profileCode').textContent=c.code;$('#profileHeading').textContent=c.name||'Profilo cliente';$('#profileMeta').textContent=[c.email,c.phone,c.city].filter(Boolean).join(' • ')||'Nessun contatto inserito';$('#pSpent').textContent=money(s.spent);$('#pEarned').textContent=s.earned;$('#pBalance').textContent=s.balance;$('#pReward').textContent=rw?rw.name:'—';$('#pFirstName').value=c.firstName;$('#pLastName').value=c.lastName;$('#pEmail').value=c.email;$('#pPhone').value=c.phone;$('#pAddress').value=c.address;$('#pZip').value=c.zip;$('#pCity').value=c.city;$('#pProvince').value=c.province;$('#pInstagram').value=c.instagram;$('#pNotes').value=c.notes;setNotice($('#profileNotice'),'','');var os=state.orders.filter(function(o){return o.clientId===id}).slice().reverse();$('#profileOrders').innerHTML=os.length?os.map(function(o){return '<tr><td>'+esc(o.date)+'</td><td>'+money(o.amount)+'</td><td>+'+(o.earned||0)+'</td><td>'+(o.redeemed?'-'+o.redeemed:'—')+'</td><td>'+esc(o.note||'—')+'</td></tr>'}).join(''):'<tr><td colspan="5" class="empty">Nessun ordine per questo cliente.</td></tr>';var modal=$('#profileModal');modal.classList.add('open');modal.setAttribute('aria-hidden','false')}
+function closeProfile(){var modal=$('#profileModal');modal.classList.remove('open');modal.setAttribute('aria-hidden','true')}
+$$('.tab').forEach(function(b){b.addEventListener('click',function(){$$('.tab').forEach(function(x){x.classList.remove('active')});$$('.panel').forEach(function(x){x.classList.remove('active')});b.classList.add('active');$('#panel-'+b.dataset.tab).classList.add('active')})});
+$('#clientForm').addEventListener('submit',function(e){
+  e.preventDefault();
+  var first=$('#clientFirstName').value.trim(),last=$('#clientLastName').value.trim();
+  if(!first||!last){setNotice($('#clientNotice'),'Inserisci nome e cognome.','error');return}
+  var email=$('#clientEmail').value.trim();
+  if(email&&!$('#clientEmail').checkValidity()){setNotice($('#clientNotice'),'L’indirizzo e-mail non è valido.','error');return}
+  var c={
+    id:uid(),code:nextCode(),firstName:first,lastName:last,name:(first+' '+last).trim(),email:email,
+    phone:$('#clientPhone').value.trim(),address:$('#clientAddress').value.trim(),zip:$('#clientZip').value.trim(),
+    city:$('#clientCity').value.trim(),province:$('#clientProvince').value.trim().toUpperCase(),
+    instagram:$('#clientInstagram').value.trim(),notes:$('#clientNotes').value.trim()
+  };
+  state.clients.push(c);
+  if(!saveState()||!verifyClientSaved(c)){
+    state.clients=state.clients.filter(function(x){return x.id!==c.id});
+    setNotice($('#clientNotice'),'ERRORE: il profilo non è stato salvato. Non chiudere la pagina e riprova.','error');return;
+  }
+  e.target.reset();render();setNotice($('#clientNotice'),'Profilo '+c.code+' salvato e verificato correttamente.','ok');openProfile(c.id)
+});
+$('#clientSearch').addEventListener('input',render);
+$('#clientRows').addEventListener('click',function(e){var b=e.target.closest('.open-profile');if(b)openProfile(b.dataset.id)});
+$('#closeProfile').addEventListener('click',closeProfile);$('#profileModal').addEventListener('click',function(e){if(e.target===this)closeProfile()});document.addEventListener('keydown',function(e){if(e.key==='Escape')closeProfile()});
+$('#profileForm').addEventListener('submit',function(e){
+  e.preventDefault();
+  var id=$('#profileId').value,c=state.clients.find(function(x){return x.id===id});if(!c)return;
+  var first=$('#pFirstName').value.trim(),last=$('#pLastName').value.trim();
+  if(!first||!last){setNotice($('#profileNotice'),'Nome e cognome sono obbligatori.','error');return}
+  if($('#pEmail').value.trim()&&!$('#pEmail').checkValidity()){setNotice($('#profileNotice'),'L’indirizzo e-mail non è valido.','error');return}
+  var backup=JSON.parse(JSON.stringify(c));
+  c.firstName=first;c.lastName=last;c.name=(first+' '+last).trim();c.email=$('#pEmail').value.trim();
+  c.phone=$('#pPhone').value.trim();c.address=$('#pAddress').value.trim();c.zip=$('#pZip').value.trim();
+  c.city=$('#pCity').value.trim();c.province=$('#pProvince').value.trim().toUpperCase();
+  c.instagram=$('#pInstagram').value.trim();c.notes=$('#pNotes').value.trim();
+  if(!saveState()||!verifyClientSaved(c)){
+    Object.keys(c).forEach(function(k){delete c[k]});Object.assign(c,backup);
+    setNotice($('#profileNotice'),'ERRORE: le modifiche non sono state salvate.','error');return;
+  }
+  render();openProfile(id);setNotice($('#profileNotice'),'Modifiche salvate e verificate.','ok')
+});
+$('#deleteClient').addEventListener('click',function(){var id=$('#profileId').value,c=state.clients.find(function(x){return x.id===id});if(!c)return;if(!confirm('Eliminare il profilo di '+c.name+'? Verranno eliminati anche i suoi ordini.'))return;state.clients=state.clients.filter(function(x){return x.id!==id});state.orders=state.orders.filter(function(o){return o.clientId!==id});saveState();closeProfile();render();setNotice($('#clientNotice'),'Cliente eliminato.','ok')});
+$('#orderForm').addEventListener('submit',function(e){e.preventDefault();var clientId=$('#orderClient').value,amount=Math.max(0,Number($('#orderAmount').value)||0),redeemed=Math.max(0,Math.floor(Number($('#orderRedeem').value)||0)),product=$('#orderProduct').value,note=$('#orderNote').value.trim();if(!clientId||amount<=0||!product){setNotice($('#orderNotice'),'Seleziona cliente, prodotto e importo valido.','error');return}var bal=clientStats(clientId).balance;if(redeemed>bal){setNotice($('#orderNotice'),'Il cliente ha solo '+bal+' punti disponibili.','error');return}var earned=Math.floor(amount/Math.max(1,Number(state.settings.eurosPerPoint)||10));state.orders.push({id:uid(),date:$('#orderDate').value||today(),clientId:clientId,amount:amount,earned:earned,redeemed:redeemed,note:note?product+' — '+note:product});saveState();$('#orderAmount').value='';$('#orderRedeem').value='0';$('#orderProduct').value='';$('#orderNote').value='';render();setNotice($('#orderNotice'),'Ordine registrato: +'+earned+' punti'+(redeemed?', -'+redeemed+' utilizzati':'')+'.','ok')});
+$('#orderRows').addEventListener('click',function(e){var b=e.target.closest('.delete-order');if(!b)return;if(!confirm('Eliminare questo ordine?'))return;state.orders=state.orders.filter(function(o){return o.id!==b.dataset.id});saveState();render()});
+$('#saveSettings').addEventListener('click',function(){state.settings.eurosPerPoint=Math.max(1,Math.floor(Number($('#eurosPerPoint').value)||10));var ps=$$('[data-rp]'),ns=$$('[data-rn]');state.settings.rewards=ps.map(function(p,i){return {points:Math.max(1,Math.floor(Number(p.value)||1)),name:(ns[i].value||'Premio').trim()}}).sort(function(a,b){return a.points-b.points});saveState();render();setNotice($('#settingsNotice'),'Impostazioni salvate.','ok')});
+$('#addReward').addEventListener('click',function(){var sorted=state.settings.rewards.slice().sort(function(a,b){return a.points-b.points}),last=sorted[sorted.length-1];state.settings.rewards.push({points:(last?last.points:0)+5,name:'Nuovo premio'});render()});
+$('#exportBtn').addEventListener('click',function(){var blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='card-lab-art-fidelity-backup.json';a.click();setTimeout(function(){URL.revokeObjectURL(a.href)},1000)});
+$('#csvBtn').addEventListener('click',function(){var rows=[['Codice','Nome','Cognome','Email','Telefono','Indirizzo','CAP','Citta','Provincia','Instagram','Note','Totale speso','Punti guadagnati','Punti usati','Saldo']];state.clients.forEach(function(c){var s=clientStats(c.id);rows.push([c.code,c.firstName,c.lastName,c.email,c.phone,c.address,c.zip,c.city,c.province,c.instagram,c.notes,s.spent,s.earned,s.used,s.balance])});var csv=rows.map(function(r){return r.map(function(v){return '"'+text(v).replace(/"/g,'""')+'"'}).join(';')}).join('\n');var blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='card-lab-art-clienti.csv';a.click();setTimeout(function(){URL.revokeObjectURL(a.href)},1000)});
+$('#importFile').addEventListener('change',function(e){var file=e.target.files&&e.target.files[0];if(!file)return;var reader=new FileReader();reader.onload=function(){try{state=normalizeState(JSON.parse(reader.result));saveState();render();setNotice($('#clientNotice'),'Backup importato correttamente.','ok')}catch(err){alert('Backup non valido.')}e.target.value=''};reader.readAsText(file)});
+$('#resetBtn').addEventListener('click',function(){if(!confirm('Vuoi davvero cancellare tutti i clienti e gli ordini?'))return;state=defaultState();saveState();render()});
+$('#orderDate').value=today();window.addEventListener('beforeunload',saveState);document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')saveState()});render();
+})();
+</script>
+</body>
+</html>
