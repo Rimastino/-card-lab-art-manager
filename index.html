@@ -251,14 +251,14 @@
 
     <div class="card">
       <h2>E-mail automatiche</h2>
-      <p class="reward">Invia automaticamente una e-mail quando crei un nuovo profilo cliente e una seconda e-mail quando un ordine passa a <strong>Spedito</strong>.</p>
+      <p class="reward">Per ora puoi attivare l’e-mail automatica di <strong>presa in carico</strong>. L’e-mail di spedizione può essere configurata più avanti.</p>
       <div class="formgrid">
         <div class="span2"><label for="emailPublicKey">EmailJS Public Key</label><input id="emailPublicKey" autocomplete="off" placeholder="Public Key"></div>
         <div class="span2"><label for="emailServiceId">Service ID</label><input id="emailServiceId" autocomplete="off" placeholder="service_xxxxx"></div>
         <div class="span2"><label for="emailIntakeTemplateId">Template ID — Presa in carico</label><input id="emailIntakeTemplateId" autocomplete="off" placeholder="template_xxxxx"></div>
-        <div class="span2"><label for="emailShippedTemplateId">Template ID — Spedito</label><input id="emailShippedTemplateId" autocomplete="off" placeholder="template_xxxxx"></div>
+        <div class="span2"><label for="emailShippedTemplateId">Template ID — Spedito <small>(opzionale per ora)</small></label><input id="emailShippedTemplateId" autocomplete="off" placeholder="template_xxxxx"></div>
         <div class="span2"><label for="emailFromName">Nome mittente</label><input id="emailFromName" value="Card_Lab_Art" placeholder="Card_Lab_Art"></div>
-        <div class="span2"><label>Invio automatico</label><label class="checkitem"><input id="emailEnabled" type="checkbox"> Attiva le 2 e-mail automatiche</label></div>
+        <div class="span2"><label>Invio automatico</label><label class="checkitem"><input id="emailEnabled" type="checkbox"> Attiva e-mail automatica presa in carico</label></div>
         <div class="span4 toolbar"><button class="primary" type="button" id="saveEmailSettings">Salva configurazione e-mail</button></div>
       </div>
       <div class="notice" id="emailSettingsNotice"></div>
@@ -408,7 +408,8 @@ function dueHtml(o){if(!o.dueDate)return '—';return '<span class="'+(isOverdue
 function trackingHtml(o){if(!o.trackingCode)return '—';return '<strong>'+esc(o.trackingCode)+'</strong>'+(o.carrier?'<div class="small">'+esc(o.carrier)+'</div>':'')}
 
 function emailSettings(){if(!state.settings.email)state.settings.email=defaultEmailSettings();return state.settings.email}
-function emailConfigReady(){var e=emailSettings();return !!(text(e.publicKey).trim()&&text(e.serviceId).trim()&&text(e.intakeTemplateId).trim()&&text(e.shippedTemplateId).trim())}
+function intakeEmailConfigReady(){var e=emailSettings();return !!(text(e.publicKey).trim()&&text(e.serviceId).trim()&&text(e.intakeTemplateId).trim())}
+function shippedEmailConfigReady(){var e=emailSettings();return !!(text(e.publicKey).trim()&&text(e.serviceId).trim()&&text(e.shippedTemplateId).trim())}
 function emailStatusLabel(sentAt,error){if(sentAt)return 'Inviata ✓ '+sentAt.replace('T',' ').slice(0,16);if(error)return 'Errore invio';return 'Non inviata'}
 function nowIso(){return new Date().toISOString()}
 function emailBaseParams(c){return {to_email:text(c.email).trim(),first_name:text(c.firstName).trim(),last_name:text(c.lastName).trim(),client_name:text(c.name).trim(),client_code:text(c.code).trim(),from_name:text(emailSettings().fromName||'Card_Lab_Art').trim()}}
@@ -478,7 +479,7 @@ $('#clientForm').addEventListener('submit',async function(e){
   if(!saveState()||!verifyClientSaved(c)){state.clients=state.clients.filter(function(x){return x.id!==c.id});setNotice($('#clientNotice'),'ERRORE: il profilo non è stato salvato. Riprova.','error');return}
   e.target.reset();render();openProfile(c.id);setNotice($('#clientNotice'),'Profilo '+c.code+' salvato correttamente.','ok');
   if(c.email&&autoEmailEnabled()){
-    if(!emailConfigReady()){c.intakeEmailError='Configurazione EmailJS incompleta';saveState();openProfile(c.id);setNotice($('#profileNotice'),'Profilo salvato, ma la configurazione e-mail è incompleta.','error');return}
+    if(!intakeEmailConfigReady()){c.intakeEmailError='Configurazione EmailJS presa in carico incompleta';saveState();openProfile(c.id);setNotice($('#profileNotice'),'Profilo salvato, ma la configurazione e-mail di presa in carico è incompleta.','error');return}
     setNotice($('#profileNotice'),'Profilo salvato. Invio e-mail di presa in carico...','');
     try{await sendIntakeEmail(c,false);openProfile(c.id);setNotice($('#profileNotice'),'E-mail di presa in carico inviata a '+c.email+'.','ok')}
     catch(err){openProfile(c.id);setNotice($('#profileNotice'),'Profilo salvato, ma l’e-mail non è partita: '+text(err&&err.text||err&&err.message||err),'error')}
@@ -492,7 +493,7 @@ $('#profileForm').addEventListener('submit',function(e){e.preventDefault();var i
 $('#sendIntakeEmailBtn').addEventListener('click',async function(){
   var id=$('#profileId').value,c=state.clients.find(function(x){return x.id===id});if(!c)return;
   if(!c.email){setNotice($('#profileNotice'),'Inserisci e salva prima l’e-mail del cliente.','error');return}
-  if(!emailConfigReady()){setNotice($('#profileNotice'),'Completa prima la configurazione EmailJS in Impostazioni.','error');return}
+  if(!intakeEmailConfigReady()){setNotice($('#profileNotice'),'Completa Public Key, Service ID e Template ID — Presa in carico nelle Impostazioni.','error');return}
   if(c.intakeEmailSentAt&&!confirm('L’e-mail risulta già inviata. Vuoi inviarla di nuovo?'))return;
   setNotice($('#profileNotice'),'Invio e-mail di presa in carico...','');
   try{await sendIntakeEmail(c,true);openProfile(id);setNotice($('#profileNotice'),'E-mail di presa in carico inviata a '+c.email+'.','ok')}
@@ -514,7 +515,7 @@ $('#orderForm').addEventListener('submit',async function(e){
   e.target.reset();$('#orderDate').value=today();$('#orderStatus').value='Nuovo';$('#orderPaymentStatus').value='Da pagare';$('#orderPaidAmount').value='0';$('#orderMaterialCost').value='0';$('#orderShippingCost').value='0';
   render();setNotice($('#orderNotice'),'Ordine registrato. Apri “Gestisci” per la checklist e gli aggiornamenti.','ok');openOrderModal(order.id);
   if(status==='Spedito'&&autoEmailEnabled()){
-    if(!emailConfigReady()){order.shippedEmailError='Configurazione EmailJS incompleta';saveState();openOrderModal(order.id);setNotice($('#orderEditNotice'),'Ordine salvato, ma la configurazione e-mail è incompleta.','error');return}
+    if(!shippedEmailConfigReady()){order.shippedEmailError='Configurazione EmailJS spedizione incompleta';saveState();openOrderModal(order.id);setNotice($('#orderEditNotice'),'Ordine salvato. E-mail spedizione non configurata.','error');return}
     setNotice($('#orderEditNotice'),'Ordine salvato. Invio e-mail di spedizione...','');
     try{await sendShippedEmail(order,false);openOrderModal(order.id);setNotice($('#orderEditNotice'),'E-mail di spedizione inviata.','ok')}
     catch(err){openOrderModal(order.id);setNotice($('#orderEditNotice'),'Ordine salvato, ma l’e-mail non è partita: '+text(err&&err.text||err&&err.message||err),'error')}
@@ -540,7 +541,7 @@ $('#orderEditForm').addEventListener('submit',async function(e){
   if(!saveState()){setNotice($('#orderEditNotice'),'ERRORE: modifiche non salvate.','error');return}
   render();refreshOpenProfileIfNeeded();openOrderModal(id);setNotice($('#orderEditNotice'),'Ordine aggiornato e salvato.','ok');
   if(previousStatus!=='Spedito'&&status==='Spedito'&&!o.shippedEmailSentAt&&autoEmailEnabled()){
-    if(!emailConfigReady()){o.shippedEmailError='Configurazione EmailJS incompleta';saveState();openOrderModal(id);setNotice($('#orderEditNotice'),'Ordine salvato, ma la configurazione e-mail è incompleta.','error');return}
+    if(!shippedEmailConfigReady()){o.shippedEmailError='Configurazione EmailJS spedizione incompleta';saveState();openOrderModal(id);setNotice($('#orderEditNotice'),'Ordine salvato. E-mail spedizione non configurata.','error');return}
     setNotice($('#orderEditNotice'),'Ordine salvato. Invio e-mail di spedizione...','');
     try{await sendShippedEmail(o,false);openOrderModal(id);setNotice($('#orderEditNotice'),'E-mail di spedizione inviata automaticamente.','ok')}
     catch(err){openOrderModal(id);setNotice($('#orderEditNotice'),'Ordine salvato, ma l’e-mail non è partita: '+text(err&&err.text||err&&err.message||err),'error')}
@@ -551,7 +552,7 @@ $('#sendShippedEmailBtn').addEventListener('click',async function(){
   var id=$('#editOrderId').value,o=state.orders.find(function(x){return x.id===id});if(!o)return;
   var c=state.clients.find(function(x){return x.id===o.clientId});
   if(!c||!c.email){setNotice($('#orderEditNotice'),'Il cliente non ha un indirizzo e-mail salvato.','error');return}
-  if(!emailConfigReady()){setNotice($('#orderEditNotice'),'Completa prima la configurazione EmailJS in Impostazioni.','error');return}
+  if(!shippedEmailConfigReady()){setNotice($('#orderEditNotice'),'Configura prima il Template ID — Spedito nelle Impostazioni.','error');return}
   if(o.shippedEmailSentAt&&!confirm('L’e-mail di spedizione risulta già inviata. Vuoi inviarla di nuovo?'))return;
   setNotice($('#orderEditNotice'),'Invio e-mail di spedizione...','');
   try{await sendShippedEmail(o,true);openOrderModal(id);setNotice($('#orderEditNotice'),'E-mail di spedizione inviata a '+c.email+'.','ok')}
@@ -567,8 +568,8 @@ $('#saveEmailSettings').addEventListener('click',function(){
   var em=emailSettings();
   em.publicKey=$('#emailPublicKey').value.trim();em.serviceId=$('#emailServiceId').value.trim();em.intakeTemplateId=$('#emailIntakeTemplateId').value.trim();em.shippedTemplateId=$('#emailShippedTemplateId').value.trim();em.fromName=$('#emailFromName').value.trim()||'Card_Lab_Art';em.enabled=$('#emailEnabled').checked;
   saveState();
-  if(em.enabled&&!emailConfigReady()){setNotice($('#emailSettingsNotice'),'Configurazione salvata, ma mancano uno o più ID/chiavi. Completa tutti i campi.','error');return}
-  setNotice($('#emailSettingsNotice'),em.enabled?'Configurazione salvata. E-mail automatiche attive.':'Configurazione salvata. E-mail automatiche disattivate.','ok');
+  if(em.enabled&&!intakeEmailConfigReady()){setNotice($('#emailSettingsNotice'),'Configurazione salvata, ma per la presa in carico servono Public Key, Service ID e Template ID — Presa in carico.','error');return}
+  setNotice($('#emailSettingsNotice'),em.enabled?'Configurazione salvata. E-mail automatica presa in carico attiva.':'Configurazione salvata. E-mail automatica presa in carico disattivata.','ok');
 });
 
 $('#addReward').addEventListener('click',function(){var sorted=state.settings.rewards.slice().sort(function(a,b){return a.points-b.points}),last=sorted[sorted.length-1];state.settings.rewards.push({points:(last?last.points:0)+5,name:'Nuovo premio'});render()});
