@@ -264,6 +264,18 @@
       <div class="notice" id="emailSettingsNotice"></div>
       <div class="reward" style="margin-top:10px">Variabili template: <strong>{{to_email}}</strong>, {{first_name}}, {{last_name}}, {{client_name}}, {{client_code}}, {{product}}, {{order_date}}, {{order_status}}, {{carrier}}, {{tracking_code}}, {{tracking_url}}, {{subject}}, {{message}}.</div>
     </div>
+
+    <div class="card">
+      <h2>Import tracking da Gmail</h2>
+      <p class="reward">Collega il gestionale a un piccolo Google Apps Script. Il gestionale controlla le e-mail di aggiornamento di “Spedire by Alsendo”, legge <strong>Destinatario, tracking e corriere</strong> e abbina il tracking al cliente con lo stesso nome. Controlla all’apertura e poi ogni minuto mentre il gestionale è aperto. Non cambia lo stato dell’ordine e non invia e-mail al cliente.</p>
+      <div class="formgrid">
+        <div class="span2"><label for="trackingWebAppUrl">URL Google Apps Script</label><input id="trackingWebAppUrl" type="url" autocomplete="off" placeholder="https://script.google.com/macros/s/.../exec"></div>
+        <div class="span2"><label for="trackingWebAppToken">Token segreto</label><input id="trackingWebAppToken" type="password" autocomplete="off" placeholder="Token impostato nello script"></div>
+        <div class="span4 toolbar"><button class="primary" type="button" id="saveTrackingIntegration">Salva integrazione tracking</button><button class="secondary" type="button" id="syncTrackingNowBtn">Sincronizza tracking adesso</button></div>
+      </div>
+      <div class="notice" id="trackingIntegrationNotice"></div>
+    </div>
+
     <div class="card"><h2>Gestione dati</h2><p class="reward">I dati restano salvati nel browser di questo dispositivo. Fai un backup JSON periodico, soprattutto prima di aggiornare il file del gestionale.</p><button class="danger" type="button" id="resetBtn">Azzera tutti i dati</button></div>
   </section>
 </div>
@@ -333,7 +345,7 @@
           <button class="secondary" type="button" id="sendShippedEmailBtn">Invia e-mail spedizione</button>
         </div>
       </div>
-      <div class="span4 toolbar"><button class="primary" type="submit">Salva ordine</button><button class="secondary" type="button" id="copyTrackingBtn">Copia tracking</button><button class="secondary" type="button" id="openTrackingBtn">Apri tracking</button><button class="danger" type="button" id="deleteOrderFromModal">Elimina ordine</button></div>
+      <div class="span4 toolbar"><button class="primary" type="submit">Salva ordine</button><button class="secondary" type="button" id="importTrackingGmailBtn">Importa ultimo tracking Gmail</button><button class="secondary" type="button" id="copyTrackingBtn">Copia tracking</button><button class="secondary" type="button" id="openTrackingBtn">Apri tracking</button><button class="danger" type="button" id="deleteOrderFromModal">Elimina ordine</button></div>
     </form>
     <div class="notice" id="orderEditNotice"></div>
   </div>
@@ -363,7 +375,8 @@ var CHECKLIST_ITEMS=[
 ];
 function defaultChecklist(){var x={};CHECKLIST_ITEMS.forEach(function(i){x[i.key]=false});return x}
 function defaultEmailSettings(){return {enabled:false,publicKey:'',serviceId:'',intakeTemplateId:'',shippedTemplateId:'',fromName:'Card_Lab_Art'}}
-function defaultState(){return {clients:[],orders:[],settings:{eurosPerPoint:10,rewards:[{points:5,name:'Sticker o piccolo gadget'},{points:10,name:'Upgrade olografico o gadget 3D'},{points:15,name:'10 EUR di sconto sul prossimo ordine'},{points:20,name:'Prodotto personalizzato o stand base'}],email:defaultEmailSettings()}}}
+function defaultTrackingIntegration(){return {webAppUrl:'',token:''}}
+function defaultState(){return {clients:[],orders:[],settings:{eurosPerPoint:10,rewards:[{points:5,name:'Sticker o piccolo gadget'},{points:10,name:'Upgrade olografico o gadget 3D'},{points:15,name:'10 EUR di sconto sul prossimo ordine'},{points:20,name:'Prodotto personalizzato o stand base'}],email:defaultEmailSettings(),trackingIntegration:defaultTrackingIntegration()}}}
 function text(v){return v==null?'':String(v)}
 function num(v){var n=Number(v);return Number.isFinite(n)?n:0}
 function esc(v){return text(v).replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]})}
@@ -373,7 +386,7 @@ function today(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()
 function migrateClient(c){c=c||{};var pieces=text(c.name).trim().split(/\s+/).filter(Boolean);var first=text(c.firstName||pieces[0]||'');var last=text(c.lastName||pieces.slice(1).join(' '));return {id:c.id||uid(),code:c.code||'',firstName:first,lastName:last,name:(first+' '+last).trim(),email:text(c.email),phone:text(c.phone),address:text(c.address),zip:text(c.zip),city:text(c.city),province:text(c.province),instagram:text(c.instagram||c.contact),notes:text(c.notes),intakeEmailSentAt:text(c.intakeEmailSentAt),intakeEmailError:text(c.intakeEmailError)}}
 function legacyOrderProductAndNotes(o){var product=text(o.product),notes=text(o.orderNotes||o.notes);if(product)return {product:PRODUCTS.indexOf(product)>=0?product:'Altro',notes:notes||text(o.note)};var legacy=text(o.note);var parts=legacy.split(' — ');if(parts.length>1&&PRODUCTS.indexOf(parts[0])>=0)return {product:parts[0],notes:parts.slice(1).join(' — ')};if(PRODUCTS.indexOf(legacy)>=0)return {product:legacy,notes:''};return {product:'Altro',notes:legacy}}
 function normalizeOrder(o){o=o||{};var pn=legacyOrderProductAndNotes(o);var st=text(o.orderStatus||o.shippingStatus||o.status||'In lavorazione');if(st==='Arrivato')st='Consegnato';if(ORDER_STATUSES.indexOf(st)<0)st='In lavorazione';var ps=text(o.paymentStatus||'Da pagare');if(PAYMENT_STATUSES.indexOf(ps)<0)ps='Da pagare';var cl=Object.assign(defaultChecklist(),o.checklist||{});if(st==='Spedito'||st==='Consegnato')cl.shipped=true;return Object.assign({},o,{id:o.id||uid(),date:text(o.date||today()),clientId:text(o.clientId),amount:num(o.amount),earned:num(o.earned),redeemed:num(o.redeemed),product:pn.product,orderNotes:pn.notes,orderStatus:st,dueDate:text(o.dueDate),paymentStatus:ps,paidAmount:num(o.paidAmount),paymentMethod:text(o.paymentMethod),materialCost:num(o.materialCost),shippingCost:num(o.shippingCost),carrier:text(o.carrier),trackingCode:text(o.trackingCode),trackingUrl:text(o.trackingUrl),checklist:cl,shippedEmailSentAt:text(o.shippedEmailSentAt),shippedEmailError:text(o.shippedEmailError)})}
-function normalizeState(data){var d=defaultState();if(!data||!Array.isArray(data.clients)||!Array.isArray(data.orders))return d;d.clients=data.clients.map(migrateClient);d.orders=data.orders.map(normalizeOrder);if(data.settings){d.settings.eurosPerPoint=Math.max(1,num(data.settings.eurosPerPoint)||10);if(Array.isArray(data.settings.rewards)&&data.settings.rewards.length)d.settings.rewards=data.settings.rewards.map(function(r){return {points:Math.max(1,num(r.points)||1),name:text(r.name||'Premio')}});d.settings.email=Object.assign(defaultEmailSettings(),data.settings.email||{})}return d}
+function normalizeState(data){var d=defaultState();if(!data||!Array.isArray(data.clients)||!Array.isArray(data.orders))return d;d.clients=data.clients.map(migrateClient);d.orders=data.orders.map(normalizeOrder);if(data.settings){d.settings.eurosPerPoint=Math.max(1,num(data.settings.eurosPerPoint)||10);if(Array.isArray(data.settings.rewards)&&data.settings.rewards.length)d.settings.rewards=data.settings.rewards.map(function(r){return {points:Math.max(1,num(r.points)||1),name:text(r.name||'Premio')}});d.settings.email=Object.assign(defaultEmailSettings(),data.settings.email||{});d.settings.trackingIntegration=Object.assign(defaultTrackingIntegration(),data.settings.trackingIntegration||{})}return d}
 var storageOK=true;
 function loadState(){try{var raw=localStorage.getItem(STORAGE_KEY);return raw?normalizeState(JSON.parse(raw)):defaultState()}catch(e){storageOK=false;return defaultState()}}
 var state=loadState();
@@ -442,11 +455,151 @@ function sendShippedEmail(o,force){
 }
 function autoEmailEnabled(){return !!emailSettings().enabled}
 
+
+function trackingIntegration(){
+  if(!state.settings.trackingIntegration)state.settings.trackingIntegration=defaultTrackingIntegration();
+  return state.settings.trackingIntegration;
+}
+function trackingIntegrationReady(){
+  var t=trackingIntegration();
+  return /^https:\/\/script\.google\.com\/macros\/s\/.+\/exec(?:\?.*)?$/.test(text(t.webAppUrl).trim()) && !!text(t.token).trim();
+}
+function jsonpRequest(baseUrl,params){
+  return new Promise(function(resolve,reject){
+    var callbackName='claJsonp_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+    var script=document.createElement('script');
+    var timer=setTimeout(function(){cleanup();reject(new Error('Timeout: nessuna risposta da Google Apps Script.'))},15000);
+    function cleanup(){
+      clearTimeout(timer);
+      try{delete window[callbackName]}catch(e){window[callbackName]=undefined}
+      if(script.parentNode)script.parentNode.removeChild(script);
+    }
+    window[callbackName]=function(data){cleanup();resolve(data)};
+    var qs=Object.keys(params||{}).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(params[k])}).join('&');
+    qs+=(qs?'&':'')+'callback='+encodeURIComponent(callbackName);
+    script.src=baseUrl+(baseUrl.indexOf('?')>=0?'&':'?')+qs;
+    script.onerror=function(){cleanup();reject(new Error('Impossibile raggiungere Google Apps Script.'))};
+    document.head.appendChild(script);
+  });
+}
+
+function normalizePersonName(v){
+  return text(v).toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-z0-9]+/g,' ')
+    .trim().replace(/\s+/g,' ');
+}
+function findClientByRecipient(recipient){
+  var target=normalizePersonName(recipient);
+  if(!target)return null;
+  var exact=state.clients.find(function(c){return normalizePersonName(c.name)===target});
+  if(exact)return exact;
+  var parts=target.split(' ').filter(Boolean);
+  if(parts.length<2)return null;
+  return state.clients.find(function(c){
+    var n=normalizePersonName(c.name);
+    return parts.every(function(p){return n.split(' ').indexOf(p)>=0});
+  })||null;
+}
+function findOrderForTrackingClient(clientId){
+  return state.orders
+    .filter(function(o){
+      return o.clientId===clientId &&
+             !text(o.trackingCode).trim() &&
+             o.orderStatus!=='Consegnato';
+    })
+    .slice()
+    .sort(function(a,b){
+      return text(b.date).localeCompare(text(a.date));
+    })[0] || null;
+}
+async function syncRecentTrackingsFromGmail(showNotice){
+  var cfg=trackingIntegration();
+  if(!trackingIntegrationReady())return {ok:false,reason:'not-configured'};
+
+  var result=await jsonpRequest(text(cfg.webAppUrl).trim(),{
+    action:'recentTrackings',
+    token:text(cfg.token).trim(),
+    days:'30'
+  });
+
+  if(!result||result.ok!==true)throw new Error(text(result&&result.error||'Nessun tracking trovato.'));
+
+  var imported=0, skipped=0, matched=[];
+  (result.items||[]).forEach(function(item){
+    var code=text(item.tracking).trim();
+    if(!code){skipped++;return}
+    if(state.orders.some(function(o){return text(o.trackingCode).trim()===code})){skipped++;return}
+
+    var client=findClientByRecipient(item.recipient);
+    if(!client){skipped++;return}
+
+    var order=findOrderForTrackingClient(client.id);
+    if(!order){skipped++;return}
+
+    order.trackingCode=code;
+    if(text(item.carrier).trim())order.carrier=text(item.carrier).trim();
+    order.trackingImportedAt=new Date().toISOString();
+    order.trackingSourceRecipient=text(item.recipient);
+    imported++;
+    matched.push(client.name+' → '+code);
+  });
+
+  if(imported){
+    saveState();render();refreshOpenProfileIfNeeded();
+  }
+
+  if(showNotice){
+    var msg=imported
+      ? ('Importati '+imported+' tracking. '+matched.join(' | '))
+      : 'Nessun nuovo tracking da importare automaticamente.';
+    setNotice($('#trackingIntegrationNotice'),msg,imported?'ok':'');
+  }
+  return {ok:true,imported:imported,skipped:skipped,matched:matched};
+}
+
+async function importLatestTrackingIntoOrder(orderId){
+  var o=state.orders.find(function(x){return x.id===orderId});
+  if(!o)throw new Error('Ordine non trovato.');
+  var cfg=trackingIntegration();
+  if(!trackingIntegrationReady())throw new Error('Configura URL Apps Script e token segreto nelle Impostazioni.');
+
+  var result=await jsonpRequest(text(cfg.webAppUrl).trim(),{
+    action:'latestTracking',
+    token:text(cfg.token).trim()
+  });
+
+  if(!result||result.ok!==true)throw new Error(text(result&&result.error||'Tracking non trovato.'));
+  var code=text(result.tracking).trim();
+  if(!code)throw new Error('La mail è stata trovata, ma non contiene un codice tracking valido.');
+
+  var duplicate=state.orders.find(function(x){return x.id!==o.id&&text(x.trackingCode).trim()===code});
+  if(duplicate)throw new Error('Questo tracking è già assegnato a un altro ordine: '+code);
+
+  if(o.trackingCode&&o.trackingCode!==code){
+    if(!confirm('Questo ordine ha già il tracking '+o.trackingCode+'. Vuoi sostituirlo con '+code+'?'))return {cancelled:true};
+  }
+
+  o.trackingCode=code;
+  if(text(result.carrier).trim())o.carrier=text(result.carrier).trim();
+  o.trackingImportedAt=new Date().toISOString();
+  o.trackingSourceRecipient=text(result.recipient);
+  saveState();
+  return {
+    ok:true,
+    tracking:code,
+    recipient:text(result.recipient),
+    carrier:text(result.carrier),
+    emailDate:text(result.emailDate),
+    subject:text(result.subject)
+  };
+}
 function render(){
   ensureCodes();showStorageStatus();
   $('#clientCode').value=nextCode();$('#eurosPerPoint').value=state.settings.eurosPerPoint;
   var em=emailSettings();
   $('#emailPublicKey').value=em.publicKey||'';$('#emailServiceId').value=em.serviceId||'';$('#emailIntakeTemplateId').value=em.intakeTemplateId||'';$('#emailShippedTemplateId').value=em.shippedTemplateId||'';$('#emailFromName').value=em.fromName||'Card_Lab_Art';$('#emailEnabled').checked=!!em.enabled;
+  var ti=trackingIntegration();$('#trackingWebAppUrl').value=ti.webAppUrl||'';$('#trackingWebAppToken').value=ti.token||'';
   var revenue=state.orders.reduce(function(a,o){return a+num(o.amount)},0);
   $('#sClients').textContent=state.clients.length;$('#sOrders').textContent=state.orders.length;$('#sRevenue').textContent=money(revenue);$('#sWork').textContent=state.orders.filter(function(o){return ['Nuovo','In lavorazione','Da approvare','Pronto'].indexOf(o.orderStatus)>=0}).length;$('#sShip').textContent=state.orders.filter(function(o){return o.orderStatus==='Da spedire'}).length;$('#sPoints').textContent=state.clients.reduce(function(a,c){return a+clientStats(c.id).balance},0);
   var q=$('#clientSearch').value.trim().toLowerCase();var clients=state.clients.filter(function(c){return [c.code,c.firstName,c.lastName,c.name,c.email,c.phone,c.address,c.zip,c.city,c.province,c.instagram,c.notes].some(function(v){return text(v).toLowerCase().indexOf(q)!==-1})});
@@ -559,6 +712,26 @@ $('#sendShippedEmailBtn').addEventListener('click',async function(){
   catch(err){openOrderModal(id);setNotice($('#orderEditNotice'),'Errore invio: '+text(err&&err.text||err&&err.message||err),'error')}
 });
 
+
+$('#importTrackingGmailBtn').addEventListener('click',async function(){
+  var id=$('#editOrderId').value;
+  if(!id){setNotice($('#orderEditNotice'),'Ordine non trovato.','error');return}
+  this.disabled=true;
+  setNotice($('#orderEditNotice'),'Cerco l’ultimo tracking ricevuto da Spedire by Alsendo...','');
+  try{
+    var r=await importLatestTrackingIntoOrder(id);
+    if(r&&r.cancelled){setNotice($('#orderEditNotice'),'Importazione annullata.','');return}
+    $('#editTrackingCode').value=r.tracking;
+    setNotice($('#orderEditNotice'),'Tracking importato e salvato: '+r.tracking+'. Lo stato ordine NON è stato modificato.','ok');
+    render();
+    refreshOpenProfileIfNeeded();
+  }catch(err){
+    setNotice($('#orderEditNotice'),'Import tracking fallito: '+text(err&&err.message||err),'error');
+  }finally{
+    this.disabled=false;
+  }
+});
+
 $('#copyTrackingBtn').addEventListener('click',function(){var code=$('#editTrackingCode').value.trim();if(!code){setNotice($('#orderEditNotice'),'Nessun codice tracking da copiare.','error');return}if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(code).then(function(){setNotice($('#orderEditNotice'),'Tracking copiato.','ok')}).catch(function(){setNotice($('#orderEditNotice'),'Non riesco a copiare automaticamente il tracking.','error')})}else{var t=document.createElement('textarea');t.value=code;document.body.appendChild(t);t.select();try{document.execCommand('copy');setNotice($('#orderEditNotice'),'Tracking copiato.','ok')}catch(e){setNotice($('#orderEditNotice'),'Copia manualmente il tracking.','error')}document.body.removeChild(t)}});
 $('#openTrackingBtn').addEventListener('click',function(){var url=safeTrackingUrl($('#editTrackingUrl').value);if(!url){setNotice($('#orderEditNotice'),'Inserisci un link tracking valido che inizi con https://','error');return}window.open(url,'_blank','noopener')});
 $('#deleteOrderFromModal').addEventListener('click',function(){var id=$('#editOrderId').value,o=state.orders.find(function(x){return x.id===id});if(!o)return;if(!confirm('Eliminare definitivamente questo ordine?'))return;state.orders=state.orders.filter(function(x){return x.id!==id});saveState();closeOrderModal();render();refreshOpenProfileIfNeeded();setNotice($('#orderNotice'),'Ordine eliminato.','ok')});
@@ -572,12 +745,40 @@ $('#saveEmailSettings').addEventListener('click',function(){
   setNotice($('#emailSettingsNotice'),em.enabled?'Configurazione salvata. E-mail automatica presa in carico attiva.':'Configurazione salvata. E-mail automatica presa in carico disattivata.','ok');
 });
 
+
+$('#saveTrackingIntegration').addEventListener('click',function(){
+  var ti=trackingIntegration();
+  ti.webAppUrl=$('#trackingWebAppUrl').value.trim();
+  ti.token=$('#trackingWebAppToken').value.trim();
+  saveState();
+  if(!trackingIntegrationReady()){
+    setNotice($('#trackingIntegrationNotice'),'Configurazione salvata, ma controlla URL /exec e token segreto.','error');
+    return;
+  }
+  setNotice($('#trackingIntegrationNotice'),'Integrazione tracking salvata. Ora puoi importare il tracking da un ordine.','ok');
+});
+
+
+$('#syncTrackingNowBtn').addEventListener('click',async function(){
+  this.disabled=true;
+  setNotice($('#trackingIntegrationNotice'),'Controllo Gmail e abbino i tracking ai clienti...','');
+  try{
+    await syncRecentTrackingsFromGmail(true);
+  }catch(err){
+    setNotice($('#trackingIntegrationNotice'),'Sincronizzazione fallita: '+text(err&&err.message||err),'error');
+  }finally{
+    this.disabled=false;
+  }
+});
+
 $('#addReward').addEventListener('click',function(){var sorted=state.settings.rewards.slice().sort(function(a,b){return a.points-b.points}),last=sorted[sorted.length-1];state.settings.rewards.push({points:(last?last.points:0)+5,name:'Nuovo premio'});render()});
 $('#exportBtn').addEventListener('click',function(){var blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='card-lab-art-manager-backup.json';a.click();setTimeout(function(){URL.revokeObjectURL(a.href)},1000)});
 $('#csvBtn').addEventListener('click',function(){var rows=[['Codice cliente','Cliente','Data ordine','Prodotto','Importo','Stato ordine','Consegna prevista','Pagamento','Incassato','Metodo','Costo materiali','Costo spedizione','Corriere','Tracking','Link tracking','Note','Checklist']];state.orders.forEach(function(o){var c=state.clients.find(function(x){return x.id===o.clientId}),p=orderChecklistProgress(o);rows.push([c?c.code:'',c?c.name:'Cliente rimosso',o.date,o.product,o.amount,o.orderStatus,o.dueDate,o.paymentStatus,o.paidAmount,o.paymentMethod,o.materialCost,o.shippingCost,o.carrier,o.trackingCode,o.trackingUrl,o.orderNotes,p.done+'/'+p.total])});var csv=rows.map(function(r){return r.map(function(v){return '"'+text(v).replace(/"/g,'""')+'"'}).join(';')}).join('\n');var blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='card-lab-art-ordini.csv';a.click();setTimeout(function(){URL.revokeObjectURL(a.href)},1000)});
 $('#importFile').addEventListener('change',function(e){var file=e.target.files&&e.target.files[0];if(!file)return;var reader=new FileReader();reader.onload=function(){try{state=normalizeState(JSON.parse(reader.result));saveState();render();setNotice($('#clientNotice'),'Backup importato correttamente.','ok')}catch(err){alert('Backup non valido.')}e.target.value=''};reader.readAsText(file)});
 $('#resetBtn').addEventListener('click',function(){if(!confirm('Vuoi davvero cancellare tutti i clienti e gli ordini?'))return;state=defaultState();saveState();render()});
 setSelectOptions();$('#orderDate').value=today();$('#orderStatus').value='Nuovo';$('#orderPaymentStatus').value='Da pagare';window.addEventListener('beforeunload',saveState);document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')saveState()});render();
+setTimeout(function(){syncRecentTrackingsFromGmail(false).catch(function(){})},2500);
+setInterval(function(){syncRecentTrackingsFromGmail(false).catch(function(){})},60000);
 })();
 </script>
 </div>
