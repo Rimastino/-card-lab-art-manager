@@ -248,6 +248,22 @@
   <section class="panel" id="panel-settings">
     <div class="card"><h2>Regole dei punti</h2><div class="settings"><div><label for="eurosPerPoint">Euro spesi per 1 punto</label><input id="eurosPerPoint" type="number" min="1" step="1"></div><button class="primary" type="button" id="saveSettings">Salva impostazioni</button></div><div class="notice" id="settingsNotice"></div></div>
     <div class="card"><h2>Soglie premi</h2><div id="rewardSettings" class="rewards"></div><button type="button" class="secondary" id="addReward" style="margin-top:12px">+ Aggiungi soglia</button></div>
+
+    <div class="card">
+      <h2>E-mail automatiche</h2>
+      <p class="reward">Invia automaticamente una e-mail quando crei un nuovo profilo cliente e una seconda e-mail quando un ordine passa a <strong>Spedito</strong>.</p>
+      <div class="formgrid">
+        <div class="span2"><label for="emailPublicKey">EmailJS Public Key</label><input id="emailPublicKey" autocomplete="off" placeholder="Public Key"></div>
+        <div class="span2"><label for="emailServiceId">Service ID</label><input id="emailServiceId" autocomplete="off" placeholder="service_xxxxx"></div>
+        <div class="span2"><label for="emailIntakeTemplateId">Template ID — Presa in carico</label><input id="emailIntakeTemplateId" autocomplete="off" placeholder="template_xxxxx"></div>
+        <div class="span2"><label for="emailShippedTemplateId">Template ID — Spedito</label><input id="emailShippedTemplateId" autocomplete="off" placeholder="template_xxxxx"></div>
+        <div class="span2"><label for="emailFromName">Nome mittente</label><input id="emailFromName" value="Card_Lab_Art" placeholder="Card_Lab_Art"></div>
+        <div class="span2"><label>Invio automatico</label><label class="checkitem"><input id="emailEnabled" type="checkbox"> Attiva le 2 e-mail automatiche</label></div>
+        <div class="span4 toolbar"><button class="primary" type="button" id="saveEmailSettings">Salva configurazione e-mail</button></div>
+      </div>
+      <div class="notice" id="emailSettingsNotice"></div>
+      <div class="reward" style="margin-top:10px">Variabili template: <strong>{{to_email}}</strong>, {{first_name}}, {{last_name}}, {{client_name}}, {{client_code}}, {{product}}, {{order_date}}, {{order_status}}, {{carrier}}, {{tracking_code}}, {{tracking_url}}, {{subject}}, {{message}}.</div>
+    </div>
     <div class="card"><h2>Gestione dati</h2><p class="reward">I dati restano salvati nel browser di questo dispositivo. Fai un backup JSON periodico, soprattutto prima di aggiornare il file del gestionale.</p><button class="danger" type="button" id="resetBtn">Azzera tutti i dati</button></div>
   </section>
 </div>
@@ -269,6 +285,14 @@
       <div><label for="pProvince">Provincia</label><input id="pProvince" maxlength="2"></div>
       <div><label for="pInstagram">Instagram</label><input id="pInstagram"></div>
       <div class="span2"><label for="pNotes">Note cliente</label><textarea id="pNotes"></textarea></div>
+
+      <div class="span4">
+        <label>E-mail presa in carico</label>
+        <div class="toolbar">
+          <span class="status-pill" id="profileIntakeEmailStatus">Non inviata</span>
+          <button class="secondary" type="button" id="sendIntakeEmailBtn">Invia presa in carico</button>
+        </div>
+      </div>
       <div class="span4 row-actions"><button class="primary" type="submit">Salva modifiche</button><button class="danger" type="button" id="deleteClient">Elimina cliente</button></div>
     </form>
     <div class="notice" id="profileNotice"></div>
@@ -301,12 +325,21 @@
       <div class="span4"><label for="editOrderNotes">Note ordine</label><textarea id="editOrderNotes"></textarea></div>
       <div class="span4"><h3>Checklist lavorazione</h3><div id="checklistBox" class="checklist"></div></div>
       <div class="span4 summaryline"><span class="pill" id="editChecklistPreview">Checklist: —</span></div>
+
+      <div class="span4">
+        <label>E-mail spedizione</label>
+        <div class="toolbar">
+          <span class="status-pill" id="orderShippedEmailStatus">Non inviata</span>
+          <button class="secondary" type="button" id="sendShippedEmailBtn">Invia e-mail spedizione</button>
+        </div>
+      </div>
       <div class="span4 toolbar"><button class="primary" type="submit">Salva ordine</button><button class="secondary" type="button" id="copyTrackingBtn">Copia tracking</button><button class="secondary" type="button" id="openTrackingBtn">Apri tracking</button><button class="danger" type="button" id="deleteOrderFromModal">Elimina ordine</button></div>
     </form>
     <div class="notice" id="orderEditNotice"></div>
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script>
 (function(){
 'use strict';
@@ -329,17 +362,18 @@ var CHECKLIST_ITEMS=[
   {key:'shipped',label:'Spedita'}
 ];
 function defaultChecklist(){var x={};CHECKLIST_ITEMS.forEach(function(i){x[i.key]=false});return x}
-function defaultState(){return {clients:[],orders:[],settings:{eurosPerPoint:10,rewards:[{points:5,name:'Sticker o piccolo gadget'},{points:10,name:'Upgrade olografico o gadget 3D'},{points:15,name:'10 EUR di sconto sul prossimo ordine'},{points:20,name:'Prodotto personalizzato o stand base'}]}}}
+function defaultEmailSettings(){return {enabled:false,publicKey:'',serviceId:'',intakeTemplateId:'',shippedTemplateId:'',fromName:'Card_Lab_Art'}}
+function defaultState(){return {clients:[],orders:[],settings:{eurosPerPoint:10,rewards:[{points:5,name:'Sticker o piccolo gadget'},{points:10,name:'Upgrade olografico o gadget 3D'},{points:15,name:'10 EUR di sconto sul prossimo ordine'},{points:20,name:'Prodotto personalizzato o stand base'}],email:defaultEmailSettings()}}}
 function text(v){return v==null?'':String(v)}
 function num(v){var n=Number(v);return Number.isFinite(n)?n:0}
 function esc(v){return text(v).replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]})}
 function uid(){try{if(window.crypto&&typeof window.crypto.randomUUID==='function')return window.crypto.randomUUID()}catch(e){}return 'id-'+Date.now()+'-'+Math.random().toString(16).slice(2)}
 function money(n){return new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR'}).format(num(n))}
 function today(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
-function migrateClient(c){c=c||{};var pieces=text(c.name).trim().split(/\s+/).filter(Boolean);var first=text(c.firstName||pieces[0]||'');var last=text(c.lastName||pieces.slice(1).join(' '));return {id:c.id||uid(),code:c.code||'',firstName:first,lastName:last,name:(first+' '+last).trim(),email:text(c.email),phone:text(c.phone),address:text(c.address),zip:text(c.zip),city:text(c.city),province:text(c.province),instagram:text(c.instagram||c.contact),notes:text(c.notes)}}
+function migrateClient(c){c=c||{};var pieces=text(c.name).trim().split(/\s+/).filter(Boolean);var first=text(c.firstName||pieces[0]||'');var last=text(c.lastName||pieces.slice(1).join(' '));return {id:c.id||uid(),code:c.code||'',firstName:first,lastName:last,name:(first+' '+last).trim(),email:text(c.email),phone:text(c.phone),address:text(c.address),zip:text(c.zip),city:text(c.city),province:text(c.province),instagram:text(c.instagram||c.contact),notes:text(c.notes),intakeEmailSentAt:text(c.intakeEmailSentAt),intakeEmailError:text(c.intakeEmailError)}}
 function legacyOrderProductAndNotes(o){var product=text(o.product),notes=text(o.orderNotes||o.notes);if(product)return {product:PRODUCTS.indexOf(product)>=0?product:'Altro',notes:notes||text(o.note)};var legacy=text(o.note);var parts=legacy.split(' — ');if(parts.length>1&&PRODUCTS.indexOf(parts[0])>=0)return {product:parts[0],notes:parts.slice(1).join(' — ')};if(PRODUCTS.indexOf(legacy)>=0)return {product:legacy,notes:''};return {product:'Altro',notes:legacy}}
-function normalizeOrder(o){o=o||{};var pn=legacyOrderProductAndNotes(o);var st=text(o.orderStatus||o.shippingStatus||o.status||'In lavorazione');if(st==='Arrivato')st='Consegnato';if(ORDER_STATUSES.indexOf(st)<0)st='In lavorazione';var ps=text(o.paymentStatus||'Da pagare');if(PAYMENT_STATUSES.indexOf(ps)<0)ps='Da pagare';var cl=Object.assign(defaultChecklist(),o.checklist||{});if(st==='Spedito'||st==='Consegnato')cl.shipped=true;return Object.assign({},o,{id:o.id||uid(),date:text(o.date||today()),clientId:text(o.clientId),amount:num(o.amount),earned:num(o.earned),redeemed:num(o.redeemed),product:pn.product,orderNotes:pn.notes,orderStatus:st,dueDate:text(o.dueDate),paymentStatus:ps,paidAmount:num(o.paidAmount),paymentMethod:text(o.paymentMethod),materialCost:num(o.materialCost),shippingCost:num(o.shippingCost),carrier:text(o.carrier),trackingCode:text(o.trackingCode),trackingUrl:text(o.trackingUrl),checklist:cl})}
-function normalizeState(data){var d=defaultState();if(!data||!Array.isArray(data.clients)||!Array.isArray(data.orders))return d;d.clients=data.clients.map(migrateClient);d.orders=data.orders.map(normalizeOrder);if(data.settings){d.settings.eurosPerPoint=Math.max(1,num(data.settings.eurosPerPoint)||10);if(Array.isArray(data.settings.rewards)&&data.settings.rewards.length)d.settings.rewards=data.settings.rewards.map(function(r){return {points:Math.max(1,num(r.points)||1),name:text(r.name||'Premio')}})}return d}
+function normalizeOrder(o){o=o||{};var pn=legacyOrderProductAndNotes(o);var st=text(o.orderStatus||o.shippingStatus||o.status||'In lavorazione');if(st==='Arrivato')st='Consegnato';if(ORDER_STATUSES.indexOf(st)<0)st='In lavorazione';var ps=text(o.paymentStatus||'Da pagare');if(PAYMENT_STATUSES.indexOf(ps)<0)ps='Da pagare';var cl=Object.assign(defaultChecklist(),o.checklist||{});if(st==='Spedito'||st==='Consegnato')cl.shipped=true;return Object.assign({},o,{id:o.id||uid(),date:text(o.date||today()),clientId:text(o.clientId),amount:num(o.amount),earned:num(o.earned),redeemed:num(o.redeemed),product:pn.product,orderNotes:pn.notes,orderStatus:st,dueDate:text(o.dueDate),paymentStatus:ps,paidAmount:num(o.paidAmount),paymentMethod:text(o.paymentMethod),materialCost:num(o.materialCost),shippingCost:num(o.shippingCost),carrier:text(o.carrier),trackingCode:text(o.trackingCode),trackingUrl:text(o.trackingUrl),checklist:cl,shippedEmailSentAt:text(o.shippedEmailSentAt),shippedEmailError:text(o.shippedEmailError)})}
+function normalizeState(data){var d=defaultState();if(!data||!Array.isArray(data.clients)||!Array.isArray(data.orders))return d;d.clients=data.clients.map(migrateClient);d.orders=data.orders.map(normalizeOrder);if(data.settings){d.settings.eurosPerPoint=Math.max(1,num(data.settings.eurosPerPoint)||10);if(Array.isArray(data.settings.rewards)&&data.settings.rewards.length)d.settings.rewards=data.settings.rewards.map(function(r){return {points:Math.max(1,num(r.points)||1),name:text(r.name||'Premio')}});d.settings.email=Object.assign(defaultEmailSettings(),data.settings.email||{})}return d}
 var storageOK=true;
 function loadState(){try{var raw=localStorage.getItem(STORAGE_KEY);return raw?normalizeState(JSON.parse(raw)):defaultState()}catch(e){storageOK=false;return defaultState()}}
 var state=loadState();
@@ -372,9 +406,46 @@ function renderRewardsSettings(){var box=$('#rewardSettings');box.innerHTML='';s
 function statusBadge(v){return '<span class="status-pill">'+esc(v)+'</span>'}
 function dueHtml(o){if(!o.dueDate)return '—';return '<span class="'+(isOverdue(o)?'overdue':'')+'">'+esc(o.dueDate)+(isOverdue(o)?' • IN RITARDO':'')+'</span>'}
 function trackingHtml(o){if(!o.trackingCode)return '—';return '<strong>'+esc(o.trackingCode)+'</strong>'+(o.carrier?'<div class="small">'+esc(o.carrier)+'</div>':'')}
+
+function emailSettings(){if(!state.settings.email)state.settings.email=defaultEmailSettings();return state.settings.email}
+function emailConfigReady(){var e=emailSettings();return !!(text(e.publicKey).trim()&&text(e.serviceId).trim()&&text(e.intakeTemplateId).trim()&&text(e.shippedTemplateId).trim())}
+function emailStatusLabel(sentAt,error){if(sentAt)return 'Inviata ✓ '+sentAt.replace('T',' ').slice(0,16);if(error)return 'Errore invio';return 'Non inviata'}
+function nowIso(){return new Date().toISOString()}
+function emailBaseParams(c){return {to_email:text(c.email).trim(),first_name:text(c.firstName).trim(),last_name:text(c.lastName).trim(),client_name:text(c.name).trim(),client_code:text(c.code).trim(),from_name:text(emailSettings().fromName||'Card_Lab_Art').trim()}}
+function sendEmailTemplate(templateId,params){
+  var cfg=emailSettings();
+  if(!window.emailjs||typeof window.emailjs.send!=='function')return Promise.reject(new Error('EmailJS non è stato caricato. Controlla la connessione internet.'));
+  if(!text(cfg.publicKey).trim()||!text(cfg.serviceId).trim()||!text(templateId).trim())return Promise.reject(new Error('Configurazione EmailJS incompleta.'));
+  return window.emailjs.send(text(cfg.serviceId).trim(),text(templateId).trim(),params,{publicKey:text(cfg.publicKey).trim()});
+}
+function sendIntakeEmail(c,force){
+  if(!c||!text(c.email).trim())return Promise.reject(new Error('Il cliente non ha un indirizzo e-mail.'));
+  if(c.intakeEmailSentAt&&!force)return Promise.resolve({alreadySent:true});
+  var p=emailBaseParams(c);
+  p.subject='Il tuo progetto è stato preso in carico 🎨';
+  p.message='Ciao '+(c.firstName||c.name)+', il tuo progetto è stato preso in carico da Card_Lab_Art. Ti aggiorneremo durante la lavorazione.';
+  c.intakeEmailError='';saveState();
+  return sendEmailTemplate(emailSettings().intakeTemplateId,p).then(function(r){c.intakeEmailSentAt=nowIso();c.intakeEmailError='';saveState();return r}).catch(function(err){c.intakeEmailError=text(err&&err.text||err&&err.message||err||'Errore invio');saveState();throw err});
+}
+function sendShippedEmail(o,force){
+  if(!o)return Promise.reject(new Error('Ordine non trovato.'));
+  var c=state.clients.find(function(x){return x.id===o.clientId});
+  if(!c||!text(c.email).trim())return Promise.reject(new Error('Il cliente non ha un indirizzo e-mail.'));
+  if(o.shippedEmailSentAt&&!force)return Promise.resolve({alreadySent:true});
+  var p=emailBaseParams(c);
+  p.product=text(o.product);p.order_date=text(o.date);p.order_status=text(o.orderStatus);p.carrier=text(o.carrier);p.tracking_code=text(o.trackingCode);p.tracking_url=text(o.trackingUrl);
+  p.subject='Il tuo ordine è stato spedito 📦';
+  p.message='Ciao '+(c.firstName||c.name)+', il tuo ordine è stato spedito.'+(o.carrier?' Corriere: '+o.carrier+'.':'')+(o.trackingCode?' Tracking: '+o.trackingCode+'.':'');
+  o.shippedEmailError='';saveState();
+  return sendEmailTemplate(emailSettings().shippedTemplateId,p).then(function(r){o.shippedEmailSentAt=nowIso();o.shippedEmailError='';saveState();return r}).catch(function(err){o.shippedEmailError=text(err&&err.text||err&&err.message||err||'Errore invio');saveState();throw err});
+}
+function autoEmailEnabled(){return !!emailSettings().enabled}
+
 function render(){
   ensureCodes();showStorageStatus();
   $('#clientCode').value=nextCode();$('#eurosPerPoint').value=state.settings.eurosPerPoint;
+  var em=emailSettings();
+  $('#emailPublicKey').value=em.publicKey||'';$('#emailServiceId').value=em.serviceId||'';$('#emailIntakeTemplateId').value=em.intakeTemplateId||'';$('#emailShippedTemplateId').value=em.shippedTemplateId||'';$('#emailFromName').value=em.fromName||'Card_Lab_Art';$('#emailEnabled').checked=!!em.enabled;
   var revenue=state.orders.reduce(function(a,o){return a+num(o.amount)},0);
   $('#sClients').textContent=state.clients.length;$('#sOrders').textContent=state.orders.length;$('#sRevenue').textContent=money(revenue);$('#sWork').textContent=state.orders.filter(function(o){return ['Nuovo','In lavorazione','Da approvare','Pronto'].indexOf(o.orderStatus)>=0}).length;$('#sShip').textContent=state.orders.filter(function(o){return o.orderStatus==='Da spedire'}).length;$('#sPoints').textContent=state.clients.reduce(function(a,c){return a+clientStats(c.id).balance},0);
   var q=$('#clientSearch').value.trim().toLowerCase();var clients=state.clients.filter(function(c){return [c.code,c.firstName,c.lastName,c.name,c.email,c.phone,c.address,c.zip,c.city,c.province,c.instagram,c.notes].some(function(v){return text(v).toLowerCase().indexOf(q)!==-1})});
@@ -387,33 +458,119 @@ function render(){
   renderRewardsSettings();
 }
 function setNotice(el,msg,type){el.textContent=msg;el.className='notice'+(type?' '+type:'')}
-function openProfile(id){var c=state.clients.find(function(x){return x.id===id});if(!c)return;var s=clientStats(id);$('#profileId').value=c.id;$('#profileCode').textContent=c.code;$('#profileHeading').textContent=c.name||'Profilo cliente';$('#profileMeta').textContent=[c.email,c.phone,c.city].filter(Boolean).join(' • ')||'Nessun contatto inserito';$('#pSpent').textContent=money(s.spent);$('#pBalance').textContent=s.balance;$('#pFirstName').value=c.firstName;$('#pLastName').value=c.lastName;$('#pEmail').value=c.email;$('#pPhone').value=c.phone;$('#pAddress').value=c.address;$('#pZip').value=c.zip;$('#pCity').value=c.city;$('#pProvince').value=c.province;$('#pInstagram').value=c.instagram;$('#pNotes').value=c.notes;setNotice($('#profileNotice'),'','');var os=state.orders.filter(function(o){return o.clientId===id}).slice().reverse();$('#profileOrders').innerHTML=os.length?os.map(function(o){return '<tr><td>'+esc(o.date)+'</td><td>'+esc(o.product)+'</td><td>'+money(o.amount)+'</td><td>'+statusBadge(o.paymentStatus)+'</td><td>'+statusBadge(o.orderStatus)+'</td><td>'+dueHtml(o)+'</td><td><button type="button" class="mini primary manage-order" data-id="'+esc(o.id)+'">Gestisci</button></td></tr>'}).join(''):'<tr><td colspan="7" class="empty">Nessun ordine per questo cliente.</td></tr>';var modal=$('#profileModal');modal.classList.add('open');modal.setAttribute('aria-hidden','false')}
+function openProfile(id){var c=state.clients.find(function(x){return x.id===id});if(!c)return;var s=clientStats(id);$('#profileId').value=c.id;$('#profileCode').textContent=c.code;$('#profileHeading').textContent=c.name||'Profilo cliente';$('#profileMeta').textContent=[c.email,c.phone,c.city].filter(Boolean).join(' • ')||'Nessun contatto inserito';$('#pSpent').textContent=money(s.spent);$('#pBalance').textContent=s.balance;$('#pFirstName').value=c.firstName;$('#pLastName').value=c.lastName;$('#pEmail').value=c.email;$('#pPhone').value=c.phone;$('#pAddress').value=c.address;$('#pZip').value=c.zip;$('#pCity').value=c.city;$('#pProvince').value=c.province;$('#pInstagram').value=c.instagram;$('#pNotes').value=c.notes;setNotice($('#profileNotice'),'','');$('#profileIntakeEmailStatus').textContent=emailStatusLabel(c.intakeEmailSentAt,c.intakeEmailError);$('#sendIntakeEmailBtn').disabled=!c.email;var os=state.orders.filter(function(o){return o.clientId===id}).slice().reverse();$('#profileOrders').innerHTML=os.length?os.map(function(o){return '<tr><td>'+esc(o.date)+'</td><td>'+esc(o.product)+'</td><td>'+money(o.amount)+'</td><td>'+statusBadge(o.paymentStatus)+'</td><td>'+statusBadge(o.orderStatus)+'</td><td>'+dueHtml(o)+'</td><td><button type="button" class="mini primary manage-order" data-id="'+esc(o.id)+'">Gestisci</button></td></tr>'}).join(''):'<tr><td colspan="7" class="empty">Nessun ordine per questo cliente.</td></tr>';var modal=$('#profileModal');modal.classList.add('open');modal.setAttribute('aria-hidden','false')}
 function closeProfile(){var modal=$('#profileModal');modal.classList.remove('open');modal.setAttribute('aria-hidden','true')}
 function renderChecklist(o){var box=$('#checklistBox');box.innerHTML=CHECKLIST_ITEMS.map(function(i){var checked=o.checklist&&o.checklist[i.key];return '<div class="checkitem"><input type="checkbox" id="check_'+esc(i.key)+'" data-check="'+esc(i.key)+'"'+(checked?' checked':'')+'><label for="check_'+esc(i.key)+'">'+esc(i.label)+'</label></div>'}).join('')}
 function updateOrderEditPreview(){var done=$$('[data-check]:checked',$('#checklistBox')).length;$('#editChecklistPreview').textContent='Checklist: '+done+'/'+CHECKLIST_ITEMS.length}
-function openOrderModal(id){var o=state.orders.find(function(x){return x.id===id});if(!o)return;var c=state.clients.find(function(x){return x.id===o.clientId});$('#editOrderId').value=o.id;$('#orderModalHeading').textContent='Gestisci ordine';$('#orderModalMeta').textContent=(c?c.code+' — '+c.name:'Cliente rimosso')+' • '+o.date;$('#editOrderDate').value=o.date;$('#editOrderProduct').value=PRODUCTS.indexOf(o.product)>=0?o.product:'Altro';$('#editOrderAmount').value=o.amount;$('#editOrderStatus').value=o.orderStatus;$('#editOrderDueDate').value=o.dueDate;$('#editPaymentStatus').value=o.paymentStatus;$('#editPaidAmount').value=o.paidAmount;$('#editPaymentMethod').value=PAYMENT_METHODS.indexOf(o.paymentMethod)>=0?o.paymentMethod:'Altro';$('#editMaterialCost').value=o.materialCost;$('#editShippingCost').value=o.shippingCost;$('#editCarrier').value=CARRIERS.indexOf(o.carrier)>=0?o.carrier:'Altro';$('#editTrackingCode').value=o.trackingCode;$('#editTrackingUrl').value=o.trackingUrl;$('#editRedeem').value=o.redeemed;$('#editOrderNotes').value=o.orderNotes;renderChecklist(o);setNotice($('#orderEditNotice'),'','');updateOrderEditPreview();var modal=$('#orderModal');modal.classList.add('open');modal.setAttribute('aria-hidden','false')}
+function openOrderModal(id){var o=state.orders.find(function(x){return x.id===id});if(!o)return;var c=state.clients.find(function(x){return x.id===o.clientId});$('#editOrderId').value=o.id;$('#orderModalHeading').textContent='Gestisci ordine';$('#orderModalMeta').textContent=(c?c.code+' — '+c.name:'Cliente rimosso')+' • '+o.date;$('#editOrderDate').value=o.date;$('#editOrderProduct').value=PRODUCTS.indexOf(o.product)>=0?o.product:'Altro';$('#editOrderAmount').value=o.amount;$('#editOrderStatus').value=o.orderStatus;$('#editOrderDueDate').value=o.dueDate;$('#editPaymentStatus').value=o.paymentStatus;$('#editPaidAmount').value=o.paidAmount;$('#editPaymentMethod').value=PAYMENT_METHODS.indexOf(o.paymentMethod)>=0?o.paymentMethod:'Altro';$('#editMaterialCost').value=o.materialCost;$('#editShippingCost').value=o.shippingCost;$('#editCarrier').value=CARRIERS.indexOf(o.carrier)>=0?o.carrier:'Altro';$('#editTrackingCode').value=o.trackingCode;$('#editTrackingUrl').value=o.trackingUrl;$('#editRedeem').value=o.redeemed;$('#editOrderNotes').value=o.orderNotes;renderChecklist(o);setNotice($('#orderEditNotice'),'','');$('#orderShippedEmailStatus').textContent=emailStatusLabel(o.shippedEmailSentAt,o.shippedEmailError);$('#sendShippedEmailBtn').disabled=!(c&&c.email);updateOrderEditPreview();var modal=$('#orderModal');modal.classList.add('open');modal.setAttribute('aria-hidden','false')}
 function closeOrderModal(){var modal=$('#orderModal');modal.classList.remove('open');modal.setAttribute('aria-hidden','true')}
 function refreshOpenProfileIfNeeded(){if($('#profileModal').classList.contains('open')){var id=$('#profileId').value;if(id)openProfile(id)}}
 function safeTrackingUrl(v){var u=text(v).trim();return /^https?:\/\//i.test(u)?u:''}
 $$('.tab').forEach(function(b){b.addEventListener('click',function(){$$('.tab').forEach(function(x){x.classList.remove('active')});$$('.panel').forEach(function(x){x.classList.remove('active')});b.classList.add('active');$('#panel-'+b.dataset.tab).classList.add('active')})});
-$('#clientForm').addEventListener('submit',function(e){e.preventDefault();var first=$('#clientFirstName').value.trim(),last=$('#clientLastName').value.trim();if(!first||!last){setNotice($('#clientNotice'),'Inserisci nome e cognome.','error');return}var email=$('#clientEmail').value.trim();if(email&&!$('#clientEmail').checkValidity()){setNotice($('#clientNotice'),'L’indirizzo e-mail non è valido.','error');return}var c={id:uid(),code:nextCode(),firstName:first,lastName:last,name:(first+' '+last).trim(),email:email,phone:$('#clientPhone').value.trim(),address:$('#clientAddress').value.trim(),zip:$('#clientZip').value.trim(),city:$('#clientCity').value.trim(),province:$('#clientProvince').value.trim().toUpperCase(),instagram:$('#clientInstagram').value.trim(),notes:$('#clientNotes').value.trim()};state.clients.push(c);if(!saveState()||!verifyClientSaved(c)){state.clients=state.clients.filter(function(x){return x.id!==c.id});setNotice($('#clientNotice'),'ERRORE: il profilo non è stato salvato. Riprova.','error');return}e.target.reset();render();setNotice($('#clientNotice'),'Profilo '+c.code+' salvato correttamente.','ok');openProfile(c.id)});
+$('#clientForm').addEventListener('submit',async function(e){
+  e.preventDefault();
+  var first=$('#clientFirstName').value.trim(),last=$('#clientLastName').value.trim();
+  if(!first||!last){setNotice($('#clientNotice'),'Inserisci nome e cognome.','error');return}
+  var email=$('#clientEmail').value.trim();
+  if(email&&!$('#clientEmail').checkValidity()){setNotice($('#clientNotice'),'L’indirizzo e-mail non è valido.','error');return}
+  var c={id:uid(),code:nextCode(),firstName:first,lastName:last,name:(first+' '+last).trim(),email:email,phone:$('#clientPhone').value.trim(),address:$('#clientAddress').value.trim(),zip:$('#clientZip').value.trim(),city:$('#clientCity').value.trim(),province:$('#clientProvince').value.trim().toUpperCase(),instagram:$('#clientInstagram').value.trim(),notes:$('#clientNotes').value.trim(),intakeEmailSentAt:'',intakeEmailError:''};
+  state.clients.push(c);
+  if(!saveState()||!verifyClientSaved(c)){state.clients=state.clients.filter(function(x){return x.id!==c.id});setNotice($('#clientNotice'),'ERRORE: il profilo non è stato salvato. Riprova.','error');return}
+  e.target.reset();render();openProfile(c.id);setNotice($('#clientNotice'),'Profilo '+c.code+' salvato correttamente.','ok');
+  if(c.email&&autoEmailEnabled()){
+    if(!emailConfigReady()){c.intakeEmailError='Configurazione EmailJS incompleta';saveState();openProfile(c.id);setNotice($('#profileNotice'),'Profilo salvato, ma la configurazione e-mail è incompleta.','error');return}
+    setNotice($('#profileNotice'),'Profilo salvato. Invio e-mail di presa in carico...','');
+    try{await sendIntakeEmail(c,false);openProfile(c.id);setNotice($('#profileNotice'),'E-mail di presa in carico inviata a '+c.email+'.','ok')}
+    catch(err){openProfile(c.id);setNotice($('#profileNotice'),'Profilo salvato, ma l’e-mail non è partita: '+text(err&&err.text||err&&err.message||err),'error')}
+  }
+});
 $('#clientSearch').addEventListener('input',render);$('#orderSearch').addEventListener('input',render);
 $('#clientRows').addEventListener('click',function(e){var b=e.target.closest('.open-profile');if(b)openProfile(b.dataset.id)});
 $('#closeProfile').addEventListener('click',closeProfile);$('#profileModal').addEventListener('click',function(e){if(e.target===this)closeProfile()});
 $('#profileForm').addEventListener('submit',function(e){e.preventDefault();var id=$('#profileId').value,c=state.clients.find(function(x){return x.id===id});if(!c)return;var first=$('#pFirstName').value.trim(),last=$('#pLastName').value.trim();if(!first||!last){setNotice($('#profileNotice'),'Nome e cognome sono obbligatori.','error');return}if($('#pEmail').value.trim()&&!$('#pEmail').checkValidity()){setNotice($('#profileNotice'),'L’indirizzo e-mail non è valido.','error');return}var backup=JSON.parse(JSON.stringify(c));c.firstName=first;c.lastName=last;c.name=(first+' '+last).trim();c.email=$('#pEmail').value.trim();c.phone=$('#pPhone').value.trim();c.address=$('#pAddress').value.trim();c.zip=$('#pZip').value.trim();c.city=$('#pCity').value.trim();c.province=$('#pProvince').value.trim().toUpperCase();c.instagram=$('#pInstagram').value.trim();c.notes=$('#pNotes').value.trim();if(!saveState()||!verifyClientSaved(c)){Object.keys(c).forEach(function(k){delete c[k]});Object.assign(c,backup);setNotice($('#profileNotice'),'ERRORE: le modifiche non sono state salvate.','error');return}render();openProfile(id);setNotice($('#profileNotice'),'Modifiche salvate.','ok')});
+
+$('#sendIntakeEmailBtn').addEventListener('click',async function(){
+  var id=$('#profileId').value,c=state.clients.find(function(x){return x.id===id});if(!c)return;
+  if(!c.email){setNotice($('#profileNotice'),'Inserisci e salva prima l’e-mail del cliente.','error');return}
+  if(!emailConfigReady()){setNotice($('#profileNotice'),'Completa prima la configurazione EmailJS in Impostazioni.','error');return}
+  if(c.intakeEmailSentAt&&!confirm('L’e-mail risulta già inviata. Vuoi inviarla di nuovo?'))return;
+  setNotice($('#profileNotice'),'Invio e-mail di presa in carico...','');
+  try{await sendIntakeEmail(c,true);openProfile(id);setNotice($('#profileNotice'),'E-mail di presa in carico inviata a '+c.email+'.','ok')}
+  catch(err){openProfile(id);setNotice($('#profileNotice'),'Errore invio: '+text(err&&err.text||err&&err.message||err),'error')}
+});
+
 $('#deleteClient').addEventListener('click',function(){var id=$('#profileId').value,c=state.clients.find(function(x){return x.id===id});if(!c)return;if(!confirm('Eliminare il profilo di '+c.name+'? Verranno eliminati anche i suoi ordini.'))return;state.clients=state.clients.filter(function(x){return x.id!==id});state.orders=state.orders.filter(function(o){return o.clientId!==id});saveState();closeProfile();render();setNotice($('#clientNotice'),'Cliente eliminato.','ok')});
 $('#orderPaymentStatus').addEventListener('change',function(){if(this.value==='Pagato'&&num($('#orderPaidAmount').value)===0)$('#orderPaidAmount').value=num($('#orderAmount').value).toFixed(2)});
-$('#orderForm').addEventListener('submit',function(e){e.preventDefault();var clientId=$('#orderClient').value,amount=Math.max(0,num($('#orderAmount').value)),redeemed=Math.max(0,Math.floor(num($('#orderRedeem').value))),product=$('#orderProduct').value,status=$('#orderStatus').value,payStatus=$('#orderPaymentStatus').value;if(!clientId||amount<=0||!product||ORDER_STATUSES.indexOf(status)<0||PAYMENT_STATUSES.indexOf(payStatus)<0){setNotice($('#orderNotice'),'Controlla cliente, prodotto, importo, stato ordine e pagamento.','error');return}var bal=clientStats(clientId).balance;if(redeemed>bal){setNotice($('#orderNotice'),'Il cliente ha solo '+bal+' punti disponibili.','error');return}var paid=Math.max(0,num($('#orderPaidAmount').value));if(payStatus==='Pagato'&&paid===0)paid=amount;var earned=Math.floor(amount/Math.max(1,num(state.settings.eurosPerPoint)||10));var order=normalizeOrder({id:uid(),date:$('#orderDate').value||today(),clientId:clientId,amount:amount,earned:earned,redeemed:redeemed,product:product,orderNotes:$('#orderNote').value.trim(),orderStatus:status,dueDate:$('#orderDueDate').value,paymentStatus:payStatus,paidAmount:paid,paymentMethod:$('#orderPaymentMethod').value,materialCost:Math.max(0,num($('#orderMaterialCost').value)),shippingCost:Math.max(0,num($('#orderShippingCost').value)),carrier:$('#orderCarrier').value,trackingCode:$('#orderTrackingCode').value.trim(),trackingUrl:$('#orderTrackingUrl').value.trim(),checklist:defaultChecklist()});state.orders.push(order);if(!saveState()){state.orders=state.orders.filter(function(x){return x.id!==order.id});setNotice($('#orderNotice'),'ERRORE: ordine non salvato. Riprova.','error');return}e.target.reset();$('#orderDate').value=today();$('#orderStatus').value='Nuovo';$('#orderPaymentStatus').value='Da pagare';$('#orderPaidAmount').value='0';$('#orderMaterialCost').value='0';$('#orderShippingCost').value='0';render();setNotice($('#orderNotice'),'Ordine registrato. Apri “Gestisci” per la checklist e gli aggiornamenti.','ok');openOrderModal(order.id)});
+$('#orderForm').addEventListener('submit',async function(e){
+  e.preventDefault();
+  var clientId=$('#orderClient').value,amount=Math.max(0,num($('#orderAmount').value)),redeemed=Math.max(0,Math.floor(num($('#orderRedeem').value))),product=$('#orderProduct').value,status=$('#orderStatus').value,payStatus=$('#orderPaymentStatus').value;
+  if(!clientId||amount<=0||!product||ORDER_STATUSES.indexOf(status)<0||PAYMENT_STATUSES.indexOf(payStatus)<0){setNotice($('#orderNotice'),'Controlla cliente, prodotto, importo, stato ordine e pagamento.','error');return}
+  var bal=clientStats(clientId).balance;if(redeemed>bal){setNotice($('#orderNotice'),'Il cliente ha solo '+bal+' punti disponibili.','error');return}
+  var paid=Math.max(0,num($('#orderPaidAmount').value));if(payStatus==='Pagato'&&paid===0)paid=amount;
+  var earned=Math.floor(amount/Math.max(1,num(state.settings.eurosPerPoint)||10));
+  var order=normalizeOrder({id:uid(),date:$('#orderDate').value||today(),clientId:clientId,amount:amount,earned:earned,redeemed:redeemed,product:product,orderNotes:$('#orderNote').value.trim(),orderStatus:status,dueDate:$('#orderDueDate').value,paymentStatus:payStatus,paidAmount:paid,paymentMethod:$('#orderPaymentMethod').value,materialCost:Math.max(0,num($('#orderMaterialCost').value)),shippingCost:Math.max(0,num($('#orderShippingCost').value)),carrier:$('#orderCarrier').value,trackingCode:$('#orderTrackingCode').value.trim(),trackingUrl:$('#orderTrackingUrl').value.trim(),checklist:defaultChecklist(),shippedEmailSentAt:'',shippedEmailError:''});
+  state.orders.push(order);
+  if(!saveState()){state.orders=state.orders.filter(function(x){return x.id!==order.id});setNotice($('#orderNotice'),'ERRORE: ordine non salvato. Riprova.','error');return}
+  e.target.reset();$('#orderDate').value=today();$('#orderStatus').value='Nuovo';$('#orderPaymentStatus').value='Da pagare';$('#orderPaidAmount').value='0';$('#orderMaterialCost').value='0';$('#orderShippingCost').value='0';
+  render();setNotice($('#orderNotice'),'Ordine registrato. Apri “Gestisci” per la checklist e gli aggiornamenti.','ok');openOrderModal(order.id);
+  if(status==='Spedito'&&autoEmailEnabled()){
+    if(!emailConfigReady()){order.shippedEmailError='Configurazione EmailJS incompleta';saveState();openOrderModal(order.id);setNotice($('#orderEditNotice'),'Ordine salvato, ma la configurazione e-mail è incompleta.','error');return}
+    setNotice($('#orderEditNotice'),'Ordine salvato. Invio e-mail di spedizione...','');
+    try{await sendShippedEmail(order,false);openOrderModal(order.id);setNotice($('#orderEditNotice'),'E-mail di spedizione inviata.','ok')}
+    catch(err){openOrderModal(order.id);setNotice($('#orderEditNotice'),'Ordine salvato, ma l’e-mail non è partita: '+text(err&&err.text||err&&err.message||err),'error')}
+  }
+});
 function manageOrderClick(e){var b=e.target.closest('.manage-order');if(b)openOrderModal(b.dataset.id)}
 $('#orderRows').addEventListener('click',manageOrderClick);$('#profileOrders').addEventListener('click',manageOrderClick);
 $('#closeOrderModal').addEventListener('click',closeOrderModal);$('#orderModal').addEventListener('click',function(e){if(e.target===this)closeOrderModal()});document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeOrderModal();closeProfile()}});
 ['editOrderAmount','editMaterialCost','editShippingCost','editPaidAmount','editPaymentStatus'].forEach(function(id){$('#'+id).addEventListener('input',updateOrderEditPreview);$('#'+id).addEventListener('change',updateOrderEditPreview)});$('#checklistBox').addEventListener('change',updateOrderEditPreview);
 $('#editPaymentStatus').addEventListener('change',function(){if(this.value==='Pagato'&&num($('#editPaidAmount').value)===0){$('#editPaidAmount').value=num($('#editOrderAmount').value).toFixed(2);updateOrderEditPreview()}});
-$('#orderEditForm').addEventListener('submit',function(e){e.preventDefault();var id=$('#editOrderId').value,o=state.orders.find(function(x){return x.id===id});if(!o)return;var amount=Math.max(0,num($('#editOrderAmount').value)),product=$('#editOrderProduct').value,status=$('#editOrderStatus').value,payStatus=$('#editPaymentStatus').value;if(amount<=0||!product||ORDER_STATUSES.indexOf(status)<0||PAYMENT_STATUSES.indexOf(payStatus)<0){setNotice($('#orderEditNotice'),'Controlla importo, prodotto e stati.','error');return}var checklist=defaultChecklist();$$('[data-check]',$('#checklistBox')).forEach(function(cb){checklist[cb.dataset.check]=cb.checked});if(status==='Spedito'||status==='Consegnato')checklist.shipped=true;var redeemed=Math.max(0,Math.floor(num($('#editRedeem').value)));var otherOrdersBalance=state.orders.filter(function(x){return x.clientId===o.clientId&&x.id!==o.id}).reduce(function(a,x){return a+num(x.earned)-num(x.redeemed)},0);var earned=Math.floor(amount/Math.max(1,num(state.settings.eurosPerPoint)||10));if(redeemed>otherOrdersBalance+earned){setNotice($('#orderEditNotice'),'I punti utilizzati superano quelli disponibili per questo cliente.','error');return}o.date=$('#editOrderDate').value||today();o.product=product;o.amount=amount;o.earned=earned;o.redeemed=redeemed;o.orderStatus=status;o.dueDate=$('#editOrderDueDate').value;o.paymentStatus=payStatus;o.paidAmount=Math.max(0,num($('#editPaidAmount').value));if(payStatus==='Pagato'&&o.paidAmount===0)o.paidAmount=amount;o.paymentMethod=$('#editPaymentMethod').value;o.materialCost=Math.max(0,num($('#editMaterialCost').value));o.shippingCost=Math.max(0,num($('#editShippingCost').value));o.carrier=$('#editCarrier').value;o.trackingCode=$('#editTrackingCode').value.trim();o.trackingUrl=$('#editTrackingUrl').value.trim();o.orderNotes=$('#editOrderNotes').value.trim();o.checklist=checklist;if(!saveState()){setNotice($('#orderEditNotice'),'ERRORE: modifiche non salvate.','error');return}render();refreshOpenProfileIfNeeded();openOrderModal(id);setNotice($('#orderEditNotice'),'Ordine aggiornato e salvato.','ok')});
+$('#orderEditForm').addEventListener('submit',async function(e){
+  e.preventDefault();
+  var id=$('#editOrderId').value,o=state.orders.find(function(x){return x.id===id});if(!o)return;
+  var previousStatus=o.orderStatus;
+  var amount=Math.max(0,num($('#editOrderAmount').value)),product=$('#editOrderProduct').value,status=$('#editOrderStatus').value,payStatus=$('#editPaymentStatus').value;
+  if(amount<=0||!product||ORDER_STATUSES.indexOf(status)<0||PAYMENT_STATUSES.indexOf(payStatus)<0){setNotice($('#orderEditNotice'),'Controlla importo, prodotto e stati.','error');return}
+  var checklist=defaultChecklist();$$('[data-check]',$('#checklistBox')).forEach(function(cb){checklist[cb.dataset.check]=cb.checked});if(status==='Spedito'||status==='Consegnato')checklist.shipped=true;
+  var redeemed=Math.max(0,Math.floor(num($('#editRedeem').value)));
+  var otherOrdersBalance=state.orders.filter(function(x){return x.clientId===o.clientId&&x.id!==o.id}).reduce(function(a,x){return a+num(x.earned)-num(x.redeemed)},0);
+  var earned=Math.floor(amount/Math.max(1,num(state.settings.eurosPerPoint)||10));
+  if(redeemed>otherOrdersBalance+earned){setNotice($('#orderEditNotice'),'I punti utilizzati superano quelli disponibili per questo cliente.','error');return}
+  o.date=$('#editOrderDate').value||today();o.product=product;o.amount=amount;o.earned=earned;o.redeemed=redeemed;o.orderStatus=status;o.dueDate=$('#editOrderDueDate').value;o.paymentStatus=payStatus;o.paidAmount=Math.max(0,num($('#editPaidAmount').value));if(payStatus==='Pagato'&&o.paidAmount===0)o.paidAmount=amount;o.paymentMethod=$('#editPaymentMethod').value;o.materialCost=Math.max(0,num($('#editMaterialCost').value));o.shippingCost=Math.max(0,num($('#editShippingCost').value));o.carrier=$('#editCarrier').value;o.trackingCode=$('#editTrackingCode').value.trim();o.trackingUrl=$('#editTrackingUrl').value.trim();o.orderNotes=$('#editOrderNotes').value.trim();o.checklist=checklist;
+  if(!saveState()){setNotice($('#orderEditNotice'),'ERRORE: modifiche non salvate.','error');return}
+  render();refreshOpenProfileIfNeeded();openOrderModal(id);setNotice($('#orderEditNotice'),'Ordine aggiornato e salvato.','ok');
+  if(previousStatus!=='Spedito'&&status==='Spedito'&&!o.shippedEmailSentAt&&autoEmailEnabled()){
+    if(!emailConfigReady()){o.shippedEmailError='Configurazione EmailJS incompleta';saveState();openOrderModal(id);setNotice($('#orderEditNotice'),'Ordine salvato, ma la configurazione e-mail è incompleta.','error');return}
+    setNotice($('#orderEditNotice'),'Ordine salvato. Invio e-mail di spedizione...','');
+    try{await sendShippedEmail(o,false);openOrderModal(id);setNotice($('#orderEditNotice'),'E-mail di spedizione inviata automaticamente.','ok')}
+    catch(err){openOrderModal(id);setNotice($('#orderEditNotice'),'Ordine salvato, ma l’e-mail non è partita: '+text(err&&err.text||err&&err.message||err),'error')}
+  }
+});
+
+$('#sendShippedEmailBtn').addEventListener('click',async function(){
+  var id=$('#editOrderId').value,o=state.orders.find(function(x){return x.id===id});if(!o)return;
+  var c=state.clients.find(function(x){return x.id===o.clientId});
+  if(!c||!c.email){setNotice($('#orderEditNotice'),'Il cliente non ha un indirizzo e-mail salvato.','error');return}
+  if(!emailConfigReady()){setNotice($('#orderEditNotice'),'Completa prima la configurazione EmailJS in Impostazioni.','error');return}
+  if(o.shippedEmailSentAt&&!confirm('L’e-mail di spedizione risulta già inviata. Vuoi inviarla di nuovo?'))return;
+  setNotice($('#orderEditNotice'),'Invio e-mail di spedizione...','');
+  try{await sendShippedEmail(o,true);openOrderModal(id);setNotice($('#orderEditNotice'),'E-mail di spedizione inviata a '+c.email+'.','ok')}
+  catch(err){openOrderModal(id);setNotice($('#orderEditNotice'),'Errore invio: '+text(err&&err.text||err&&err.message||err),'error')}
+});
+
 $('#copyTrackingBtn').addEventListener('click',function(){var code=$('#editTrackingCode').value.trim();if(!code){setNotice($('#orderEditNotice'),'Nessun codice tracking da copiare.','error');return}if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(code).then(function(){setNotice($('#orderEditNotice'),'Tracking copiato.','ok')}).catch(function(){setNotice($('#orderEditNotice'),'Non riesco a copiare automaticamente il tracking.','error')})}else{var t=document.createElement('textarea');t.value=code;document.body.appendChild(t);t.select();try{document.execCommand('copy');setNotice($('#orderEditNotice'),'Tracking copiato.','ok')}catch(e){setNotice($('#orderEditNotice'),'Copia manualmente il tracking.','error')}document.body.removeChild(t)}});
 $('#openTrackingBtn').addEventListener('click',function(){var url=safeTrackingUrl($('#editTrackingUrl').value);if(!url){setNotice($('#orderEditNotice'),'Inserisci un link tracking valido che inizi con https://','error');return}window.open(url,'_blank','noopener')});
 $('#deleteOrderFromModal').addEventListener('click',function(){var id=$('#editOrderId').value,o=state.orders.find(function(x){return x.id===id});if(!o)return;if(!confirm('Eliminare definitivamente questo ordine?'))return;state.orders=state.orders.filter(function(x){return x.id!==id});saveState();closeOrderModal();render();refreshOpenProfileIfNeeded();setNotice($('#orderNotice'),'Ordine eliminato.','ok')});
 $('#saveSettings').addEventListener('click',function(){state.settings.eurosPerPoint=Math.max(1,Math.floor(num($('#eurosPerPoint').value)||10));var ps=$$('[data-rp]'),ns=$$('[data-rn]');state.settings.rewards=ps.map(function(p,i){return {points:Math.max(1,Math.floor(num(p.value)||1)),name:(ns[i].value||'Premio').trim()}}).sort(function(a,b){return a.points-b.points});saveState();render();setNotice($('#settingsNotice'),'Impostazioni salvate.','ok')});
+
+$('#saveEmailSettings').addEventListener('click',function(){
+  var em=emailSettings();
+  em.publicKey=$('#emailPublicKey').value.trim();em.serviceId=$('#emailServiceId').value.trim();em.intakeTemplateId=$('#emailIntakeTemplateId').value.trim();em.shippedTemplateId=$('#emailShippedTemplateId').value.trim();em.fromName=$('#emailFromName').value.trim()||'Card_Lab_Art';em.enabled=$('#emailEnabled').checked;
+  saveState();
+  if(em.enabled&&!emailConfigReady()){setNotice($('#emailSettingsNotice'),'Configurazione salvata, ma mancano uno o più ID/chiavi. Completa tutti i campi.','error');return}
+  setNotice($('#emailSettingsNotice'),em.enabled?'Configurazione salvata. E-mail automatiche attive.':'Configurazione salvata. E-mail automatiche disattivate.','ok');
+});
+
 $('#addReward').addEventListener('click',function(){var sorted=state.settings.rewards.slice().sort(function(a,b){return a.points-b.points}),last=sorted[sorted.length-1];state.settings.rewards.push({points:(last?last.points:0)+5,name:'Nuovo premio'});render()});
 $('#exportBtn').addEventListener('click',function(){var blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='card-lab-art-manager-backup.json';a.click();setTimeout(function(){URL.revokeObjectURL(a.href)},1000)});
 $('#csvBtn').addEventListener('click',function(){var rows=[['Codice cliente','Cliente','Data ordine','Prodotto','Importo','Stato ordine','Consegna prevista','Pagamento','Incassato','Metodo','Costo materiali','Costo spedizione','Corriere','Tracking','Link tracking','Note','Checklist']];state.orders.forEach(function(o){var c=state.clients.find(function(x){return x.id===o.clientId}),p=orderChecklistProgress(o);rows.push([c?c.code:'',c?c.name:'Cliente rimosso',o.date,o.product,o.amount,o.orderStatus,o.dueDate,o.paymentStatus,o.paidAmount,o.paymentMethod,o.materialCost,o.shippingCost,o.carrier,o.trackingCode,o.trackingUrl,o.orderNotes,p.done+'/'+p.total])});var csv=rows.map(function(r){return r.map(function(v){return '"'+text(v).replace(/"/g,'""')+'"'}).join(';')}).join('\n');var blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='card-lab-art-ordini.csv';a.click();setTimeout(function(){URL.revokeObjectURL(a.href)},1000)});
