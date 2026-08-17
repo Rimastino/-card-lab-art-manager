@@ -603,6 +603,155 @@ tr:last-child td{border-bottom:0}
   .smart-filter-bar button{width:100%}
 }
 
+
+/* ================================
+   V15 — Creative modern refresh
+   ================================ */
+body{
+  background:
+    radial-gradient(circle at 0% 0%, rgba(109,93,252,.14), transparent 22%),
+    radial-gradient(circle at 100% 0%, rgba(14,165,233,.12), transparent 24%),
+    radial-gradient(circle at 50% 100%, rgba(236,72,153,.08), transparent 28%),
+    linear-gradient(180deg,#f4f7ff 0%, #eef4ff 44%, #f8fbff 100%);
+}
+body::before,body::after{
+  content:"";position:fixed;inset:auto;z-index:-1;filter:blur(50px);pointer-events:none
+}
+body::before{
+  width:260px;height:260px;left:-50px;top:90px;border-radius:999px;
+  background:rgba(109,93,252,.13)
+}
+body::after{
+  width:320px;height:320px;right:-70px;top:140px;border-radius:999px;
+  background:rgba(14,165,233,.10)
+}
+#claManagerApp{
+  max-width:1560px;
+}
+.brand{
+  position:relative;overflow:hidden;
+  border:1px solid rgba(255,255,255,.5)!important;
+  background:
+    linear-gradient(135deg,rgba(255,255,255,.94),rgba(255,255,255,.76))!important;
+  box-shadow:0 24px 60px rgba(53,63,130,.12)!important;
+}
+.brand::after{
+  content:"";position:absolute;inset:-35% auto auto -10%;
+  width:240px;height:240px;border-radius:999px;
+  background:radial-gradient(circle,rgba(109,93,252,.18),transparent 60%);
+  pointer-events:none
+}
+.brand h1{
+  letter-spacing:-.02em;
+}
+.tabs{
+  position:sticky;top:10px;z-index:120;
+  padding:8px;border-radius:24px;
+  backdrop-filter:blur(14px);
+  background:rgba(255,255,255,.72)!important;
+  border:1px solid rgba(255,255,255,.65)!important;
+  box-shadow:0 20px 40px rgba(43,54,115,.10)!important
+}
+.tab{
+  border-radius:16px!important;
+  font-weight:900!important;
+  min-height:48px!important;
+}
+.tab.active{
+  box-shadow:0 14px 28px rgba(109,93,252,.18)!important;
+}
+.card{
+  position:relative;overflow:hidden;
+  border-radius:28px!important;
+  border:1px solid rgba(255,255,255,.58)!important;
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.92),rgba(255,255,255,.82))!important;
+  box-shadow:0 24px 60px rgba(41,52,118,.10)!important;
+}
+.card::before{
+  content:"";position:absolute;left:0;right:0;top:0;height:5px;
+  background:linear-gradient(90deg,var(--primary),var(--secondary),#ec4899);
+  opacity:.82
+}
+.card h2,.card h3{
+  letter-spacing:-.02em;
+}
+button{
+  border-radius:16px!important;
+  font-weight:900!important;
+}
+button.primary{
+  background:linear-gradient(135deg,var(--primary),var(--primary-2))!important;
+  box-shadow:0 14px 28px rgba(109,93,252,.22)!important
+}
+button.secondary{
+  background:linear-gradient(135deg,#0ea5e9,#38bdf8)!important;
+  color:#fff!important;
+  box-shadow:0 14px 28px rgba(14,165,233,.18)!important;
+  border:0!important
+}
+button.ghost{
+  background:rgba(255,255,255,.72)!important;
+}
+input,select,textarea{
+  border-radius:16px!important;
+  background:rgba(255,255,255,.86)!important
+}
+input:focus,select:focus,textarea:focus{
+  box-shadow:0 0 0 4px rgba(109,93,252,.12)!important
+}
+.tablewrap{
+  border-radius:18px;overflow:auto;
+  border:1px solid rgba(109,93,252,.09)
+}
+thead th{
+  position:sticky;top:0;z-index:2
+}
+.notice{
+  border-radius:16px!important
+}
+.modal-box{
+  border-radius:28px!important
+}
+
+/* Settings lock */
+.settings-lock-card{
+  background:
+    linear-gradient(135deg,rgba(109,93,252,.10),rgba(14,165,233,.06),rgba(236,72,153,.05))!important;
+}
+.settings-lock-head{
+  display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap
+}
+.settings-lock-status{
+  display:inline-flex;align-items:center;gap:8px;
+  border-radius:999px;padding:8px 12px;font-size:12px;font-weight:950
+}
+.settings-lock-status.locked{
+  color:#7c2d12;background:#fff7ed;border:1px solid #fdba74
+}
+.settings-lock-status.unlocked{
+  color:#14532d;background:#dcfce7;border:1px solid #86efac
+}
+.settings-lock-grid{
+  display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:end;margin-top:14px
+}
+#panel-settings.settings-is-locked .card:not(.settings-lock-card){
+  opacity:.58;
+}
+#panel-settings.settings-is-locked .card:not(.settings-lock-card)::after{
+  content:"🔒 Impostazioni bloccate";
+  position:absolute;right:16px;top:14px;
+  border-radius:999px;padding:7px 10px;font-size:11px;font-weight:950;
+  background:rgba(255,255,255,.88);color:#7c2d12;border:1px solid #fdba74
+}
+#settingsAdminPassword{
+  max-width:340px
+}
+@media(max-width:760px){
+  .settings-lock-grid{grid-template-columns:1fr}
+  #settingsAdminPassword{max-width:none}
+}
+
 </style>
 
 <script>
@@ -610,6 +759,7 @@ tr:last-child td{border-bottom:0}
   'use strict';
   window.CLA_LOGIN_USER = 'Admin';
   window.CLA_LOGIN_PASSWORD = 'admin';
+  window.CLA_SETTINGS_PASSWORD = 'admin';
 
   window.claLogin = function(){
     var u = document.getElementById('claLoginUser');
@@ -638,10 +788,12 @@ tr:last-child td{border-bottom:0}
 
   window.claLogout = function(){
     try{ localStorage.removeItem('cla-iphone-auth'); }catch(err){}
+    try{ sessionStorage.removeItem('cla-settings-auth'); }catch(err){}
     var screen = document.getElementById('claLoginScreen');
     var app = document.getElementById('claManagerApp');
     if(app) app.classList.add('cla-locked');
     if(screen) screen.style.display = 'flex';
+    try{ if(window.lockSettingsNow) window.lockSettingsNow(false); }catch(err){}
     var p = document.getElementById('claLoginPassword');
     if(p) p.value = '';
     return false;
@@ -711,7 +863,7 @@ tr:last-child td{border-bottom:0}
 
 <div id="claManagerApp" class="cla-locked"><div class="app" id="cla-root">
   <div class="top">
-    <div class="brand"><h1>Card_Lab_Art — Gestione clienti e ordini</h1><p>La tua dashboard operativa: ordini, scadenze, spedizioni, clienti e attività da gestire.</p></div>
+    <div class="brand"><h1>Card_Lab_Art — Gestione clienti e ordini</h1><p>La tua dashboard creativa: ordini, clienti, spedizioni, premi e attività sotto controllo.</p></div>
     <div class="actions">
       <button class="secondary" id="exportBtn" type="button">Esporta backup</button>
       <label class="file-label" for="importFile">Importa backup</label><input id="importFile" type="file" accept="application/json" hidden>
@@ -939,6 +1091,24 @@ tr:last-child td{border-bottom:0}
   </section>
 
   <section class="panel" id="panel-settings">
+    <div class="card settings-lock-card">
+      <div class="settings-lock-head">
+        <div>
+          <h2 style="margin-bottom:4px">🛡️ Protezione impostazioni</h2>
+          <div class="reward">Solo l’admin può modificare punti, premi, integrazioni e backup del gestionale.</div>
+        </div>
+        <div id="settingsLockStatus" class="settings-lock-status locked">🔒 Impostazioni bloccate</div>
+      </div>
+      <div class="settings-lock-grid">
+        <div>
+          <label for="settingsAdminPassword">Password admin</label>
+          <input id="settingsAdminPassword" type="password" autocomplete="current-password" placeholder="Inserisci la password admin">
+        </div>
+        <button class="primary" type="button" id="unlockSettingsBtn">Sblocca impostazioni</button>
+        <button class="ghost" type="button" id="lockSettingsBtn">Blocca di nuovo</button>
+      </div>
+      <div class="notice" id="settingsLockNotice"></div>
+    </div>
     <div class="card"><h2>Regole dei punti</h2><div class="settings"><div><label for="eurosPerPoint">Euro spesi per 1 punto</label><input id="eurosPerPoint" type="number" min="1" step="1"></div><button class="primary" type="button" id="saveSettings">Salva impostazioni</button></div><div class="notice" id="settingsNotice"></div></div>
     <div class="card"><h2>Soglie premi</h2><div id="rewardSettings" class="rewards"></div><button type="button" class="secondary" id="addReward" style="margin-top:12px">+ Aggiungi soglia</button></div>
 
@@ -2496,6 +2666,66 @@ function openOrdersWithFilter(filter){
   },80);
 }
 
+
+var SETTINGS_AUTH_KEY='cla-settings-auth';
+
+function settingsUnlocked(){
+  try{return sessionStorage.getItem(SETTINGS_AUTH_KEY)==='1'}catch(e){return false}
+}
+function setSettingsUnlocked(v){
+  try{
+    if(v)sessionStorage.setItem(SETTINGS_AUTH_KEY,'1');
+    else sessionStorage.removeItem(SETTINGS_AUTH_KEY);
+  }catch(e){}
+}
+function protectedSettingsNodes(){
+  return $$('#panel-settings .card:not(.settings-lock-card) input, #panel-settings .card:not(.settings-lock-card) select, #panel-settings .card:not(.settings-lock-card) textarea, #panel-settings .card:not(.settings-lock-card) button');
+}
+function updateSettingsLockUI(){
+  var unlocked=settingsUnlocked();
+  var panel=$('#panel-settings');
+  var badge=$('#settingsLockStatus');
+  if(panel)panel.classList.toggle('settings-is-locked',!unlocked);
+
+  protectedSettingsNodes().forEach(function(node){
+    node.disabled=!unlocked;
+  });
+
+  if(badge){
+    badge.className='settings-lock-status '+(unlocked?'unlocked':'locked');
+    badge.textContent=unlocked?'✅ Impostazioni sbloccate':'🔒 Impostazioni bloccate';
+  }
+
+  var unlockBtn=$('#unlockSettingsBtn');
+  var lockBtn=$('#lockSettingsBtn');
+  var pass=$('#settingsAdminPassword');
+
+  if(unlockBtn)unlockBtn.style.display=unlocked?'none':'inline-flex';
+  if(lockBtn)lockBtn.style.display=unlocked?'inline-flex':'none';
+  if(pass){
+    pass.disabled=unlocked;
+    if(unlocked)pass.value='';
+  }
+}
+
+function unlockSettingsAttempt(){
+  var p=$('#settingsAdminPassword');
+  var pwd=text(p&&p.value).trim();
+  if(pwd!==text(window.CLA_SETTINGS_PASSWORD||window.CLA_LOGIN_PASSWORD)){
+    setNotice($('#settingsLockNotice'),'Password admin non corretta.','error');
+    if(p){p.value='';p.focus()}
+    return false;
+  }
+  setSettingsUnlocked(true);
+  updateSettingsLockUI();
+  setNotice($('#settingsLockNotice'),'Impostazioni sbloccate per questa sessione ✅','ok');
+  return true;
+}
+function lockSettingsNow(showMsg){
+  setSettingsUnlocked(false);
+  updateSettingsLockUI();
+  if(showMsg!==false)setNotice($('#settingsLockNotice'),'Impostazioni bloccate.','');
+}
 function handleDashboardAction(action){
   if(action==='clients'){openClientsWithFilter('');return}
   if(action==='orders'){openOrdersWithFilter('');return}
@@ -2531,6 +2761,7 @@ function render(){
   renderOperationsBoard();
   renderStatistics();
   updateSmartFilterBars();
+  updateSettingsLockUI();
 }
 function setNotice(el,msg,type){el.textContent=msg;el.className='notice'+(type?' '+type:'')}
 function openProfile(id){
@@ -3122,6 +3353,16 @@ $('#kanbanBoard').addEventListener('drop',function(e){
   if(id&&status)updateOrderStatusQuick(id,status);
 });
 
+
+
+$('#unlockSettingsBtn').addEventListener('click',unlockSettingsAttempt);
+$('#lockSettingsBtn').addEventListener('click',function(){lockSettingsNow(true)});
+$('#settingsAdminPassword').addEventListener('keydown',function(e){
+  if(e.key==='Enter'){
+    e.preventDefault();
+    unlockSettingsAttempt();
+  }
+});
 
 $('#globalSearch').addEventListener('input',renderGlobalSearch);
 $('#globalSearch').addEventListener('focus',renderGlobalSearch);
