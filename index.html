@@ -561,7 +561,7 @@ tr:last-child td{border-bottom:0}
 
 <div id="claManagerApp" class="cla-locked"><div class="app" id="cla-root">
   <div class="top">
-    <div class="brand"><h1>Card_Lab_Art — Gestione clienti e ordini</h1><p>Tutto sotto controllo in un unico posto: clienti, ordini, spedizioni, tracking, premi e backup.</p></div>
+    <div class="brand"><h1>Card_Lab_Art — Gestione clienti e ordini</h1><p>La tua dashboard operativa: ordini, scadenze, spedizioni, clienti e attività da gestire.</p></div>
     <div class="actions">
       <button class="secondary" id="exportBtn" type="button">Esporta backup</button>
       <label class="file-label" for="importFile">Importa backup</label><input id="importFile" type="file" accept="application/json" hidden>
@@ -581,14 +581,14 @@ tr:last-child td{border-bottom:0}
   </div>
 
   <div class="tabs" role="tablist">
-    <button class="tab active" data-tab="clients" type="button">Clienti</button>
-    <button class="tab" data-tab="board" type="button">⚡ Bacheca</button>
+    <button class="tab" data-tab="clients" type="button">Clienti</button>
+    <button class="tab active" data-tab="board" type="button">⚡ Bacheca</button>
     <button class="tab" data-tab="orders" type="button">Ordini</button>
     <button class="tab" data-tab="rewards" type="button">Premi</button>
     <button class="tab" data-tab="settings" type="button">Impostazioni</button>
   </div>
 
-  <section class="panel active" id="panel-clients">
+  <section class="panel" id="panel-clients">
     <div class="card">
       <div class="profile-head">
         <div>
@@ -627,7 +627,7 @@ tr:last-child td{border-bottom:0}
     </div>
   </section>
 
-  <section class="panel" id="panel-board">
+  <section class="panel active" id="panel-board">
     <div class="card">
       <div class="profile-head">
         <div>
@@ -2941,6 +2941,7 @@ $('#csvBtn').addEventListener('click',function(){var rows=[['Codice cliente','Cl
 $('#importFile').addEventListener('change',function(e){var file=e.target.files&&e.target.files[0];if(!file)return;var reader=new FileReader();reader.onload=function(){try{state=normalizeState(JSON.parse(reader.result));saveState();render();setNotice($('#clientNotice'),'Backup importato correttamente.','ok')}catch(err){alert('Backup non valido.')}e.target.value=''};reader.readAsText(file)});
 $('#resetBtn').addEventListener('click',function(){if(!confirm('Vuoi davvero cancellare tutti i clienti e gli ordini?'))return;state=defaultState();saveState();render()});
 setSelectOptions();$('#clientCode').value=nextCode();$('#orderDate').value=today();$('#orderStatus').value='Nuovo';$('#orderPaymentStatus').value='Da pagare';window.addEventListener('beforeunload',saveState);document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')saveState();if(document.visibilityState==='visible'&&cloudSyncConfigured())syncCloudData(false).catch(function(){})});render();
+renderOperationsBoard();
 setTimeout(function(){syncRecentTrackingsFromGmail(false,false).catch(function(){})},2500);
 setInterval(function(){syncRecentTrackingsFromGmail(false,false).catch(function(){})},60000);
 setTimeout(function(){if(cloudSyncConfigured())syncCloudData(false).catch(function(){})},3500);
