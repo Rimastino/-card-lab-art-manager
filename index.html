@@ -453,6 +453,120 @@ tr:last-child td{border-bottom:0}
   .kanban-board{grid-template-columns:repeat(7,270px);min-width:max-content}
 }
 
+
+.global-search{position:relative;margin:-2px 0 16px;z-index:50}
+.global-search-box{
+  display:flex;align-items:center;gap:8px;background:var(--card-strong);
+  border:1px solid var(--line);border-radius:18px;padding:6px 7px 6px 13px;
+  box-shadow:var(--shadow-soft)
+}
+.global-search-icon{font-size:23px;color:var(--primary);font-weight:900}
+.global-search-box input{border:0;box-shadow:none;background:transparent;min-height:42px;padding:6px 4px}
+.global-search-box input:focus{box-shadow:none}
+.global-search-results{
+  display:none;position:absolute;left:0;right:0;top:calc(100% + 7px);
+  background:var(--card-strong);border:1px solid var(--line);border-radius:18px;
+  box-shadow:0 22px 55px rgba(37,43,89,.2);max-height:430px;overflow:auto;padding:7px
+}
+.global-search-results.open{display:block}
+.search-result-item{
+  width:100%;text-align:left;border:0;box-shadow:none;background:transparent;color:var(--text);
+  min-height:58px;padding:9px 10px;border-radius:13px;display:flex;justify-content:space-between;
+  align-items:center;gap:10px
+}
+.search-result-item:hover{background:var(--soft);transform:none}
+.search-result-title{font-weight:900;font-size:13px}
+.search-result-meta{font-size:11px;color:var(--muted);margin-top:3px}
+.search-result-kind{
+  flex:0 0 auto;font-size:10px;font-weight:900;padding:5px 8px;border-radius:999px;
+  background:var(--soft);border:1px solid var(--line)
+}
+.search-empty{padding:18px;text-align:center;color:var(--muted);font-size:13px}
+
+.vip-badge{
+  display:inline-flex;align-items:center;border-radius:999px;padding:6px 9px;
+  font-size:11px;font-weight:950;color:#7c2d12;
+  background:linear-gradient(135deg,#fef3c7,#fde68a);border:1px solid #fcd34d
+}
+.vip-badge.top{
+  color:#fff;background:linear-gradient(135deg,#7c3aed,#ec4899);border:0;
+  box-shadow:0 7px 16px rgba(168,85,247,.22)
+}
+.vip-inline{
+  display:inline-flex;margin-left:6px;vertical-align:middle;border-radius:999px;
+  padding:3px 6px;font-size:9px;font-weight:950;color:#7c2d12;
+  background:#fef3c7;border:1px solid #fde68a
+}
+.vip-inline.top{color:#fff;background:linear-gradient(135deg,#7c3aed,#ec4899);border:0}
+
+.client-contact-tools{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 14px}
+.whatsapp-btn{
+  color:#fff!important;background:linear-gradient(135deg,#16a34a,#22c55e)!important;
+  box-shadow:0 10px 22px rgba(34,197,94,.22)!important
+}
+.quick-message-box{
+  border:1px solid rgba(34,197,94,.2);border-radius:18px;padding:14px;margin-bottom:14px;
+  background:linear-gradient(135deg,rgba(34,197,94,.06),rgba(14,165,233,.04))
+}
+
+.duplicate-box{
+  border:1px solid #f59e0b;border-radius:15px;padding:11px 12px;background:#fff7ed;color:#7c2d12;
+  font-size:12px
+}
+.duplicate-box strong{font-size:13px}
+.duplicate-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+
+.stats-detail-grid{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:15px
+}
+.stats-detail-card{
+  min-height:100px;border-radius:18px;padding:15px;color:#fff;box-shadow:var(--shadow-soft);
+  display:flex;flex-direction:column;justify-content:center
+}
+.stats-detail-card small{font-size:11px;color:rgba(255,255,255,.88);font-weight:800;margin-bottom:6px}
+.stats-detail-card strong{font-size:23px}
+.stat-purple{background:linear-gradient(135deg,#6d5dfc,#8b5cf6)}
+.stat-blue{background:linear-gradient(135deg,#0284c7,#38bdf8)}
+.stat-orange{background:linear-gradient(135deg,#f97316,#fb7185)}
+.stat-green{background:linear-gradient(135deg,#16a34a,#34d399)}
+.stat-pink{background:linear-gradient(135deg,#a855f7,#ec4899)}
+.stat-slate{background:linear-gradient(135deg,#475569,#94a3b8)}
+.stats-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.rank-list{display:grid;gap:9px}
+.rank-item{
+  display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:10px;align-items:center;
+  border:1px solid var(--line);border-radius:14px;padding:10px;background:rgba(109,93,252,.025)
+}
+.rank-number{
+  width:32px;height:32px;border-radius:11px;display:flex;align-items:center;justify-content:center;
+  font-weight:950;background:var(--soft);color:var(--primary)
+}
+.rank-title{font-weight:900;font-size:13px}
+.rank-meta{font-size:11px;color:var(--muted);margin-top:2px}
+.rank-value{font-weight:900;font-size:12px;white-space:nowrap}
+.monthly-bars{display:grid;gap:9px;margin-top:13px}
+.month-row{display:grid;grid-template-columns:72px minmax(0,1fr) 95px;gap:10px;align-items:center}
+.month-label{font-size:12px;font-weight:850}
+.month-track{height:12px;border-radius:999px;background:var(--soft);overflow:hidden;border:1px solid var(--line)}
+.month-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--primary),var(--secondary))}
+.month-value{text-align:right;font-size:11px;font-weight:900}
+.vip-info{display:flex;align-items:center;gap:12px}
+.vip-info-icon{
+  width:48px;height:48px;border-radius:16px;display:flex;align-items:center;justify-content:center;
+  font-size:25px;background:linear-gradient(135deg,#fef3c7,#fde68a)
+}
+@media(max-width:950px){
+  .stats-detail-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:650px){
+  .stats-columns{grid-template-columns:1fr}
+  .stats-detail-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .stats-detail-card{min-height:88px;padding:12px}
+  .stats-detail-card strong{font-size:19px}
+  .month-row{grid-template-columns:58px minmax(0,1fr) 78px;gap:7px}
+  .global-search{margin-bottom:12px}
+}
+
 </style>
 
 <script>
@@ -569,6 +683,17 @@ tr:last-child td{border-bottom:0}
       <button class="ghost" id="logoutBtn" type="button" onclick="return claLogout();">Esci</button>
     </div>
   </div>
+
+  <div class="global-search">
+    <div class="global-search-box">
+      <span class="global-search-icon">⌕</span>
+      <input id="globalSearch" type="search" autocomplete="off"
+             placeholder="Cerca ovunque: cliente, telefono, e-mail, prodotto, tracking...">
+      <button class="ghost mini" id="clearGlobalSearch" type="button">✕</button>
+    </div>
+    <div id="globalSearchResults" class="global-search-results"></div>
+  </div>
+
   <div id="storageWarning" class="storage-warning">⚠️ Il browser non permette il salvataggio permanente in questa modalità. Apri il gestionale in Safari/Chrome come pagina web e fai backup periodici.</div>
 
   <div class="stats">
@@ -584,6 +709,7 @@ tr:last-child td{border-bottom:0}
     <button class="tab" data-tab="clients" type="button">Clienti</button>
     <button class="tab active" data-tab="board" type="button">⚡ Bacheca</button>
     <button class="tab" data-tab="orders" type="button">Ordini</button>
+    <button class="tab" data-tab="stats" type="button">📊 Statistiche</button>
     <button class="tab" data-tab="rewards" type="button">Premi</button>
     <button class="tab" data-tab="settings" type="button">Impostazioni</button>
   </div>
@@ -717,6 +843,53 @@ tr:last-child td{border-bottom:0}
     </div>
   </section>
 
+  <section class="panel" id="panel-stats">
+    <div class="card">
+      <div class="profile-head">
+        <div>
+          <h2 style="margin-bottom:4px">📊 Statistiche attività</h2>
+          <div class="reward">Una panoramica semplice per capire come sta andando Card_Lab_Art.</div>
+        </div>
+      </div>
+
+      <div class="stats-detail-grid">
+        <div class="stats-detail-card stat-purple"><small>Fatturato questo mese</small><strong id="stMonthRevenue">€ 0,00</strong></div>
+        <div class="stats-detail-card stat-blue"><small>Ordini questo mese</small><strong id="stMonthOrders">0</strong></div>
+        <div class="stats-detail-card stat-orange"><small>Valore medio ordine</small><strong id="stAvgOrder">€ 0,00</strong></div>
+        <div class="stats-detail-card stat-green"><small>Clienti di ritorno</small><strong id="stReturningClients">0</strong></div>
+        <div class="stats-detail-card stat-pink"><small>Clienti VIP</small><strong id="stVipClients">0</strong></div>
+        <div class="stats-detail-card stat-slate"><small>Ordini consegnati</small><strong id="stDelivered">0</strong></div>
+      </div>
+    </div>
+
+    <div class="stats-columns">
+      <div class="card">
+        <h3>🏆 Top clienti</h3>
+        <div id="topClientsStats" class="rank-list"></div>
+      </div>
+      <div class="card">
+        <h3>🔥 Prodotti più richiesti</h3>
+        <div id="topProductsStats" class="rank-list"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>📅 Fatturato ultimi 6 mesi</h3>
+      <div id="monthlyRevenueBars" class="monthly-bars"></div>
+      <div class="reward" style="margin-top:10px">Il valore considera gli importi degli ordini registrati.</div>
+    </div>
+
+    <div class="card">
+      <div class="vip-info">
+        <div class="vip-info-icon">⭐</div>
+        <div>
+          <strong>Cliente VIP automatico</strong>
+          <div class="reward">VIP da 3 ordini oppure €150 di acquisti. TOP VIP da 5 ordini oppure €300.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section class="panel" id="panel-rewards">
     <div class="card"><h2>Avanzamento premi</h2><div class="tablewrap"><table><thead><tr><th>Cliente</th><th>Saldo</th><th>Premio attuale</th><th>Prossimo premio</th><th>Punti mancanti</th></tr></thead><tbody id="rewardRows"></tbody></table></div></div>
   </section>
@@ -832,6 +1005,9 @@ mario@email.it
       <div><label for="clientInstagram">Instagram</label><input id="clientInstagram" placeholder="@username"></div>
       <div><label for="clientCode">Codice cliente</label><input id="clientCode" readonly></div>
       <div class="span4"><label for="clientNotes">Note cliente</label><textarea id="clientNotes" placeholder="Preferenze, dettagli utili, richieste..."></textarea></div>
+      <div class="span4">
+        <div id="clientDuplicateNotice" class="duplicate-box" style="display:none"></div>
+      </div>
       <div class="span4 toolbar">
         <button class="primary" type="submit">Salva cliente</button>
         <button class="ghost" id="cancelNewClient" type="button">Annulla</button>
@@ -842,8 +1018,50 @@ mario@email.it
 
 <div class="modal" id="profileModal" aria-hidden="true">
   <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="profileHeading">
-    <div class="profile-head"><div><div class="profile-title"><h2 id="profileHeading">Profilo cliente</h2><span class="pill" id="profileCode"></span></div><div class="profile-meta" id="profileMeta"></div></div><button type="button" class="secondary modal-close" id="closeProfile">Chiudi</button></div>
-    <div class="profile-stats"><div class="profile-stat"><small>Totale speso</small><strong id="pSpent">—</strong></div><div class="profile-stat"><small>Saldo punti</small><strong id="pBalance">—</strong></div></div>
+    <div class="profile-head"><div><div class="profile-title"><h2 id="profileHeading">Profilo cliente</h2><span class="pill" id="profileCode"></span><span class="vip-badge" id="profileVipBadge" hidden>⭐ VIP</span></div><div class="profile-meta" id="profileMeta"></div></div><button type="button" class="secondary modal-close" id="closeProfile">Chiudi</button></div>
+    <div class="profile-stats">
+      <div class="profile-stat"><small>Totale speso</small><strong id="pSpent">—</strong></div>
+      <div class="profile-stat"><small>Saldo punti</small><strong id="pBalance">—</strong></div>
+      <div class="profile-stat"><small>Ordini effettuati</small><strong id="pOrderCount">0</strong></div>
+      <div class="profile-stat"><small>Ultimo ordine</small><strong id="pLastOrder">—</strong></div>
+    </div>
+
+    <div class="client-contact-tools">
+      <button class="whatsapp-btn" type="button" id="profileWhatsAppBtn">💬 Apri WhatsApp</button>
+      <button class="secondary" type="button" id="openQuickMessagesBtn">⚡ Messaggi pronti</button>
+    </div>
+
+    <div class="quick-message-box" id="quickMessagesBox" style="display:none">
+      <div class="profile-head">
+        <div>
+          <h3 style="margin:0">⚡ Messaggi pronti</h3>
+          <div class="reward">Scegli un modello, modificalo se vuoi e aprilo direttamente in WhatsApp.</div>
+        </div>
+      </div>
+      <div class="formgrid" style="margin-top:12px">
+        <div class="span2">
+          <label for="quickMessageTemplate">Modello</label>
+          <select id="quickMessageTemplate">
+            <option value="intake">Presa in carico</option>
+            <option value="draft">Bozza pronta</option>
+            <option value="ready">Ordine pronto</option>
+            <option value="payment">Promemoria pagamento</option>
+            <option value="shipped">Ordine spedito</option>
+            <option value="thanks">Ringraziamento dopo consegna</option>
+          </select>
+        </div>
+        <div class="span4">
+          <label for="quickMessageText">Messaggio</label>
+          <textarea id="quickMessageText" style="min-height:150px"></textarea>
+        </div>
+        <div class="span4 toolbar">
+          <button class="whatsapp-btn" type="button" id="sendQuickWhatsAppBtn">💬 Apri in WhatsApp</button>
+          <button class="secondary" type="button" id="copyQuickMessageBtn">📋 Copia messaggio</button>
+        </div>
+      </div>
+      <div class="notice" id="quickMessageNotice"></div>
+    </div>
+
     <div class="divider"></div>
     <form id="profileForm" class="formgrid">
       <input type="hidden" id="profileId">
@@ -1125,6 +1343,261 @@ function orderChecklistProgress(o){var done=0;CHECKLIST_ITEMS.forEach(function(i
 function isFinished(o){return o.orderStatus==='Consegnato'}
 function isOverdue(o){return !!o.dueDate&&o.dueDate<today()&&!isFinished(o)}
 function clientStats(id){var orders=state.orders.filter(function(o){return o.clientId===id});var spent=orders.reduce(function(a,o){return a+num(o.amount)},0);var paid=orders.reduce(function(a,o){return a+(o.paymentStatus==='Rimborsato'?0:num(o.paidAmount))},0);var earned=orders.reduce(function(a,o){return a+num(o.earned)},0);var used=orders.reduce(function(a,o){return a+num(o.redeemed)},0);var profit=orders.reduce(function(a,o){return a+orderProfit(o)},0);return {spent:spent,paid:paid,earned:earned,used:used,balance:earned-used,profit:profit}}
+
+function clientOrderCount(id){
+  return state.orders.filter(function(o){return o.clientId===id}).length;
+}
+function clientVipInfo(id){
+  var s=clientStats(id),orders=clientOrderCount(id);
+  if(orders>=5||s.spent>=300)return {vip:true,top:true,label:'TOP VIP'};
+  if(orders>=3||s.spent>=150)return {vip:true,top:false,label:'VIP'};
+  return {vip:false,top:false,label:''};
+}
+function vipBadgeHtml(id){
+  var v=clientVipInfo(id);
+  if(!v.vip)return '';
+  return '<span class="vip-inline'+(v.top?' top':'')+'">⭐ '+esc(v.label)+'</span>';
+}
+function clientLastOrderDate(id){
+  var o=latestOrderForClient(id);
+  return o?text(o.date):'';
+}
+
+function normalizeDuplicateText(v){
+  return text(v).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim();
+}
+function normalizeDuplicatePhone(v){
+  var d=text(v).replace(/\D/g,'');
+  if(d.length>10&&d.indexOf('39')===0)d=d.slice(2);
+  return d;
+}
+function normalizeDuplicateInstagram(v){
+  return text(v).toLowerCase().trim().replace(/^https?:\/\/(www\.)?instagram\.com\//,'').replace(/^@/,'').replace(/\/.*$/,'');
+}
+function findClientDuplicates(candidate,excludeId){
+  candidate=candidate||{};
+  var email=normalizeDuplicateText(candidate.email);
+  var phone=normalizeDuplicatePhone(candidate.phone);
+  var ig=normalizeDuplicateInstagram(candidate.instagram);
+  var name=normalizeDuplicateText((candidate.firstName||'')+' '+(candidate.lastName||''));
+  var city=normalizeDuplicateText(candidate.city);
+  var address=normalizeDuplicateText(candidate.address);
+  var zip=text(candidate.zip).trim();
+
+  return state.clients.filter(function(c){return c.id!==excludeId}).map(function(c){
+    var reasons=[],strong=false;
+    if(email&&normalizeDuplicateText(c.email)===email){reasons.push('stessa e-mail');strong=true}
+    if(phone&&phone.length>=8&&normalizeDuplicatePhone(c.phone)===phone){reasons.push('stesso telefono');strong=true}
+    if(ig&&normalizeDuplicateInstagram(c.instagram)===ig){reasons.push('stesso Instagram');strong=true}
+    if(address&&zip&&normalizeDuplicateText(c.address)===address&&text(c.zip).trim()===zip){reasons.push('stesso indirizzo');strong=true}
+    if(name&&normalizeDuplicateText(c.name)===name){
+      if(city&&normalizeDuplicateText(c.city)===city)reasons.push('stesso nome e città');
+      else reasons.push('stesso nome');
+    }
+    return {client:c,reasons:reasons,strong:strong};
+  }).filter(function(x){return x.reasons.length});
+}
+function newClientCandidate(){
+  return {
+    firstName:$('#clientFirstName').value.trim(),
+    lastName:$('#clientLastName').value.trim(),
+    email:$('#clientEmail').value.trim(),
+    phone:$('#clientPhone').value.trim(),
+    address:$('#clientAddress').value.trim(),
+    zip:$('#clientZip').value.trim(),
+    city:$('#clientCity').value.trim(),
+    instagram:$('#clientInstagram').value.trim()
+  };
+}
+function renderDuplicateNotice(){
+  var box=$('#clientDuplicateNotice');
+  if(!box)return [];
+  var dups=findClientDuplicates(newClientCandidate(),'');
+  if(!dups.length){box.style.display='none';box.innerHTML='';return []}
+  box.style.display='block';
+  box.innerHTML='<strong>⚠️ Possibile cliente già presente</strong>'+
+    dups.slice(0,3).map(function(x){
+      return '<div style="margin-top:7px"><b>'+esc(x.client.name)+'</b> — '+esc(x.reasons.join(', '))+
+        '<div class="duplicate-actions"><button type="button" class="mini secondary open-duplicate-client" data-id="'+esc(x.client.id)+'">Apri profilo esistente</button></div></div>';
+    }).join('');
+  return dups;
+}
+
+function whatsappNumber(phone){
+  var digits=text(phone).replace(/\D/g,'');
+  if(!digits)return '';
+  if(digits.indexOf('00')===0)digits=digits.slice(2);
+  if(digits.length===10)digits='39'+digits;
+  return digits;
+}
+function openWhatsAppForClient(c,message){
+  if(!c)return;
+  var n=whatsappNumber(c.phone);
+  if(!n){
+    setNotice($('#profileNotice'),'Inserisci e salva prima il numero di telefono del cliente.','error');
+    return;
+  }
+  var url='https://wa.me/'+n;
+  if(text(message).trim())url+='?text='+encodeURIComponent(text(message).trim());
+  window.open(url,'_blank','noopener');
+}
+function quickMessageFor(c,key){
+  var last=latestOrderForClient(c.id);
+  var first=c.firstName||c.name||'';
+  var product=last?last.product:'il tuo progetto';
+  var tracking=last&&last.trackingCode?last.trackingCode:'';
+  var carrier=last&&last.carrier?last.carrier:'';
+  var amount=last?money(last.amount):'';
+  var base='Ciao '+first+',\n\n';
+
+  if(key==='intake'){
+    return base+'il tuo progetto è stato preso in carico da Card_Lab_Art 🎨\n\nTi aggiornerò durante le varie fasi di lavorazione.\n\nGrazie per aver scelto Card_Lab_Art ✨\nYour idea becomes art.';
+  }
+  if(key==='draft'){
+    return base+'la bozza del tuo progetto Card_Lab_Art è pronta 🎨✨\n\nQuando puoi, dagli un’occhiata e fammi sapere se è tutto ok oppure se vuoi apportare qualche modifica.';
+  }
+  if(key==='ready'){
+    return base+'il tuo ordine Card_Lab_Art'+(last?' ('+product+')':'')+' è pronto! ✨📦\n\nAppena organizzo la spedizione ti invio il codice di tracking.';
+  }
+  if(key==='payment'){
+    return base+'ti scrivo per il tuo ordine Card_Lab_Art'+(last?' ('+product+')':'')+'.\n\nRisulta ancora da completare il pagamento'+(amount?' dell’ordine da '+amount:'')+'. Quando hai fatto fammi sapere, grazie! ❤️';
+  }
+  if(key==='shipped'){
+    return base+'il tuo ordine è stato spedito! 📦✨\n\nIl tuo progetto Card_Lab_Art è ufficialmente in viaggio verso di te.'+
+      (carrier?'\n\nCorriere: '+carrier:'')+
+      (tracking?'\nCodice tracking: '+tracking:'')+
+      '\n\nGrazie per aver scelto Card_Lab_Art ❤️\nYour idea becomes art. 🎨';
+  }
+  if(key==='thanks'){
+    return base+'spero che il tuo ordine Card_Lab_Art sia arrivato e che ti sia piaciuto! ❤️\n\nSe ti fa piacere, condividilo su Instagram e tagga @Card_Lab_Art_ ✨\n\nGrazie ancora!\nYour idea becomes art. 🎨';
+  }
+  return base;
+}
+function refreshQuickMessage(){
+  var id=$('#profileId').value,c=state.clients.find(function(x){return x.id===id});
+  if(!c)return;
+  $('#quickMessageText').value=quickMessageFor(c,$('#quickMessageTemplate').value);
+}
+
+function renderGlobalSearch(){
+  var q=normalizeDuplicateText($('#globalSearch').value);
+  var box=$('#globalSearchResults');
+  if(q.length<2){box.classList.remove('open');box.innerHTML='';return}
+
+  var results=[];
+  state.clients.forEach(function(c){
+    var vip=clientVipInfo(c.id);
+    var hay=[c.code,c.name,c.email,c.phone,c.address,c.zip,c.city,c.province,c.instagram,c.notes].map(normalizeDuplicateText).join(' ');
+    if(hay.indexOf(q)>=0){
+      results.push({
+        kind:'client',id:c.id,score:c.name&&normalizeDuplicateText(c.name).indexOf(q)===0?1:2,
+        title:c.name||'Cliente',meta:[c.code,c.phone,c.email,c.city].filter(Boolean).join(' • '),
+        badge:vip.vip?vip.label:'Cliente'
+      });
+    }
+  });
+  state.orders.forEach(function(o){
+    var c=state.clients.find(function(x){return x.id===o.clientId});
+    var hay=[o.date,o.product,o.orderNotes,o.orderStatus,o.paymentStatus,o.trackingCode,o.carrier,c&&c.name,c&&c.code].map(normalizeDuplicateText).join(' ');
+    if(hay.indexOf(q)>=0){
+      results.push({
+        kind:'order',id:o.id,score:o.trackingCode&&normalizeDuplicateText(o.trackingCode).indexOf(q)===0?1:3,
+        title:(c?c.name:'Cliente rimosso')+' — '+o.product,
+        meta:[o.orderStatus,o.date,o.trackingCode].filter(Boolean).join(' • '),
+        badge:'Ordine'
+      });
+    }
+  });
+  results.sort(function(a,b){return a.score-b.score});
+  results=results.slice(0,12);
+
+  box.innerHTML=results.length?results.map(function(r){
+    return '<button type="button" class="search-result-item" data-kind="'+esc(r.kind)+'" data-id="'+esc(r.id)+'">'+
+      '<div><div class="search-result-title">'+esc(r.title)+'</div><div class="search-result-meta">'+esc(r.meta||'')+'</div></div>'+
+      '<span class="search-result-kind">'+esc(r.badge)+'</span>'+
+    '</button>';
+  }).join(''):'<div class="search-empty">Nessun risultato.</div>';
+  box.classList.add('open');
+}
+
+function monthKey(dateValue){
+  var d=new Date(text(dateValue)+'T12:00:00');
+  if(Number.isNaN(d.getTime()))return '';
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+}
+function currentMonthKey(){
+  var d=new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+}
+function renderStatistics(){
+  if(!$('#stMonthRevenue'))return;
+  var cm=currentMonthKey();
+  var monthOrders=state.orders.filter(function(o){return monthKey(o.date)===cm});
+  var monthRevenue=monthOrders.reduce(function(a,o){return a+num(o.amount)},0);
+  var totalRevenue=state.orders.reduce(function(a,o){return a+num(o.amount)},0);
+  var avg=state.orders.length?totalRevenue/state.orders.length:0;
+  var returning=state.clients.filter(function(c){return clientOrderCount(c.id)>=2}).length;
+  var vips=state.clients.filter(function(c){return clientVipInfo(c.id).vip}).length;
+  var delivered=state.orders.filter(function(o){return o.orderStatus==='Consegnato'}).length;
+
+  $('#stMonthRevenue').textContent=money(monthRevenue);
+  $('#stMonthOrders').textContent=monthOrders.length;
+  $('#stAvgOrder').textContent=money(avg);
+  $('#stReturningClients').textContent=returning;
+  $('#stVipClients').textContent=vips;
+  $('#stDelivered').textContent=delivered;
+
+  var clientRanking=state.clients.map(function(c){
+    var s=clientStats(c.id);
+    return {c:c,spent:s.spent,count:clientOrderCount(c.id)};
+  }).filter(function(x){return x.count>0}).sort(function(a,b){return b.spent-a.spent}).slice(0,5);
+
+  $('#topClientsStats').innerHTML=clientRanking.length?clientRanking.map(function(x,i){
+    return '<div class="rank-item">'+
+      '<div class="rank-number">'+(i+1)+'</div>'+
+      '<div><div class="rank-title">'+esc(x.c.name)+vipBadgeHtml(x.c.id)+'</div><div class="rank-meta">'+x.count+' ordini</div></div>'+
+      '<div class="rank-value">'+money(x.spent)+'</div>'+
+    '</div>';
+  }).join(''):'<div class="empty">Nessun dato disponibile.</div>';
+
+  var productMap={};
+  state.orders.forEach(function(o){
+    var k=o.product||'Altro';
+    if(!productMap[k])productMap[k]={count:0,revenue:0};
+    productMap[k].count++;
+    productMap[k].revenue+=num(o.amount);
+  });
+  var products=Object.keys(productMap).map(function(k){return {name:k,count:productMap[k].count,revenue:productMap[k].revenue}})
+    .sort(function(a,b){return b.count-a.count||b.revenue-a.revenue}).slice(0,5);
+
+  $('#topProductsStats').innerHTML=products.length?products.map(function(x,i){
+    return '<div class="rank-item">'+
+      '<div class="rank-number">'+(i+1)+'</div>'+
+      '<div><div class="rank-title">'+esc(x.name)+'</div><div class="rank-meta">'+x.count+' ordini</div></div>'+
+      '<div class="rank-value">'+money(x.revenue)+'</div>'+
+    '</div>';
+  }).join(''):'<div class="empty">Nessun dato disponibile.</div>';
+
+  var months=[],now=new Date();
+  for(var i=5;i>=0;i--){
+    var d=new Date(now.getFullYear(),now.getMonth()-i,1);
+    var key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+    var label=d.toLocaleDateString('it-IT',{month:'short',year:'2-digit'});
+    var revenue=state.orders.filter(function(o){return monthKey(o.date)===key})
+      .reduce(function(a,o){return a+num(o.amount)},0);
+    months.push({key:key,label:label,revenue:revenue});
+  }
+  var max=Math.max.apply(null,months.map(function(x){return x.revenue}).concat([1]));
+  $('#monthlyRevenueBars').innerHTML=months.map(function(x){
+    var pct=Math.max(0,Math.round((x.revenue/max)*100));
+    return '<div class="month-row">'+
+      '<div class="month-label">'+esc(x.label)+'</div>'+
+      '<div class="month-track"><div class="month-fill" style="width:'+pct+'%"></div></div>'+
+      '<div class="month-value">'+money(x.revenue)+'</div>'+
+    '</div>';
+  }).join('');
+}
+
 function rewardFor(points){var sorted=state.settings.rewards.slice().sort(function(a,b){return a.points-b.points});var current=null,next=null;sorted.forEach(function(r){if(points>=r.points)current=r;else if(!next)next=r});return {current:current,next:next}}
 function clientContactHtml(c){var parts=[];if(c.email)parts.push(esc(c.email));if(c.phone)parts.push(esc(c.phone));if(c.instagram)parts.push(esc(c.instagram));return parts.length?parts.join('<br>'):'—'}
 function latestOrderForClient(id){var os=state.orders.filter(function(o){return o.clientId===id});return os.length?os[os.length-1]:null}
@@ -1905,7 +2378,7 @@ function render(){
   var revenue=state.orders.reduce(function(a,o){return a+num(o.amount)},0);
   $('#sClients').textContent=state.clients.length;$('#sOrders').textContent=state.orders.length;$('#sRevenue').textContent=money(revenue);$('#sWork').textContent=state.orders.filter(function(o){return ['Nuovo','In lavorazione','Da approvare','Pronto'].indexOf(o.orderStatus)>=0}).length;$('#sShip').textContent=state.orders.filter(function(o){return o.orderStatus==='Da spedire'}).length;$('#sPoints').textContent=state.clients.reduce(function(a,c){return a+clientStats(c.id).balance},0);
   var q=$('#clientSearch').value.trim().toLowerCase();var clients=state.clients.filter(function(c){return [c.code,c.firstName,c.lastName,c.name,c.email,c.phone,c.address,c.zip,c.city,c.province,c.instagram,c.notes].some(function(v){return text(v).toLowerCase().indexOf(q)!==-1})});
-  $('#clientRows').innerHTML=clients.length?clients.map(function(c){var s=clientStats(c.id),last=latestOrderForClient(c.id);return '<tr><td><span class="pill">'+esc(c.code)+'</span></td><td><strong>'+esc(c.name||'Cliente')+'</strong></td><td>'+clientContactHtml(c)+'</td><td>'+esc(c.city||'—')+'</td><td>'+money(s.spent)+'</td><td><strong>'+s.balance+'</strong></td><td>'+(last?statusBadge(last.orderStatus):'—')+'</td><td>'+(last?statusBadge(last.paymentStatus):'—')+'</td><td><button class="mini primary open-profile" type="button" data-id="'+esc(c.id)+'">Apri</button></td></tr>'}).join(''):'<tr><td colspan="9" class="empty">Nessun cliente registrato.</td></tr>';
+  $('#clientRows').innerHTML=clients.length?clients.map(function(c){var s=clientStats(c.id),last=latestOrderForClient(c.id);return '<tr><td><span class="pill">'+esc(c.code)+'</span></td><td><strong>'+esc(c.name||'Cliente')+'</strong>'+vipBadgeHtml(c.id)+'</td><td>'+clientContactHtml(c)+'</td><td>'+esc(c.city||'—')+'</td><td>'+money(s.spent)+'</td><td><strong>'+s.balance+'</strong></td><td>'+(last?statusBadge(last.orderStatus):'—')+'</td><td>'+(last?statusBadge(last.paymentStatus):'—')+'</td><td><div class="row-actions"><button class="mini primary open-profile" type="button" data-id="'+esc(c.id)+'">Apri</button>'+(c.phone?'<button class="mini whatsapp-btn quick-wa-client" type="button" data-id="'+esc(c.id)+'">💬</button>':'')+'</div></td></tr>'}).join(''):'<tr><td colspan="9" class="empty">Nessun cliente registrato.</td></tr>';
   $('#orderClient').innerHTML='<option value="">Seleziona cliente</option>'+state.clients.map(function(c){return '<option value="'+esc(c.id)+'">'+esc(c.code)+' — '+esc(c.name)+'</option>'}).join('');
   var oq=$('#orderSearch').value.trim().toLowerCase();var orders=state.orders.filter(function(o){var c=state.clients.find(function(x){return x.id===o.clientId});return [o.date,o.product,o.orderNotes,o.orderStatus,o.paymentStatus,o.trackingCode,o.carrier,c&&c.name,c&&c.code].some(function(v){return text(v).toLowerCase().indexOf(oq)!==-1})});
   $('#orderRows').innerHTML=orders.length?orders.slice().reverse().map(function(o){var c=state.clients.find(function(x){return x.id===o.clientId});return '<tr><td>'+esc(o.date)+'</td><td>'+(c?'<strong>'+esc(c.name)+'</strong><div class="small">'+esc(c.code)+'</div>':'Cliente rimosso')+'</td><td>'+esc(o.product)+(o.attachment&&o.attachment.fileId?'<div class="photo-dot">📷 Foto allegata</div>':'')+'</td><td>'+money(o.amount)+'</td><td>'+statusBadge(o.paymentStatus)+'<div class="small">'+money(o.paidAmount)+' incassati</div></td><td>'+statusBadge(o.orderStatus)+'</td><td>'+dueHtml(o)+'</td><td>'+trackingHtml(o)+'</td><td><button type="button" class="mini primary manage-order" data-id="'+esc(o.id)+'">Gestisci</button></td></tr>'}).join(''):'<tr><td colspan="9" class="empty">Nessun ordine registrato.</td></tr>';
@@ -1913,9 +2386,48 @@ function render(){
   $('#rewardRows').innerHTML=rewardData.length?rewardData.map(function(x){return '<tr><td><strong>'+esc(x.c.name)+'</strong><div class="reward">'+esc(x.c.code)+'</div></td><td><span class="pill">'+x.s.balance+' pt</span></td><td>'+(x.r.current?esc(x.r.current.name):'—')+'</td><td>'+(x.r.next?esc(x.r.next.name):'Soglia massima raggiunta')+'</td><td>'+(x.r.next?Math.max(0,x.r.next.points-x.s.balance)+' pt':'—')+'</td></tr>'}).join(''):'<tr><td colspan="5" class="empty">Aggiungi clienti per vedere i premi.</td></tr>';
   renderRewardsSettings();
   renderOperationsBoard();
+  renderStatistics();
 }
 function setNotice(el,msg,type){el.textContent=msg;el.className='notice'+(type?' '+type:'')}
-function openProfile(id){var c=state.clients.find(function(x){return x.id===id});if(!c)return;var s=clientStats(id);$('#profileId').value=c.id;$('#profileCode').textContent=c.code;$('#profileHeading').textContent=c.name||'Profilo cliente';$('#profileMeta').textContent=[c.email,c.phone,c.city].filter(Boolean).join(' • ')||'Nessun contatto inserito';$('#pSpent').textContent=money(s.spent);$('#pBalance').textContent=s.balance;$('#pFirstName').value=c.firstName;$('#pLastName').value=c.lastName;$('#pEmail').value=c.email;$('#pPhone').value=c.phone;$('#pAddress').value=c.address;$('#pZip').value=c.zip;$('#pCity').value=c.city;$('#pProvince').value=c.province;$('#pInstagram').value=c.instagram;$('#pNotes').value=c.notes;setNotice($('#profileNotice'),'','');$('#profileIntakeEmailStatus').textContent=emailStatusLabel(c.intakeEmailSentAt,c.intakeEmailError);$('#sendIntakeEmailBtn').disabled=!c.email;var os=state.orders.filter(function(o){return o.clientId===id}).slice().reverse();$('#profileOrders').innerHTML=os.length?os.map(function(o){return '<tr><td>'+esc(o.date)+'</td><td>'+esc(o.product)+(o.attachment&&o.attachment.fileId?'<div class="photo-dot">📷 Foto allegata</div>':'')+'</td><td>'+money(o.amount)+'</td><td>'+statusBadge(o.paymentStatus)+'</td><td>'+statusBadge(o.orderStatus)+'</td><td>'+dueHtml(o)+'</td><td><button type="button" class="mini primary manage-order" data-id="'+esc(o.id)+'">Gestisci</button></td></tr>'}).join(''):'<tr><td colspan="7" class="empty">Nessun ordine per questo cliente.</td></tr>';var modal=$('#profileModal');modal.classList.add('open');modal.setAttribute('aria-hidden','false')}
+function openProfile(id){
+  var c=state.clients.find(function(x){return x.id===id});if(!c)return;
+  var s=clientStats(id),vip=clientVipInfo(id),last=latestOrderForClient(id);
+
+  $('#profileId').value=c.id;
+  $('#profileCode').textContent=c.code;
+  $('#profileHeading').textContent=c.name||'Profilo cliente';
+  $('#profileMeta').textContent=[c.email,c.phone,c.city].filter(Boolean).join(' • ')||'Nessun contatto inserito';
+  $('#pSpent').textContent=money(s.spent);
+  $('#pBalance').textContent=s.balance;
+  $('#pOrderCount').textContent=clientOrderCount(id);
+  $('#pLastOrder').textContent=last?(last.date+' • '+last.product):'—';
+
+  var vipBadge=$('#profileVipBadge');
+  vipBadge.hidden=!vip.vip;
+  vipBadge.textContent=vip.top?'⭐ TOP VIP':'⭐ VIP';
+  vipBadge.className='vip-badge'+(vip.top?' top':'');
+
+  $('#pFirstName').value=c.firstName;$('#pLastName').value=c.lastName;$('#pEmail').value=c.email;
+  $('#pPhone').value=c.phone;$('#pAddress').value=c.address;$('#pZip').value=c.zip;$('#pCity').value=c.city;
+  $('#pProvince').value=c.province;$('#pInstagram').value=c.instagram;$('#pNotes').value=c.notes;
+
+  $('#profileWhatsAppBtn').disabled=!whatsappNumber(c.phone);
+  $('#sendQuickWhatsAppBtn').disabled=!whatsappNumber(c.phone);
+
+  setNotice($('#profileNotice'),'','');
+  setNotice($('#quickMessageNotice'),'','');
+  $('#quickMessagesBox').style.display='none';
+  $('#profileIntakeEmailStatus').textContent=emailStatusLabel(c.intakeEmailSentAt,c.intakeEmailError);
+  $('#sendIntakeEmailBtn').disabled=!c.email;
+  refreshQuickMessage();
+
+  var os=state.orders.filter(function(o){return o.clientId===id}).slice().reverse();
+  $('#profileOrders').innerHTML=os.length?os.map(function(o){
+    return '<tr><td>'+esc(o.date)+'</td><td>'+esc(o.product)+(o.attachment&&o.attachment.fileId?'<div class="photo-dot">📷 Foto allegata</div>':'')+'</td><td>'+money(o.amount)+'</td><td>'+statusBadge(o.paymentStatus)+'</td><td>'+statusBadge(o.orderStatus)+'</td><td>'+dueHtml(o)+'</td><td><button type="button" class="mini primary manage-order" data-id="'+esc(o.id)+'">Gestisci</button></td></tr>'
+  }).join(''):'<tr><td colspan="7" class="empty">Nessun ordine per questo cliente.</td></tr>';
+
+  var modal=$('#profileModal');modal.classList.add('open');modal.setAttribute('aria-hidden','false')
+}
 function closeProfile(){var modal=$('#profileModal');modal.classList.remove('open');modal.setAttribute('aria-hidden','true')}
 function renderChecklist(o){var box=$('#checklistBox');box.innerHTML=CHECKLIST_ITEMS.map(function(i){var checked=o.checklist&&o.checklist[i.key];return '<div class="checkitem"><input type="checkbox" id="check_'+esc(i.key)+'" data-check="'+esc(i.key)+'"'+(checked?' checked':'')+'><label for="check_'+esc(i.key)+'">'+esc(i.label)+'</label></div>'}).join('')}
 function updateOrderEditPreview(){var done=$$('[data-check]:checked',$('#checklistBox')).length;$('#editChecklistPreview').textContent='Checklist: '+done+'/'+CHECKLIST_ITEMS.length}
@@ -2097,6 +2609,7 @@ function resetNewClientForm(){
   $('#clientCode').value=nextCode();
   $('#clientPasteData').value='';
   setNotice($('#clientParseNotice'),'','');
+  if($('#clientDuplicateNotice')){$('#clientDuplicateNotice').style.display='none';$('#clientDuplicateNotice').innerHTML=''}
 }
 
 function openNewClientModal(){
@@ -2437,6 +2950,73 @@ $('#kanbanBoard').addEventListener('drop',function(e){
   if(id&&status)updateOrderStatusQuick(id,status);
 });
 
+
+$('#globalSearch').addEventListener('input',renderGlobalSearch);
+$('#globalSearch').addEventListener('focus',renderGlobalSearch);
+$('#clearGlobalSearch').addEventListener('click',function(){
+  $('#globalSearch').value='';
+  $('#globalSearchResults').classList.remove('open');
+  $('#globalSearchResults').innerHTML='';
+  $('#globalSearch').focus();
+});
+$('#globalSearchResults').addEventListener('click',function(e){
+  var item=e.target.closest('.search-result-item');if(!item)return;
+  $('#globalSearchResults').classList.remove('open');
+  if(item.dataset.kind==='client')openProfile(item.dataset.id);
+  if(item.dataset.kind==='order')openOrderModal(item.dataset.id);
+});
+document.addEventListener('click',function(e){
+  if(!e.target.closest('.global-search'))$('#globalSearchResults').classList.remove('open');
+});
+$('#globalSearch').addEventListener('keydown',function(e){
+  if(e.key==='Escape')$('#globalSearchResults').classList.remove('open');
+});
+
+$('#clientRows').addEventListener('click',function(e){
+  var wa=e.target.closest('.quick-wa-client');
+  if(wa){
+    var c=state.clients.find(function(x){return x.id===wa.dataset.id});
+    if(c)openWhatsAppForClient(c,'');
+  }
+});
+
+$('#clientDuplicateNotice').addEventListener('click',function(e){
+  var b=e.target.closest('.open-duplicate-client');
+  if(!b)return;
+  closeNewClientModal();
+  openProfile(b.dataset.id);
+});
+
+['clientFirstName','clientLastName','clientEmail','clientPhone','clientAddress','clientZip','clientCity','clientInstagram'].forEach(function(id){
+  $('#'+id).addEventListener('input',function(){renderDuplicateNotice()});
+});
+
+$('#profileWhatsAppBtn').addEventListener('click',function(){
+  var c=state.clients.find(function(x){return x.id===$('#profileId').value});
+  if(c)openWhatsAppForClient(c,'');
+});
+$('#openQuickMessagesBtn').addEventListener('click',function(){
+  var box=$('#quickMessagesBox');
+  box.style.display=box.style.display==='none'?'block':'none';
+  if(box.style.display==='block')refreshQuickMessage();
+});
+$('#quickMessageTemplate').addEventListener('change',refreshQuickMessage);
+$('#sendQuickWhatsAppBtn').addEventListener('click',function(){
+  var c=state.clients.find(function(x){return x.id===$('#profileId').value});
+  if(c)openWhatsAppForClient(c,$('#quickMessageText').value);
+});
+$('#copyQuickMessageBtn').addEventListener('click',async function(){
+  var msg=$('#quickMessageText').value;
+  try{
+    await navigator.clipboard.writeText(msg);
+    setNotice($('#quickMessageNotice'),'Messaggio copiato ✅','ok');
+  }catch(e){
+    $('#quickMessageText').select();
+    try{document.execCommand('copy');setNotice($('#quickMessageNotice'),'Messaggio copiato ✅','ok')}
+    catch(err){setNotice($('#quickMessageNotice'),'Non riesco a copiare automaticamente. Seleziona il testo e copialo manualmente.','error')}
+  }
+});
+
 $('#newClientBtn').addEventListener('click',openNewClientModal);
 $('#closeNewClient').addEventListener('click',closeNewClientModal);
 $('#cancelNewClient').addEventListener('click',closeNewClientModal);
@@ -2456,6 +3036,7 @@ $('#parseClientDataBtn').addEventListener('click',function(){
 
   var parsed=parseClientPastedData(raw);
   applyParsedClientData(parsed);
+  renderDuplicateNotice();
 
   var found=[];
   if(parsed.firstName||parsed.lastName)found.push('nome');
@@ -2479,7 +3060,20 @@ $('#clientForm').addEventListener('submit',async function(e){
   var first=$('#clientFirstName').value.trim(),last=$('#clientLastName').value.trim();
   if(!first||!last){setNotice($('#clientNotice'),'Inserisci nome e cognome.','error');return}
   var email=$('#clientEmail').value.trim();
-  if(email&&!$('#clientEmail').checkValidity()){setNotice($('#clientNotice'),'L’indirizzo e-mail non è valido.','error');return}
+  if(email&&!$('#clientEmail').checkValidity()){setNotice($('#clientParseNotice'),'L’indirizzo e-mail non è valido.','error');return}
+
+  var duplicates=findClientDuplicates(newClientCandidate(),'');
+  var strongDuplicates=duplicates.filter(function(x){return x.strong});
+  if(strongDuplicates.length){
+    renderDuplicateNotice();
+    setNotice($('#clientParseNotice'),'Cliente non salvato: ho trovato un possibile duplicato forte. Apri il profilo esistente e controlla.','error');
+    return;
+  }
+  if(duplicates.length){
+    renderDuplicateNotice();
+    if(!confirm('Esiste già un cliente con nome/dati simili. Vuoi creare comunque un nuovo profilo?'))return;
+  }
+
   var c={id:uid(),code:nextCode(),firstName:first,lastName:last,name:(first+' '+last).trim(),email:email,phone:$('#clientPhone').value.trim(),address:$('#clientAddress').value.trim(),zip:$('#clientZip').value.trim(),city:$('#clientCity').value.trim(),province:$('#clientProvince').value.trim().toUpperCase(),instagram:$('#clientInstagram').value.trim(),notes:$('#clientNotes').value.trim(),intakeEmailSentAt:'',intakeEmailError:''};
   state.clients.push(c);
   if(!saveState()||!verifyClientSaved(c)){state.clients=state.clients.filter(function(x){return x.id!==c.id});setNotice($('#clientNotice'),'ERRORE: il profilo non è stato salvato. Riprova.','error');return}
@@ -2494,7 +3088,17 @@ $('#clientForm').addEventListener('submit',async function(e){
 $('#clientSearch').addEventListener('input',render);$('#orderSearch').addEventListener('input',render);
 $('#clientRows').addEventListener('click',function(e){var b=e.target.closest('.open-profile');if(b)openProfile(b.dataset.id)});
 $('#closeProfile').addEventListener('click',closeProfile);$('#profileModal').addEventListener('click',function(e){if(e.target===this)closeProfile()});
-$('#profileForm').addEventListener('submit',function(e){e.preventDefault();var id=$('#profileId').value,c=state.clients.find(function(x){return x.id===id});if(!c)return;var first=$('#pFirstName').value.trim(),last=$('#pLastName').value.trim();if(!first||!last){setNotice($('#profileNotice'),'Nome e cognome sono obbligatori.','error');return}if($('#pEmail').value.trim()&&!$('#pEmail').checkValidity()){setNotice($('#profileNotice'),'L’indirizzo e-mail non è valido.','error');return}var backup=JSON.parse(JSON.stringify(c));c.firstName=first;c.lastName=last;c.name=(first+' '+last).trim();c.email=$('#pEmail').value.trim();c.phone=$('#pPhone').value.trim();c.address=$('#pAddress').value.trim();c.zip=$('#pZip').value.trim();c.city=$('#pCity').value.trim();c.province=$('#pProvince').value.trim().toUpperCase();c.instagram=$('#pInstagram').value.trim();c.notes=$('#pNotes').value.trim();if(!saveState()||!verifyClientSaved(c)){Object.keys(c).forEach(function(k){delete c[k]});Object.assign(c,backup);setNotice($('#profileNotice'),'ERRORE: le modifiche non sono state salvate.','error');return}render();openProfile(id);setNotice($('#profileNotice'),'Modifiche salvate.','ok')});
+$('#profileForm').addEventListener('submit',function(e){e.preventDefault();var id=$('#profileId').value,c=state.clients.find(function(x){return x.id===id});if(!c)return;var first=$('#pFirstName').value.trim(),last=$('#pLastName').value.trim();if(!first||!last){setNotice($('#profileNotice'),'Nome e cognome sono obbligatori.','error');return}if($('#pEmail').value.trim()&&!$('#pEmail').checkValidity()){setNotice($('#profileNotice'),'L’indirizzo e-mail non è valido.','error');return}
+var profileDup=findClientDuplicates({
+  firstName:first,lastName:last,email:$('#pEmail').value.trim(),phone:$('#pPhone').value.trim(),
+  address:$('#pAddress').value.trim(),zip:$('#pZip').value.trim(),city:$('#pCity').value.trim(),
+  instagram:$('#pInstagram').value.trim()
+},id).filter(function(x){return x.strong});
+if(profileDup.length){
+  setNotice($('#profileNotice'),'Modifiche non salvate: questi dati corrispondono già a '+profileDup[0].client.name+' ('+profileDup[0].reasons.join(', ')+').','error');
+  return;
+}
+var backup=JSON.parse(JSON.stringify(c));c.firstName=first;c.lastName=last;c.name=(first+' '+last).trim();c.email=$('#pEmail').value.trim();c.phone=$('#pPhone').value.trim();c.address=$('#pAddress').value.trim();c.zip=$('#pZip').value.trim();c.city=$('#pCity').value.trim();c.province=$('#pProvince').value.trim().toUpperCase();c.instagram=$('#pInstagram').value.trim();c.notes=$('#pNotes').value.trim();if(!saveState()||!verifyClientSaved(c)){Object.keys(c).forEach(function(k){delete c[k]});Object.assign(c,backup);setNotice($('#profileNotice'),'ERRORE: le modifiche non sono state salvate.','error');return}render();openProfile(id);setNotice($('#profileNotice'),'Modifiche salvate.','ok')});
 
 $('#sendIntakeEmailBtn').addEventListener('click',async function(){
   var id=$('#profileId').value,c=state.clients.find(function(x){return x.id===id});if(!c)return;
