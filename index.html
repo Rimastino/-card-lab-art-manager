@@ -251,23 +251,24 @@
 
     <div class="card">
       <h2>E-mail automatiche</h2>
-      <p class="reward">Per ora puoi attivare l’e-mail automatica di <strong>presa in carico</strong>. L’e-mail di spedizione può essere configurata più avanti.</p>
+      <p class="reward">Puoi gestire separatamente le due automazioni: <strong>presa in carico</strong> del nuovo cliente e <strong>spedizione</strong> quando imposti manualmente un ordine su “Spedito”.</p>
       <div class="formgrid">
         <div class="span2"><label for="emailPublicKey">EmailJS Public Key</label><input id="emailPublicKey" autocomplete="off" placeholder="Public Key"></div>
         <div class="span2"><label for="emailServiceId">Service ID</label><input id="emailServiceId" autocomplete="off" placeholder="service_xxxxx"></div>
         <div class="span2"><label for="emailIntakeTemplateId">Template ID — Presa in carico</label><input id="emailIntakeTemplateId" autocomplete="off" placeholder="template_xxxxx"></div>
-        <div class="span2"><label for="emailShippedTemplateId">Template ID — Spedito <small>(opzionale per ora)</small></label><input id="emailShippedTemplateId" autocomplete="off" placeholder="template_xxxxx"></div>
+        <div class="span2"><label for="emailShippedTemplateId">Template ID — Spedito</label><input id="emailShippedTemplateId" autocomplete="off" placeholder="template_xxxxx"></div>
         <div class="span2"><label for="emailFromName">Nome mittente</label><input id="emailFromName" value="Card_Lab_Art" placeholder="Card_Lab_Art"></div>
-        <div class="span2"><label>Invio automatico</label><label class="checkitem"><input id="emailEnabled" type="checkbox"> Attiva e-mail automatica presa in carico</label></div>
+        <div class="span2"><label>Automazione presa in carico</label><label class="checkitem"><input id="emailIntakeEnabled" type="checkbox"> Invia quando creo un nuovo profilo cliente</label></div>
+        <div class="span2"><label>Automazione spedizione</label><label class="checkitem"><input id="emailShippedEnabled" type="checkbox"> Invia quando imposto l’ordine su “Spedito”</label></div>
         <div class="span4 toolbar"><button class="primary" type="button" id="saveEmailSettings">Salva configurazione e-mail</button></div>
       </div>
       <div class="notice" id="emailSettingsNotice"></div>
-      <div class="reward" style="margin-top:10px">Variabili template: <strong>{{to_email}}</strong>, {{first_name}}, {{last_name}}, {{client_name}}, {{client_code}}, {{product}}, {{order_date}}, {{order_status}}, {{carrier}}, {{tracking_code}}, {{tracking_url}}, {{subject}}, {{message}}.</div>
+      <div class="reward" style="margin-top:10px">Variabili template: <strong>{{to_email}}</strong>, {{first_name}}, {{last_name}}, {{client_name}}, {{client_code}}, {{product}}, {{order_date}}, {{order_status}}, {{carrier}}, {{tracking_code}}, {{tracking_url}}, {{subject}}, {{message}}. La mail “Spedito” parte una sola volta quando cambi manualmente lo stato in <strong>Spedito</strong> e il tracking è presente.</div>
     </div>
 
     <div class="card">
       <h2>Import tracking da Gmail</h2>
-      <p class="reward">Collega il gestionale a un piccolo Google Apps Script. Il gestionale controlla le e-mail di aggiornamento di “Spedire by Alsendo”, legge <strong>Destinatario, tracking e corriere</strong> e abbina il tracking al cliente con lo stesso nome. Controlla all’apertura e poi ogni minuto mentre il gestionale è aperto. Non cambia lo stato dell’ordine e non invia e-mail al cliente.</p>
+      <p class="reward">Collega il gestionale a un piccolo Google Apps Script. Google Apps Script controlla Gmail <strong>ogni 10 minuti anche quando il gestionale è chiuso</strong> e mette i nuovi tracking in attesa. Quando apri il gestionale, abbina Destinatario, tracking e corriere al cliente con lo stesso nome. Non cambia lo stato dell’ordine e non invia e-mail al cliente.</p>
       <div class="formgrid">
         <div class="span2"><label for="trackingWebAppUrl">URL Google Apps Script</label><input id="trackingWebAppUrl" type="url" autocomplete="off" placeholder="https://script.google.com/macros/s/.../exec"></div>
         <div class="span2"><label for="trackingWebAppToken">Token segreto</label><input id="trackingWebAppToken" type="password" autocomplete="off" placeholder="Token impostato nello script"></div>
@@ -276,7 +277,21 @@
       <div class="notice" id="trackingIntegrationNotice"></div>
     </div>
 
-    <div class="card"><h2>Gestione dati</h2><p class="reward">I dati restano salvati nel browser di questo dispositivo. Fai un backup JSON periodico, soprattutto prima di aggiornare il file del gestionale.</p><button class="danger" type="button" id="resetBtn">Azzera tutti i dati</button></div>
+    <div class="card">
+      <h2>Sincronizzazione PC ↔ iPhone</h2>
+      <p class="reward">Clienti e ordini vengono salvati anche nel tuo database Google e sincronizzati tra i dispositivi. Usa lo <strong>stesso URL Apps Script e lo stesso token</strong> su PC e iPhone.</p>
+      <div class="formgrid">
+        <div class="span4"><label class="checkitem"><input id="cloudSyncEnabled" type="checkbox"> Attiva sincronizzazione cloud automatica</label></div>
+        <div class="span4 toolbar">
+          <button class="primary" type="button" id="saveCloudSyncSettings">Salva sincronizzazione</button>
+          <button class="secondary" type="button" id="syncCloudNowBtn">Sincronizza PC / iPhone adesso</button>
+        </div>
+      </div>
+      <div class="notice" id="cloudSyncNotice"></div>
+      <div class="reward" style="margin-top:10px">Le configurazioni EmailJS e il token restano locali sul singolo dispositivo; vengono condivisi solo <strong>clienti e ordini</strong>.</div>
+    </div>
+
+    <div class="card"><h2>Gestione dati</h2><p class="reward">Il browser mantiene una copia locale. Con la sincronizzazione cloud attiva, clienti e ordini vengono anche condivisi tra PC e iPhone. Continua comunque a fare un backup JSON periodico.</p><button class="danger" type="button" id="resetBtn">Azzera tutti i dati</button></div>
   </section>
 </div>
 
@@ -374,7 +389,7 @@ var CHECKLIST_ITEMS=[
   {key:'shipped',label:'Spedita'}
 ];
 function defaultChecklist(){var x={};CHECKLIST_ITEMS.forEach(function(i){x[i.key]=false});return x}
-function defaultEmailSettings(){return {enabled:false,publicKey:'',serviceId:'',intakeTemplateId:'',shippedTemplateId:'',fromName:'Card_Lab_Art'}}
+function defaultEmailSettings(){return {enabled:false,intakeEnabled:false,shippedEnabled:false,publicKey:'',serviceId:'',intakeTemplateId:'',shippedTemplateId:'',fromName:'Card_Lab_Art'}}
 function defaultTrackingIntegration(){return {webAppUrl:'',token:''}}
 function defaultState(){return {clients:[],orders:[],settings:{eurosPerPoint:10,rewards:[{points:5,name:'Sticker o piccolo gadget'},{points:10,name:'Upgrade olografico o gadget 3D'},{points:15,name:'10 EUR di sconto sul prossimo ordine'},{points:20,name:'Prodotto personalizzato o stand base'}],email:defaultEmailSettings(),trackingIntegration:defaultTrackingIntegration()}}}
 function text(v){return v==null?'':String(v)}
@@ -383,14 +398,82 @@ function esc(v){return text(v).replace(/[&<>"']/g,function(m){return {'&':'&amp;
 function uid(){try{if(window.crypto&&typeof window.crypto.randomUUID==='function')return window.crypto.randomUUID()}catch(e){}return 'id-'+Date.now()+'-'+Math.random().toString(16).slice(2)}
 function money(n){return new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR'}).format(num(n))}
 function today(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
-function migrateClient(c){c=c||{};var pieces=text(c.name).trim().split(/\s+/).filter(Boolean);var first=text(c.firstName||pieces[0]||'');var last=text(c.lastName||pieces.slice(1).join(' '));return {id:c.id||uid(),code:c.code||'',firstName:first,lastName:last,name:(first+' '+last).trim(),email:text(c.email),phone:text(c.phone),address:text(c.address),zip:text(c.zip),city:text(c.city),province:text(c.province),instagram:text(c.instagram||c.contact),notes:text(c.notes),intakeEmailSentAt:text(c.intakeEmailSentAt),intakeEmailError:text(c.intakeEmailError)}}
+function migrateClient(c){c=c||{};var pieces=text(c.name).trim().split(/\s+/).filter(Boolean);var first=text(c.firstName||pieces[0]||'');var last=text(c.lastName||pieces.slice(1).join(' '));return {id:c.id||uid(),code:c.code||'',firstName:first,lastName:last,name:(first+' '+last).trim(),email:text(c.email),phone:text(c.phone),address:text(c.address),zip:text(c.zip),city:text(c.city),province:text(c.province),instagram:text(c.instagram||c.contact),notes:text(c.notes),intakeEmailSentAt:text(c.intakeEmailSentAt),intakeEmailError:text(c.intakeEmailError),_syncUpdatedAt:text(c._syncUpdatedAt||'2000-01-01T00:00:00.000Z')}}
 function legacyOrderProductAndNotes(o){var product=text(o.product),notes=text(o.orderNotes||o.notes);if(product)return {product:PRODUCTS.indexOf(product)>=0?product:'Altro',notes:notes||text(o.note)};var legacy=text(o.note);var parts=legacy.split(' — ');if(parts.length>1&&PRODUCTS.indexOf(parts[0])>=0)return {product:parts[0],notes:parts.slice(1).join(' — ')};if(PRODUCTS.indexOf(legacy)>=0)return {product:legacy,notes:''};return {product:'Altro',notes:legacy}}
-function normalizeOrder(o){o=o||{};var pn=legacyOrderProductAndNotes(o);var st=text(o.orderStatus||o.shippingStatus||o.status||'In lavorazione');if(st==='Arrivato')st='Consegnato';if(ORDER_STATUSES.indexOf(st)<0)st='In lavorazione';var ps=text(o.paymentStatus||'Da pagare');if(PAYMENT_STATUSES.indexOf(ps)<0)ps='Da pagare';var cl=Object.assign(defaultChecklist(),o.checklist||{});if(st==='Spedito'||st==='Consegnato')cl.shipped=true;return Object.assign({},o,{id:o.id||uid(),date:text(o.date||today()),clientId:text(o.clientId),amount:num(o.amount),earned:num(o.earned),redeemed:num(o.redeemed),product:pn.product,orderNotes:pn.notes,orderStatus:st,dueDate:text(o.dueDate),paymentStatus:ps,paidAmount:num(o.paidAmount),paymentMethod:text(o.paymentMethod),materialCost:num(o.materialCost),shippingCost:num(o.shippingCost),carrier:text(o.carrier),trackingCode:text(o.trackingCode),trackingUrl:text(o.trackingUrl),checklist:cl,shippedEmailSentAt:text(o.shippedEmailSentAt),shippedEmailError:text(o.shippedEmailError)})}
-function normalizeState(data){var d=defaultState();if(!data||!Array.isArray(data.clients)||!Array.isArray(data.orders))return d;d.clients=data.clients.map(migrateClient);d.orders=data.orders.map(normalizeOrder);if(data.settings){d.settings.eurosPerPoint=Math.max(1,num(data.settings.eurosPerPoint)||10);if(Array.isArray(data.settings.rewards)&&data.settings.rewards.length)d.settings.rewards=data.settings.rewards.map(function(r){return {points:Math.max(1,num(r.points)||1),name:text(r.name||'Premio')}});d.settings.email=Object.assign(defaultEmailSettings(),data.settings.email||{});d.settings.trackingIntegration=Object.assign(defaultTrackingIntegration(),data.settings.trackingIntegration||{})}return d}
+function normalizeOrder(o){o=o||{};var pn=legacyOrderProductAndNotes(o);var st=text(o.orderStatus||o.shippingStatus||o.status||'In lavorazione');if(st==='Arrivato')st='Consegnato';if(ORDER_STATUSES.indexOf(st)<0)st='In lavorazione';var ps=text(o.paymentStatus||'Da pagare');if(PAYMENT_STATUSES.indexOf(ps)<0)ps='Da pagare';var cl=Object.assign(defaultChecklist(),o.checklist||{});if(st==='Spedito'||st==='Consegnato')cl.shipped=true;return Object.assign({},o,{id:o.id||uid(),date:text(o.date||today()),clientId:text(o.clientId),amount:num(o.amount),earned:num(o.earned),redeemed:num(o.redeemed),product:pn.product,orderNotes:pn.notes,orderStatus:st,dueDate:text(o.dueDate),paymentStatus:ps,paidAmount:num(o.paidAmount),paymentMethod:text(o.paymentMethod),materialCost:num(o.materialCost),shippingCost:num(o.shippingCost),carrier:text(o.carrier),trackingCode:text(o.trackingCode),trackingUrl:text(o.trackingUrl),checklist:cl,shippedEmailSentAt:text(o.shippedEmailSentAt),shippedEmailError:text(o.shippedEmailError),_syncUpdatedAt:text(o._syncUpdatedAt||'2000-01-01T00:00:00.000Z')})}
+function normalizeState(data){var d=defaultState();if(!data||!Array.isArray(data.clients)||!Array.isArray(data.orders))return d;d.clients=data.clients.map(migrateClient);d.orders=data.orders.map(normalizeOrder);if(data.settings){d.settings.eurosPerPoint=Math.max(1,num(data.settings.eurosPerPoint)||10);if(Array.isArray(data.settings.rewards)&&data.settings.rewards.length)d.settings.rewards=data.settings.rewards.map(function(r){return {points:Math.max(1,num(r.points)||1),name:text(r.name||'Premio')}});d.settings.email=Object.assign(defaultEmailSettings(),data.settings.email||{});
+if(typeof d.settings.email.intakeEnabled!=='boolean')d.settings.email.intakeEnabled=!!d.settings.email.enabled;
+if(typeof d.settings.email.shippedEnabled!=='boolean')d.settings.email.shippedEnabled=false;
+d.settings.trackingIntegration=Object.assign(defaultTrackingIntegration(),data.settings.trackingIntegration||{})}return d}
 var storageOK=true;
+var CLOUD_META_KEY='card-lab-art-cloud-sync-meta-v1';
+
 function loadState(){try{var raw=localStorage.getItem(STORAGE_KEY);return raw?normalizeState(JSON.parse(raw)):defaultState()}catch(e){storageOK=false;return defaultState()}}
 var state=loadState();
-function saveState(){try{var payload=JSON.stringify(state);localStorage.setItem(STORAGE_KEY,payload);if(localStorage.getItem(STORAGE_KEY)!==payload)throw new Error('Verifica salvataggio non riuscita');storageOK=true;showStorageStatus();return true}catch(e){storageOK=false;showStorageStatus();console.error('Errore salvataggio:',e);return false}}
+
+function defaultCloudMeta(){return {enabled:true,lastPushedAt:'',lastSyncAt:'',deletedClients:{},deletedOrders:{}}}
+function loadCloudMeta(){try{return Object.assign(defaultCloudMeta(),JSON.parse(localStorage.getItem(CLOUD_META_KEY)||'{}'))}catch(e){return defaultCloudMeta()}}
+var cloudMeta=loadCloudMeta();
+function saveCloudMeta(){try{localStorage.setItem(CLOUD_META_KEY,JSON.stringify(cloudMeta))}catch(e){}}
+
+function comparableEntity(obj){
+  var x=JSON.parse(JSON.stringify(obj||{}));
+  delete x._syncUpdatedAt;
+  return JSON.stringify(x);
+}
+var cloudBaseline={clients:{},orders:{}};
+function resetCloudBaseline(){
+  cloudBaseline={clients:{},orders:{}};
+  state.clients.forEach(function(c){cloudBaseline.clients[c.id]=comparableEntity(c)});
+  state.orders.forEach(function(o){cloudBaseline.orders[o.id]=comparableEntity(o)});
+}
+resetCloudBaseline();
+
+var applyingCloudState=false;
+function stampLocalEntityChanges(){
+  if(applyingCloudState)return;
+  var now=new Date().toISOString(),seenClients={},seenOrders={};
+
+  state.clients.forEach(function(c){
+    seenClients[c.id]=true;
+    var fp=comparableEntity(c);
+    if(!cloudBaseline.clients[c.id]||cloudBaseline.clients[c.id]!==fp)c._syncUpdatedAt=now;
+  });
+  Object.keys(cloudBaseline.clients).forEach(function(id){
+    if(!seenClients[id])cloudMeta.deletedClients[id]=now;
+  });
+
+  state.orders.forEach(function(o){
+    seenOrders[o.id]=true;
+    var fp=comparableEntity(o);
+    if(!cloudBaseline.orders[o.id]||cloudBaseline.orders[o.id]!==fp)o._syncUpdatedAt=now;
+  });
+  Object.keys(cloudBaseline.orders).forEach(function(id){
+    if(!seenOrders[id])cloudMeta.deletedOrders[id]=now;
+  });
+
+  resetCloudBaseline();
+  saveCloudMeta();
+}
+
+function saveState(opts){
+  opts=opts||{};
+  try{
+    if(!opts.fromCloud)stampLocalEntityChanges();
+    var payload=JSON.stringify(state);
+    localStorage.setItem(STORAGE_KEY,payload);
+    if(localStorage.getItem(STORAGE_KEY)!==payload)throw new Error('Verifica salvataggio non riuscita');
+    storageOK=true;
+    showStorageStatus();
+    if(!opts.fromCloud)scheduleCloudSync();
+    return true
+  }catch(e){
+    storageOK=false;
+    showStorageStatus();
+    console.error('Errore salvataggio:',e);
+    return false
+  }
+}
 function verifyClientSaved(client){try{var raw=localStorage.getItem(STORAGE_KEY);if(!raw)return false;var saved=JSON.parse(raw),found=(saved.clients||[]).find(function(x){return x.id===client.id});if(!found)return false;var fields=['code','firstName','lastName','name','email','phone','address','zip','city','province','instagram','notes'];return fields.every(function(k){return text(found[k])===text(client[k])})}catch(e){return false}}
 function showStorageStatus(){var box=$('#storageWarning');if(box)box.style.display=storageOK?'none':'block'}
 function nextCode(){var max=0;state.clients.forEach(function(c){var m=text(c.code).match(/^CL(\d+)$/);if(m)max=Math.max(max,num(m[1]))});return 'CL'+String(max+1).padStart(3,'0')}
@@ -445,6 +528,7 @@ function sendShippedEmail(o,force){
   if(!o)return Promise.reject(new Error('Ordine non trovato.'));
   var c=state.clients.find(function(x){return x.id===o.clientId});
   if(!c||!text(c.email).trim())return Promise.reject(new Error('Il cliente non ha un indirizzo e-mail.'));
+  if(!text(o.trackingCode).trim())return Promise.reject(new Error('Manca il codice tracking. Importalo da Gmail prima di inviare la mail di spedizione.'));
   if(o.shippedEmailSentAt&&!force)return Promise.resolve({alreadySent:true});
   var p=emailBaseParams(c);
   p.product=text(o.product);p.order_date=text(o.date);p.order_status=text(o.orderStatus);p.carrier=text(o.carrier);p.tracking_code=text(o.trackingCode);p.tracking_url=text(o.trackingUrl);
@@ -453,7 +537,8 @@ function sendShippedEmail(o,force){
   o.shippedEmailError='';saveState();
   return sendEmailTemplate(emailSettings().shippedTemplateId,p).then(function(r){o.shippedEmailSentAt=nowIso();o.shippedEmailError='';saveState();return r}).catch(function(err){o.shippedEmailError=text(err&&err.text||err&&err.message||err||'Errore invio');saveState();throw err});
 }
-function autoEmailEnabled(){return !!emailSettings().enabled}
+function intakeEmailEnabled(){var e=emailSettings();return typeof e.intakeEnabled==='boolean'?e.intakeEnabled:!!e.enabled}
+function shippedEmailEnabled(){return !!emailSettings().shippedEnabled}
 
 
 function trackingIntegration(){
@@ -481,6 +566,163 @@ function jsonpRequest(baseUrl,params){
     script.onerror=function(){cleanup();reject(new Error('Impossibile raggiungere Google Apps Script.'))};
     document.head.appendChild(script);
   });
+}
+
+
+function cloudSyncConfigured(){
+  return !!cloudMeta.enabled&&trackingIntegrationReady();
+}
+function cloudEncodePayload(obj){
+  var json=JSON.stringify(obj||{});
+  var b64=btoa(unescape(encodeURIComponent(json)));
+  return b64.replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+function cloudTime(v){var n=Date.parse(text(v));return Number.isFinite(n)?n:0}
+function maxCloudTimestamp(){
+  var m=0;
+  state.clients.forEach(function(c){m=Math.max(m,cloudTime(c._syncUpdatedAt))});
+  state.orders.forEach(function(o){m=Math.max(m,cloudTime(o._syncUpdatedAt))});
+  Object.keys(cloudMeta.deletedClients||{}).forEach(function(id){m=Math.max(m,cloudTime(cloudMeta.deletedClients[id]))});
+  Object.keys(cloudMeta.deletedOrders||{}).forEach(function(id){m=Math.max(m,cloudTime(cloudMeta.deletedOrders[id]))});
+  return m?new Date(m).toISOString():'';
+}
+function cloudApi(params){
+  var cfg=trackingIntegration();
+  if(!trackingIntegrationReady())return Promise.reject(new Error('Configura prima URL Apps Script e token nelle Impostazioni.'));
+  params=params||{};
+  params.token=text(cfg.token).trim();
+  return jsonpRequest(text(cfg.webAppUrl).trim(),params);
+}
+async function pushPendingCloudChanges(){
+  var since=cloudTime(cloudMeta.lastPushedAt),jobs=[];
+
+  state.clients.forEach(function(c){
+    if(!since||cloudTime(c._syncUpdatedAt)>since){
+      jobs.push(cloudApi({action:'cloudUpsertClient',payload:cloudEncodePayload(c)}));
+    }
+  });
+  state.orders.forEach(function(o){
+    if(!since||cloudTime(o._syncUpdatedAt)>since){
+      jobs.push(cloudApi({action:'cloudUpsertOrder',payload:cloudEncodePayload(o)}));
+    }
+  });
+  Object.keys(cloudMeta.deletedClients||{}).forEach(function(id){
+    var t=cloudMeta.deletedClients[id];
+    if(!since||cloudTime(t)>since)jobs.push(cloudApi({action:'cloudDeleteClient',id:id,deletedAt:t}));
+  });
+  Object.keys(cloudMeta.deletedOrders||{}).forEach(function(id){
+    var t=cloudMeta.deletedOrders[id];
+    if(!since||cloudTime(t)>since)jobs.push(cloudApi({action:'cloudDeleteOrder',id:id,deletedAt:t}));
+  });
+
+  for(var i=0;i<jobs.length;i++){
+    var r=await jobs[i];
+    if(!r||r.ok!==true)throw new Error(text(r&&r.error||'Errore durante il salvataggio cloud.'));
+  }
+
+  var mx=maxCloudTimestamp();
+  if(mx)cloudMeta.lastPushedAt=mx;
+  saveCloudMeta();
+}
+
+function mergeCloudSnapshot(snapshot){
+  var localClients={},localOrders={};
+  state.clients.forEach(function(c){localClients[c.id]=c});
+  state.orders.forEach(function(o){localOrders[o.id]=o});
+
+  (snapshot.deletedClients||[]).forEach(function(d){
+    var local=localClients[d.id];
+    if(!local||cloudTime(d.deletedAt)>=cloudTime(local._syncUpdatedAt)){
+      delete localClients[d.id];
+      cloudMeta.deletedClients[d.id]=d.deletedAt;
+    }
+  });
+  (snapshot.deletedOrders||[]).forEach(function(d){
+    var local=localOrders[d.id];
+    if(!local||cloudTime(d.deletedAt)>=cloudTime(local._syncUpdatedAt)){
+      delete localOrders[d.id];
+      cloudMeta.deletedOrders[d.id]=d.deletedAt;
+    }
+  });
+
+  (snapshot.clients||[]).forEach(function(remote){
+    var local=localClients[remote.id];
+    var tomb=cloudMeta.deletedClients[remote.id];
+    if(tomb&&cloudTime(tomb)>cloudTime(remote._syncUpdatedAt))return;
+    if(!local||cloudTime(remote._syncUpdatedAt)>=cloudTime(local._syncUpdatedAt)){
+      localClients[remote.id]=migrateClient(remote);
+      delete cloudMeta.deletedClients[remote.id];
+    }
+  });
+
+  (snapshot.orders||[]).forEach(function(remote){
+    var local=localOrders[remote.id];
+    var tomb=cloudMeta.deletedOrders[remote.id];
+    if(tomb&&cloudTime(tomb)>cloudTime(remote._syncUpdatedAt))return;
+    if(!local||cloudTime(remote._syncUpdatedAt)>=cloudTime(local._syncUpdatedAt)){
+      localOrders[remote.id]=normalizeOrder(remote);
+      delete cloudMeta.deletedOrders[remote.id];
+    }
+  });
+
+  state.clients=Object.keys(localClients).map(function(id){return localClients[id]});
+  state.orders=Object.keys(localOrders).map(function(id){return localOrders[id]});
+
+  applyingCloudState=true;
+  saveState({fromCloud:true});
+  applyingCloudState=false;
+  resetCloudBaseline();
+  saveCloudMeta();
+}
+
+var cloudSyncTimer=null,cloudSyncInProgress=false;
+function scheduleCloudSync(){
+  if(!cloudSyncConfigured())return;
+  clearTimeout(cloudSyncTimer);
+  cloudSyncTimer=setTimeout(function(){syncCloudData(false).catch(function(){})},900);
+}
+async function syncCloudData(showNotice){
+  if(!cloudSyncConfigured()){
+    if(showNotice)setNotice($('#cloudSyncNotice'),'Per sincronizzare servono lo stesso URL Apps Script e token usati per il tracking.','error');
+    return {ok:false,reason:'not-configured'};
+  }
+  if(cloudSyncInProgress)return {ok:false,reason:'busy'};
+
+  cloudSyncInProgress=true;
+  if(showNotice)setNotice($('#cloudSyncNotice'),'Sincronizzazione PC / iPhone in corso...','');
+
+  try{
+    // Prima carichiamo le modifiche locali: così al primo avvio non perdi
+    // eventuali clienti creati separatamente su PC o iPhone.
+    await pushPendingCloudChanges();
+
+    var snapshot=await cloudApi({action:'cloudSnapshot'});
+    if(!snapshot||snapshot.ok!==true)throw new Error(text(snapshot&&snapshot.error||'Database cloud non disponibile.'));
+
+    mergeCloudSnapshot(snapshot);
+    cloudMeta.lastSyncAt=new Date().toISOString();
+
+    // Dopo il merge consideriamo allineati tutti i record ricevuti dal server.
+    var mx=maxCloudTimestamp();
+    if(mx)cloudMeta.lastPushedAt=mx;
+    saveCloudMeta();
+
+    render();
+    refreshOpenProfileIfNeeded();
+
+    if(showNotice){
+      setNotice($('#cloudSyncNotice'),
+        'Sincronizzato ✅ '+state.clients.length+' clienti e '+state.orders.length+' ordini. PC e iPhone ora usano gli stessi dati.',
+        'ok'
+      );
+    }
+    return {ok:true};
+  }catch(err){
+    if(showNotice)setNotice($('#cloudSyncNotice'),'Sincronizzazione fallita: '+text(err&&err.message||err),'error');
+    throw err;
+  }finally{
+    cloudSyncInProgress=false;
+  }
 }
 
 function normalizePersonName(v){
@@ -513,23 +755,28 @@ function findOrderForTrackingClient(clientId){
       return text(b.date).localeCompare(text(a.date));
     })[0] || null;
 }
-async function syncRecentTrackingsFromGmail(showNotice){
+async function syncRecentTrackingsFromGmail(showNotice,forceScan){
   var cfg=trackingIntegration();
   if(!trackingIntegrationReady())return {ok:false,reason:'not-configured'};
 
   var result=await jsonpRequest(text(cfg.webAppUrl).trim(),{
-    action:'recentTrackings',
+    action:forceScan?'recentTrackings':'queuedTrackings',
     token:text(cfg.token).trim(),
     days:'30'
   });
 
-  if(!result||result.ok!==true)throw new Error(text(result&&result.error||'Nessun tracking trovato.'));
+  if(!result||result.ok!==true)throw new Error(text(result&&result.error||'Nessun tracking disponibile.'));
 
-  var imported=0, skipped=0, matched=[];
+  var imported=0,skipped=0,matched=[],handledCodes=[];
   (result.items||[]).forEach(function(item){
     var code=text(item.tracking).trim();
     if(!code){skipped++;return}
-    if(state.orders.some(function(o){return text(o.trackingCode).trim()===code})){skipped++;return}
+
+    // Se il tracking è già presente nel gestionale, è già stato gestito:
+    // togliamolo anche dalla coda Apps Script.
+    if(state.orders.some(function(o){return text(o.trackingCode).trim()===code})){
+      handledCodes.push(code);skipped++;return
+    }
 
     var client=findClientByRecipient(item.recipient);
     if(!client){skipped++;return}
@@ -542,6 +789,7 @@ async function syncRecentTrackingsFromGmail(showNotice){
     order.trackingImportedAt=new Date().toISOString();
     order.trackingSourceRecipient=text(item.recipient);
     imported++;
+    handledCodes.push(code);
     matched.push(client.name+' → '+code);
   });
 
@@ -549,10 +797,22 @@ async function syncRecentTrackingsFromGmail(showNotice){
     saveState();render();refreshOpenProfileIfNeeded();
   }
 
+  // Conferma al server i tracking già importati/gestiti.
+  handledCodes.forEach(function(code){
+    jsonpRequest(text(cfg.webAppUrl).trim(),{
+      action:'consumeTracking',
+      token:text(cfg.token).trim(),
+      tracking:code
+    }).catch(function(){});
+  });
+
   if(showNotice){
+    var scanInfo=result.lastScanAt
+      ? ' Ultimo controllo Gmail: '+text(result.lastScanAt).replace('T',' ').slice(0,16)+'.'
+      : '';
     var msg=imported
-      ? ('Importati '+imported+' tracking. '+matched.join(' | '))
-      : 'Nessun nuovo tracking da importare automaticamente.';
+      ? ('Importati '+imported+' tracking. '+matched.join(' | ')+scanInfo)
+      : ('Nessun nuovo tracking da importare.'+scanInfo);
     setNotice($('#trackingIntegrationNotice'),msg,imported?'ok':'');
   }
   return {ok:true,imported:imported,skipped:skipped,matched:matched};
@@ -598,8 +858,8 @@ function render(){
   ensureCodes();showStorageStatus();
   $('#clientCode').value=nextCode();$('#eurosPerPoint').value=state.settings.eurosPerPoint;
   var em=emailSettings();
-  $('#emailPublicKey').value=em.publicKey||'';$('#emailServiceId').value=em.serviceId||'';$('#emailIntakeTemplateId').value=em.intakeTemplateId||'';$('#emailShippedTemplateId').value=em.shippedTemplateId||'';$('#emailFromName').value=em.fromName||'Card_Lab_Art';$('#emailEnabled').checked=!!em.enabled;
-  var ti=trackingIntegration();$('#trackingWebAppUrl').value=ti.webAppUrl||'';$('#trackingWebAppToken').value=ti.token||'';
+  $('#emailPublicKey').value=em.publicKey||'';$('#emailServiceId').value=em.serviceId||'';$('#emailIntakeTemplateId').value=em.intakeTemplateId||'';$('#emailShippedTemplateId').value=em.shippedTemplateId||'';$('#emailFromName').value=em.fromName||'Card_Lab_Art';$('#emailIntakeEnabled').checked=intakeEmailEnabled();$('#emailShippedEnabled').checked=shippedEmailEnabled();
+  var ti=trackingIntegration();$('#trackingWebAppUrl').value=ti.webAppUrl||'';$('#trackingWebAppToken').value=ti.token||'';$('#cloudSyncEnabled').checked=!!cloudMeta.enabled;
   var revenue=state.orders.reduce(function(a,o){return a+num(o.amount)},0);
   $('#sClients').textContent=state.clients.length;$('#sOrders').textContent=state.orders.length;$('#sRevenue').textContent=money(revenue);$('#sWork').textContent=state.orders.filter(function(o){return ['Nuovo','In lavorazione','Da approvare','Pronto'].indexOf(o.orderStatus)>=0}).length;$('#sShip').textContent=state.orders.filter(function(o){return o.orderStatus==='Da spedire'}).length;$('#sPoints').textContent=state.clients.reduce(function(a,c){return a+clientStats(c.id).balance},0);
   var q=$('#clientSearch').value.trim().toLowerCase();var clients=state.clients.filter(function(c){return [c.code,c.firstName,c.lastName,c.name,c.email,c.phone,c.address,c.zip,c.city,c.province,c.instagram,c.notes].some(function(v){return text(v).toLowerCase().indexOf(q)!==-1})});
@@ -631,7 +891,7 @@ $('#clientForm').addEventListener('submit',async function(e){
   state.clients.push(c);
   if(!saveState()||!verifyClientSaved(c)){state.clients=state.clients.filter(function(x){return x.id!==c.id});setNotice($('#clientNotice'),'ERRORE: il profilo non è stato salvato. Riprova.','error');return}
   e.target.reset();render();openProfile(c.id);setNotice($('#clientNotice'),'Profilo '+c.code+' salvato correttamente.','ok');
-  if(c.email&&autoEmailEnabled()){
+  if(c.email&&intakeEmailEnabled()){
     if(!intakeEmailConfigReady()){c.intakeEmailError='Configurazione EmailJS presa in carico incompleta';saveState();openProfile(c.id);setNotice($('#profileNotice'),'Profilo salvato, ma la configurazione e-mail di presa in carico è incompleta.','error');return}
     setNotice($('#profileNotice'),'Profilo salvato. Invio e-mail di presa in carico...','');
     try{await sendIntakeEmail(c,false);openProfile(c.id);setNotice($('#profileNotice'),'E-mail di presa in carico inviata a '+c.email+'.','ok')}
@@ -667,7 +927,8 @@ $('#orderForm').addEventListener('submit',async function(e){
   if(!saveState()){state.orders=state.orders.filter(function(x){return x.id!==order.id});setNotice($('#orderNotice'),'ERRORE: ordine non salvato. Riprova.','error');return}
   e.target.reset();$('#orderDate').value=today();$('#orderStatus').value='Nuovo';$('#orderPaymentStatus').value='Da pagare';$('#orderPaidAmount').value='0';$('#orderMaterialCost').value='0';$('#orderShippingCost').value='0';
   render();setNotice($('#orderNotice'),'Ordine registrato. Apri “Gestisci” per la checklist e gli aggiornamenti.','ok');openOrderModal(order.id);
-  if(status==='Spedito'&&autoEmailEnabled()){
+  if(status==='Spedito'&&shippedEmailEnabled()){
+    if(!text(order.trackingCode).trim()){order.shippedEmailError='Tracking mancante';saveState();openOrderModal(order.id);setNotice($('#orderEditNotice'),'Ordine salvato come Spedito, ma la mail NON è partita perché manca il tracking.','error');return}
     if(!shippedEmailConfigReady()){order.shippedEmailError='Configurazione EmailJS spedizione incompleta';saveState();openOrderModal(order.id);setNotice($('#orderEditNotice'),'Ordine salvato. E-mail spedizione non configurata.','error');return}
     setNotice($('#orderEditNotice'),'Ordine salvato. Invio e-mail di spedizione...','');
     try{await sendShippedEmail(order,false);openOrderModal(order.id);setNotice($('#orderEditNotice'),'E-mail di spedizione inviata.','ok')}
@@ -693,7 +954,8 @@ $('#orderEditForm').addEventListener('submit',async function(e){
   o.date=$('#editOrderDate').value||today();o.product=product;o.amount=amount;o.earned=earned;o.redeemed=redeemed;o.orderStatus=status;o.dueDate=$('#editOrderDueDate').value;o.paymentStatus=payStatus;o.paidAmount=Math.max(0,num($('#editPaidAmount').value));if(payStatus==='Pagato'&&o.paidAmount===0)o.paidAmount=amount;o.paymentMethod=$('#editPaymentMethod').value;o.materialCost=Math.max(0,num($('#editMaterialCost').value));o.shippingCost=Math.max(0,num($('#editShippingCost').value));o.carrier=$('#editCarrier').value;o.trackingCode=$('#editTrackingCode').value.trim();o.trackingUrl=$('#editTrackingUrl').value.trim();o.orderNotes=$('#editOrderNotes').value.trim();o.checklist=checklist;
   if(!saveState()){setNotice($('#orderEditNotice'),'ERRORE: modifiche non salvate.','error');return}
   render();refreshOpenProfileIfNeeded();openOrderModal(id);setNotice($('#orderEditNotice'),'Ordine aggiornato e salvato.','ok');
-  if(previousStatus!=='Spedito'&&status==='Spedito'&&!o.shippedEmailSentAt&&autoEmailEnabled()){
+  if(previousStatus!=='Spedito'&&status==='Spedito'&&!o.shippedEmailSentAt&&shippedEmailEnabled()){
+    if(!text(o.trackingCode).trim()){o.shippedEmailError='Tracking mancante';saveState();openOrderModal(id);setNotice($('#orderEditNotice'),'Ordine impostato su Spedito, ma la mail NON è partita perché manca il tracking. Importalo da Gmail e usa “Invia e-mail spedizione”.','error');return}
     if(!shippedEmailConfigReady()){o.shippedEmailError='Configurazione EmailJS spedizione incompleta';saveState();openOrderModal(id);setNotice($('#orderEditNotice'),'Ordine salvato. E-mail spedizione non configurata.','error');return}
     setNotice($('#orderEditNotice'),'Ordine salvato. Invio e-mail di spedizione...','');
     try{await sendShippedEmail(o,false);openOrderModal(id);setNotice($('#orderEditNotice'),'E-mail di spedizione inviata automaticamente.','ok')}
@@ -705,6 +967,7 @@ $('#sendShippedEmailBtn').addEventListener('click',async function(){
   var id=$('#editOrderId').value,o=state.orders.find(function(x){return x.id===id});if(!o)return;
   var c=state.clients.find(function(x){return x.id===o.clientId});
   if(!c||!c.email){setNotice($('#orderEditNotice'),'Il cliente non ha un indirizzo e-mail salvato.','error');return}
+  if(!text(o.trackingCode).trim()){setNotice($('#orderEditNotice'),'Manca il tracking. Importalo da Gmail prima di inviare la mail.','error');return}
   if(!shippedEmailConfigReady()){setNotice($('#orderEditNotice'),'Configura prima il Template ID — Spedito nelle Impostazioni.','error');return}
   if(o.shippedEmailSentAt&&!confirm('L’e-mail di spedizione risulta già inviata. Vuoi inviarla di nuovo?'))return;
   setNotice($('#orderEditNotice'),'Invio e-mail di spedizione...','');
@@ -739,10 +1002,25 @@ $('#saveSettings').addEventListener('click',function(){state.settings.eurosPerPo
 
 $('#saveEmailSettings').addEventListener('click',function(){
   var em=emailSettings();
-  em.publicKey=$('#emailPublicKey').value.trim();em.serviceId=$('#emailServiceId').value.trim();em.intakeTemplateId=$('#emailIntakeTemplateId').value.trim();em.shippedTemplateId=$('#emailShippedTemplateId').value.trim();em.fromName=$('#emailFromName').value.trim()||'Card_Lab_Art';em.enabled=$('#emailEnabled').checked;
+  em.publicKey=$('#emailPublicKey').value.trim();
+  em.serviceId=$('#emailServiceId').value.trim();
+  em.intakeTemplateId=$('#emailIntakeTemplateId').value.trim();
+  em.shippedTemplateId=$('#emailShippedTemplateId').value.trim();
+  em.fromName=$('#emailFromName').value.trim()||'Card_Lab_Art';
+  em.intakeEnabled=$('#emailIntakeEnabled').checked;
+  em.shippedEnabled=$('#emailShippedEnabled').checked;
+  em.enabled=em.intakeEnabled;
   saveState();
-  if(em.enabled&&!intakeEmailConfigReady()){setNotice($('#emailSettingsNotice'),'Configurazione salvata, ma per la presa in carico servono Public Key, Service ID e Template ID — Presa in carico.','error');return}
-  setNotice($('#emailSettingsNotice'),em.enabled?'Configurazione salvata. E-mail automatica presa in carico attiva.':'Configurazione salvata. E-mail automatica presa in carico disattivata.','ok');
+
+  var errors=[];
+  if(em.intakeEnabled&&!intakeEmailConfigReady())errors.push('presa in carico: manca il Template ID o la configurazione EmailJS');
+  if(em.shippedEnabled&&!shippedEmailConfigReady())errors.push('spedizione: manca il Template ID — Spedito o la configurazione EmailJS');
+  if(errors.length){setNotice($('#emailSettingsNotice'),'Configurazione salvata, ma '+errors.join(' • ')+'.','error');return}
+
+  var active=[];
+  if(em.intakeEnabled)active.push('presa in carico');
+  if(em.shippedEnabled)active.push('spedizione');
+  setNotice($('#emailSettingsNotice'),active.length?'Configurazione salvata. Automazioni attive: '+active.join(' + ')+'.':'Configurazione salvata. E-mail automatiche disattivate.','ok');
 });
 
 
@@ -755,7 +1033,8 @@ $('#saveTrackingIntegration').addEventListener('click',function(){
     setNotice($('#trackingIntegrationNotice'),'Configurazione salvata, ma controlla URL /exec e token segreto.','error');
     return;
   }
-  setNotice($('#trackingIntegrationNotice'),'Integrazione tracking salvata. Ora puoi importare il tracking da un ordine.','ok');
+  setNotice($('#trackingIntegrationNotice'),'Integrazione tracking salvata. Il gestionale importerà automaticamente i tracking trovati dal controllo Gmail.','ok');
+  if(cloudMeta.enabled)scheduleCloudSync();
 });
 
 
@@ -763,7 +1042,7 @@ $('#syncTrackingNowBtn').addEventListener('click',async function(){
   this.disabled=true;
   setNotice($('#trackingIntegrationNotice'),'Controllo Gmail e abbino i tracking ai clienti...','');
   try{
-    await syncRecentTrackingsFromGmail(true);
+    await syncRecentTrackingsFromGmail(true,true);
   }catch(err){
     setNotice($('#trackingIntegrationNotice'),'Sincronizzazione fallita: '+text(err&&err.message||err),'error');
   }finally{
@@ -771,14 +1050,47 @@ $('#syncTrackingNowBtn').addEventListener('click',async function(){
   }
 });
 
+
+
+$('#saveCloudSyncSettings').addEventListener('click',async function(){
+  cloudMeta.enabled=$('#cloudSyncEnabled').checked;
+  saveCloudMeta();
+
+  if(!cloudMeta.enabled){
+    setNotice($('#cloudSyncNotice'),'Sincronizzazione cloud disattivata su questo dispositivo.','ok');
+    return;
+  }
+  if(!trackingIntegrationReady()){
+    setNotice($('#cloudSyncNotice'),'Prima salva URL Apps Script e token nella sezione “Import tracking da Gmail”.','error');
+    return;
+  }
+
+  this.disabled=true;
+  try{await syncCloudData(true)}
+  catch(e){}
+  finally{this.disabled=false}
+});
+
+$('#syncCloudNowBtn').addEventListener('click',async function(){
+  cloudMeta.enabled=true;
+  $('#cloudSyncEnabled').checked=true;
+  saveCloudMeta();
+  this.disabled=true;
+  try{await syncCloudData(true)}
+  catch(e){}
+  finally{this.disabled=false}
+});
+
 $('#addReward').addEventListener('click',function(){var sorted=state.settings.rewards.slice().sort(function(a,b){return a.points-b.points}),last=sorted[sorted.length-1];state.settings.rewards.push({points:(last?last.points:0)+5,name:'Nuovo premio'});render()});
 $('#exportBtn').addEventListener('click',function(){var blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='card-lab-art-manager-backup.json';a.click();setTimeout(function(){URL.revokeObjectURL(a.href)},1000)});
 $('#csvBtn').addEventListener('click',function(){var rows=[['Codice cliente','Cliente','Data ordine','Prodotto','Importo','Stato ordine','Consegna prevista','Pagamento','Incassato','Metodo','Costo materiali','Costo spedizione','Corriere','Tracking','Link tracking','Note','Checklist']];state.orders.forEach(function(o){var c=state.clients.find(function(x){return x.id===o.clientId}),p=orderChecklistProgress(o);rows.push([c?c.code:'',c?c.name:'Cliente rimosso',o.date,o.product,o.amount,o.orderStatus,o.dueDate,o.paymentStatus,o.paidAmount,o.paymentMethod,o.materialCost,o.shippingCost,o.carrier,o.trackingCode,o.trackingUrl,o.orderNotes,p.done+'/'+p.total])});var csv=rows.map(function(r){return r.map(function(v){return '"'+text(v).replace(/"/g,'""')+'"'}).join(';')}).join('\n');var blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='card-lab-art-ordini.csv';a.click();setTimeout(function(){URL.revokeObjectURL(a.href)},1000)});
 $('#importFile').addEventListener('change',function(e){var file=e.target.files&&e.target.files[0];if(!file)return;var reader=new FileReader();reader.onload=function(){try{state=normalizeState(JSON.parse(reader.result));saveState();render();setNotice($('#clientNotice'),'Backup importato correttamente.','ok')}catch(err){alert('Backup non valido.')}e.target.value=''};reader.readAsText(file)});
 $('#resetBtn').addEventListener('click',function(){if(!confirm('Vuoi davvero cancellare tutti i clienti e gli ordini?'))return;state=defaultState();saveState();render()});
-setSelectOptions();$('#orderDate').value=today();$('#orderStatus').value='Nuovo';$('#orderPaymentStatus').value='Da pagare';window.addEventListener('beforeunload',saveState);document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')saveState()});render();
-setTimeout(function(){syncRecentTrackingsFromGmail(false).catch(function(){})},2500);
-setInterval(function(){syncRecentTrackingsFromGmail(false).catch(function(){})},60000);
+setSelectOptions();$('#orderDate').value=today();$('#orderStatus').value='Nuovo';$('#orderPaymentStatus').value='Da pagare';window.addEventListener('beforeunload',saveState);document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')saveState();if(document.visibilityState==='visible'&&cloudSyncConfigured())syncCloudData(false).catch(function(){})});render();
+setTimeout(function(){syncRecentTrackingsFromGmail(false,false).catch(function(){})},2500);
+setInterval(function(){syncRecentTrackingsFromGmail(false,false).catch(function(){})},60000);
+setTimeout(function(){if(cloudSyncConfigured())syncCloudData(false).catch(function(){})},3500);
+setInterval(function(){if(document.visibilityState==='visible'&&cloudSyncConfigured())syncCloudData(false).catch(function(){})},60000);
 })();
 </script>
 </div>
