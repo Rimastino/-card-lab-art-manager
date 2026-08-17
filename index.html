@@ -1657,7 +1657,7 @@ mario@email.it
           <div class="order-photo-icon" id="orderPhotoIcon">📷</div>
           <div class="order-photo-info">
             <div class="order-photo-name" id="orderPhotoName">Nessuna foto allegata</div>
-            <div class="order-photo-hint" id="orderPhotoHint">Scatta o scegli una foto per ricordarti esattamente cosa ha ordinato il cliente.</div>
+            <div class="order-photo-hint" id="orderPhotoHint">Scatta o scegli una foto per ricordarti esattamente cosa ha ordinato il cliente. <strong>Upload V20 ottimizzato iPad.</strong></div>
           </div>
         </div>
         <div class="toolbar" style="margin-top:12px">
@@ -2327,11 +2327,12 @@ function trackingIntegrationReady(){
   var t=trackingIntegration();
   return /^https:\/\/script\.google\.com\/macros\/s\/.+\/exec(?:\?.*)?$/.test(text(t.webAppUrl).trim()) && !!text(t.token).trim();
 }
-function jsonpRequest(baseUrl,params){
+function jsonpRequest(baseUrl,params,timeoutMs){
   return new Promise(function(resolve,reject){
     var callbackName='claJsonp_'+Date.now()+'_'+Math.random().toString(36).slice(2);
     var script=document.createElement('script');
-    var timer=setTimeout(function(){cleanup();reject(new Error('Timeout: nessuna risposta da Google Apps Script.'))},15000);
+    var wait=Math.max(5000,num(timeoutMs)||15000);
+    var timer=setTimeout(function(){cleanup();reject(new Error('Timeout: nessuna risposta da Google Apps Script.'))},wait);
     function cleanup(){
       clearTimeout(timer);
       try{delete window[callbackName]}catch(e){window[callbackName]=undefined}
@@ -2362,12 +2363,12 @@ function cloudTime(v){
   return Number.isFinite(n)?n:0;
 }
 
-function cloudApi(params){
+function cloudApi(params,timeoutMs){
   var cfg=trackingIntegration();
   if(!trackingIntegrationReady())return Promise.reject(new Error('Configura prima URL Apps Script e token nelle Impostazioni.'));
   params=params||{};
   params.token=text(cfg.token).trim();
-  return jsonpRequest(text(cfg.webAppUrl).trim(),params);
+  return jsonpRequest(text(cfg.webAppUrl).trim(),params,timeoutMs);
 }
 
 function findClientLocal(id){
@@ -4175,46 +4176,51 @@ function canvasToBlob(canvas,type,quality){
 
 async function compressOrderPhoto(file){
   if(!file)throw new Error('Scegli prima una foto.');
-  if(file.size>20*1024*1024)throw new Error('La foto originale è troppo grande.');
+  if(file.size>25*1024*1024)throw new Error('La foto originale è troppo grande.');
 
   var url=URL.createObjectURL(file);
   try{
     var img=await new Promise(function(resolve,reject){
       var im=new Image();
       im.onload=function(){resolve(im)};
-      im.onerror=function(){reject(new Error('Formato foto non supportato dal browser. Prova con JPG o PNG.'))};
+      im.onerror=function(){reject(new Error('Formato foto non supportato. Prova a scegliere una foto JPG/PNG oppure uno screenshot.'))};
       im.src=url;
     });
 
-    var maxSide=1400;
+    // V20: anteprima ordine/email, quindi non serve conservare 1400px/400KB.
+    // Su iPad questo riduce drasticamente il numero di richieste a Apps Script.
+    var maxSide=900;
     var scale=Math.min(1,maxSide/Math.max(img.naturalWidth||img.width,img.naturalHeight||img.height));
     var width=Math.max(1,Math.round((img.naturalWidth||img.width)*scale));
     var height=Math.max(1,Math.round((img.naturalHeight||img.height)*scale));
-    var targetBytes=430*1024;
-    var quality=.82;
+    var targetBytes=115*1024;
+    var quality=.78;
     var blob=null;
 
-    for(var attempt=0;attempt<8;attempt++){
+    for(var attempt=0;attempt<10;attempt++){
       var canvas=document.createElement('canvas');
-      canvas.width=width;canvas.height=height;
+      canvas.width=width;
+      canvas.height=height;
+
       var ctx=canvas.getContext('2d',{alpha:false});
-      ctx.fillStyle='#fff';ctx.fillRect(0,0,width,height);
+      ctx.fillStyle='#fff';
+      ctx.fillRect(0,0,width,height);
       ctx.drawImage(img,0,0,width,height);
 
       blob=await canvasToBlob(canvas,'image/jpeg',quality);
       if(blob.size<=targetBytes)break;
 
-      if(quality>.55){
-        quality-=.09;
+      if(quality>.50){
+        quality-=.08;
       }else{
-        width=Math.max(500,Math.round(width*.82));
-        height=Math.max(500,Math.round(height*.82));
-        quality=.72;
+        width=Math.max(420,Math.round(width*.82));
+        height=Math.max(420,Math.round(height*.82));
+        quality=.68;
       }
     }
 
-    if(!blob||blob.size>620*1024){
-      throw new Error('Non riesco a ridurre abbastanza la foto. Prova con un’immagine più piccola.');
+    if(!blob||blob.size>180*1024){
+      throw new Error('Non riesco a ridurre abbastanza la foto. Prova con uno screenshot o un’immagine più piccola.');
     }
 
     return {
@@ -4227,20 +4233,82 @@ async function compressOrderPhoto(file){
   }
 }
 
+function updateOrderPhotoUploadProgress(done,total,phase){
+  var pct=total?Math.round((done/total)*100):0;
+  var msg=phase||'Caricamento';
+  if(total)msg+=' — '+pct+'% ('+done+'/'+total+')';
+  setNotice($('#orderPhotoNotice'),msg,'');
+}
+
+async function uploadPhotoChunkWithRetry(uploadId,index,data,total){
+  var attempts=0;
+  while(attempts<3){
+    attempts++;
+    try{
+      var result=await cloudApi({
+        action:'attachmentChunk',
+        uploadId:uploadId,
+        index:String(index),
+        data:data
+      },30000);
+
+      if(!result||result.ok!==true){
+        throw new Error(text(result&&result.error||('Errore blocco '+(index+1)+'/'+total)));
+      }
+      return result;
+    }catch(err){
+      if(attempts>=3)throw err;
+      await new Promise(function(resolve){setTimeout(resolve,450*attempts)});
+    }
+  }
+}
+
+async function uploadChunksInBatches(uploadId,chunks){
+  var concurrency=5;
+  var nextIndex=0;
+  var completed=0;
+
+  async function worker(){
+    while(true){
+      var index=nextIndex++;
+      if(index>=chunks.length)return;
+
+      await uploadPhotoChunkWithRetry(uploadId,index,chunks[index],chunks.length);
+      completed++;
+      updateOrderPhotoUploadProgress(completed,chunks.length,'Caricamento foto su Drive');
+    }
+  }
+
+  var workers=[];
+  for(var i=0;i<Math.min(concurrency,chunks.length);i++)workers.push(worker());
+  await Promise.all(workers);
+}
+
 async function uploadOrderPhoto(order,file){
   if(!order)throw new Error('Ordine non trovato.');
   if(!trackingIntegrationReady())throw new Error('Configura prima URL Apps Script e token.');
 
   var client=state.clients.find(function(c){return c.id===order.clientId});
+
+  updateOrderPhotoUploadProgress(0,0,'Ottimizzo la foto...');
   var prepared=await compressOrderPhoto(file);
+
   var encoded=await blobToBase64Url(prepared.blob);
-  var chunkSize=2800;
+
+  // Ogni richiesta resta abbastanza piccola per JSONP/iPad, ma molto meno
+  // frammentata rispetto alla versione precedente.
+  var chunkSize=3200;
   var chunks=[];
   for(var i=0;i<encoded.length;i+=chunkSize)chunks.push(encoded.slice(i,i+chunkSize));
 
-  if(chunks.length>235)throw new Error('Foto ancora troppo grande dopo la compressione.');
+  if(chunks.length>90){
+    throw new Error('Foto ancora troppo grande dopo l’ottimizzazione.');
+  }
 
   var uploadId='att_'+Date.now()+'_'+Math.random().toString(36).slice(2,10);
+
+  updateOrderPhotoUploadProgress(0,chunks.length,'Avvio caricamento');
+
   var started=await cloudApi({
     action:'attachmentStart',
     uploadId:uploadId,
@@ -4251,21 +4319,26 @@ async function uploadOrderPhoto(order,file){
     fileName:prepared.fileName,
     mimeType:prepared.mimeType,
     capturedAt:new Date().toISOString()
-  });
-  if(!started||started.ok!==true)throw new Error(text(started&&started.error||'Impossibile avviare il caricamento.'));
+  },30000);
 
-  for(var n=0;n<chunks.length;n++){
-    var result=await cloudApi({
-      action:'attachmentChunk',
-      uploadId:uploadId,
-      index:String(n),
-      data:chunks[n]
-    });
-    if(!result||result.ok!==true)throw new Error(text(result&&result.error||('Errore caricamento foto '+(n+1)+'/'+chunks.length)));
+  if(!started||started.ok!==true){
+    throw new Error(text(started&&started.error||'Impossibile avviare il caricamento.'));
   }
 
-  var finish=await cloudApi({action:'attachmentFinish',uploadId:uploadId});
-  if(!finish||finish.ok!==true)throw new Error(text(finish&&finish.error||'Impossibile completare il caricamento.'));
+  // V20: invio fino a 5 blocchi in parallelo invece di centinaia di chiamate
+  // una dopo l’altra. Molto più affidabile su Safari/iPad.
+  await uploadChunksInBatches(uploadId,chunks);
+
+  updateOrderPhotoUploadProgress(chunks.length,chunks.length,'Creo il file su Google Drive');
+
+  var finish=await cloudApi({
+    action:'attachmentFinish',
+    uploadId:uploadId
+  },45000);
+
+  if(!finish||finish.ok!==true){
+    throw new Error(text(finish&&finish.error||'Impossibile completare il caricamento.'));
+  }
 
   order.attachment={
     fileId:text(finish.fileId),
@@ -4274,7 +4347,10 @@ async function uploadOrderPhoto(order,file){
     uploadedAt:text(finish.uploadedAt||new Date().toISOString())
   };
 
-  if(!saveState())throw new Error('Foto caricata su Drive, ma non riesco a salvare il collegamento nell’ordine.');
+  if(!saveState()){
+    throw new Error('Foto caricata su Drive, ma non riesco a salvare il collegamento nell’ordine.');
+  }
+
   return order.attachment;
 }
 
@@ -4316,7 +4392,7 @@ $('#uploadOrderPhotoBtn').addEventListener('click',async function(){
 
   this.disabled=true;
   $('#orderPhotoFile').disabled=true;
-  setNotice($('#orderPhotoNotice'),'Comprimo e carico la foto su Google Drive...','');
+  setNotice($('#orderPhotoNotice'),'Preparo la foto per un caricamento veloce su iPad...','');
 
   try{
     var att=await uploadOrderPhoto(o,file);
