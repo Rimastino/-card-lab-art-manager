@@ -291,6 +291,20 @@
       <div class="reward" style="margin-top:10px">Le configurazioni EmailJS e il token restano locali sul singolo dispositivo; vengono condivisi solo <strong>clienti e ordini</strong>.</div>
     </div>
 
+    <div class="card">
+      <h2>Backup automatico su Google Drive</h2>
+      <p class="reward">Ogni modifica salvata nel gestionale crea automaticamente un backup JSON privato su Drive: <strong>clienti, ordini, punti/premi, impostazioni EmailJS, tracking e configurazioni</strong>. Vengono mantenute le ultime 100 versioni più un file “ULTIMO_BACKUP”.</p>
+      <div class="formgrid">
+        <div class="span4"><label class="checkitem"><input id="driveBackupEnabled" type="checkbox"> Attiva backup automatico dopo ogni modifica</label></div>
+        <div class="span4 toolbar">
+          <button class="primary" type="button" id="saveDriveBackupSettings">Salva backup automatico</button>
+          <button class="secondary" type="button" id="driveBackupNowBtn">Crea backup adesso</button>
+        </div>
+      </div>
+      <div class="notice" id="driveBackupNotice"></div>
+      <div class="reward" id="driveBackupStatus" style="margin-top:10px">Cartella Drive: Card_Lab_Art — Backup automatici</div>
+    </div>
+
     <div class="card"><h2>Gestione dati</h2><p class="reward">Il browser mantiene una copia locale. Con la sincronizzazione cloud attiva, clienti e ordini vengono anche condivisi tra PC e iPhone. Continua comunque a fare un backup JSON periodico.</p><button class="danger" type="button" id="resetBtn">Azzera tutti i dati</button></div>
   </section>
 </div>
@@ -416,6 +430,12 @@ function loadCloudMeta(){try{return Object.assign(defaultCloudMeta(),JSON.parse(
 var cloudMeta=loadCloudMeta();
 function saveCloudMeta(){try{localStorage.setItem(CLOUD_META_KEY,JSON.stringify(cloudMeta))}catch(e){}}
 
+var DRIVE_BACKUP_META_KEY='card-lab-art-drive-backup-meta-v1';
+function defaultDriveBackupMeta(){return {enabled:true,lastBackupAt:'',lastFileName:'',lastFingerprint:''}}
+function loadDriveBackupMeta(){try{return Object.assign(defaultDriveBackupMeta(),JSON.parse(localStorage.getItem(DRIVE_BACKUP_META_KEY)||'{}'))}catch(e){return defaultDriveBackupMeta()}}
+var driveBackupMeta=loadDriveBackupMeta();
+function saveDriveBackupMeta(){try{localStorage.setItem(DRIVE_BACKUP_META_KEY,JSON.stringify(driveBackupMeta))}catch(e){}}
+
 function comparableEntity(obj){
   var x=JSON.parse(JSON.stringify(obj||{}));
   delete x._syncUpdatedAt;
@@ -466,6 +486,7 @@ function saveState(opts){
     storageOK=true;
     showStorageStatus();
     if(!opts.fromCloud)scheduleCloudSync();
+    scheduleDriveBackup();
     return true
   }catch(e){
     storageOK=false;
@@ -725,6 +746,154 @@ async function syncCloudData(showNotice){
   }
 }
 
+
+// ============================================================
+// BACKUP AUTOMATICO GOOGLE DRIVE
+// ============================================================
+
+function driveBackupConfigured(){
+  return !!driveBackupMeta.enabled && trackingIntegrationReady();
+}
+
+function driveBackupDeviceName(){
+  var ua=navigator.userAgent||'';
+  if(/iPhone/i.test(ua))return 'iPhone';
+  if(/iPad/i.test(ua))return 'iPad';
+  if(/Macintosh|Mac OS X/i.test(ua))return 'Mac';
+  if(/Windows/i.test(ua))return 'PC_Windows';
+  return 'Dispositivo';
+}
+
+function driveBackupPayload(){
+  return {
+    backupVersion: 1,
+    app: 'Card_Lab_Art Manager',
+    capturedAt: new Date().toISOString(),
+    sourceDevice: driveBackupDeviceName(),
+    managerState: state,
+    cloudSyncMeta: cloudMeta,
+    backupMeta: {
+      enabled: !!driveBackupMeta.enabled
+    }
+  };
+}
+
+function driveBackupFingerprint(){
+  // Evita file duplicati quando saveState viene richiamato senza modifiche reali.
+  return JSON.stringify({
+    state: state,
+    cloud: {
+      deletedClients: cloudMeta.deletedClients||{},
+      deletedOrders: cloudMeta.deletedOrders||{}
+    }
+  });
+}
+
+var driveBackupTimer=null,driveBackupInProgress=false,driveBackupQueued=false;
+
+function scheduleDriveBackup(){
+  if(!driveBackupConfigured())return;
+  clearTimeout(driveBackupTimer);
+  driveBackupTimer=setTimeout(function(){
+    performDriveBackup(false).catch(function(){});
+  },1800);
+}
+
+async function performDriveBackup(showNotice,force){
+  if(!driveBackupConfigured()){
+    if(showNotice)setNotice($('#driveBackupNotice'),'Per il backup servono URL Apps Script e token, e il backup automatico deve essere attivo.','error');
+    return {ok:false,reason:'not-configured'};
+  }
+
+  if(driveBackupInProgress){
+    driveBackupQueued=true;
+    return {ok:false,reason:'busy'};
+  }
+
+  var fingerprint=driveBackupFingerprint();
+  if(!force && fingerprint===driveBackupMeta.lastFingerprint){
+    if(showNotice)setNotice($('#driveBackupNotice'),'Nessuna modifica nuova da salvare. L’ultimo backup è già aggiornato.','ok');
+    return {ok:true,skipped:true};
+  }
+
+  driveBackupInProgress=true;
+  if(showNotice)setNotice($('#driveBackupNotice'),'Creazione backup Drive in corso...','');
+
+  try{
+    var payload=driveBackupPayload();
+    var encoded=cloudEncodePayload(payload);
+    var chunkSize=2800;
+    var chunks=[];
+    for(var i=0;i<encoded.length;i+=chunkSize)chunks.push(encoded.slice(i,i+chunkSize));
+
+    var uploadId='bkp_'+Date.now()+'_'+Math.random().toString(36).slice(2,10);
+
+    var start=await cloudApi({
+      action:'backupStart',
+      uploadId:uploadId,
+      totalChunks:String(chunks.length),
+      source:payload.sourceDevice,
+      capturedAt:payload.capturedAt
+    });
+    if(!start||start.ok!==true)throw new Error(text(start&&start.error||'Impossibile avviare il backup.'));
+
+    for(var n=0;n<chunks.length;n++){
+      var r=await cloudApi({
+        action:'backupChunk',
+        uploadId:uploadId,
+        index:String(n),
+        data:chunks[n]
+      });
+      if(!r||r.ok!==true)throw new Error(text(r&&r.error||('Errore nel blocco backup '+(n+1)+'.')));
+    }
+
+    var finish=await cloudApi({
+      action:'backupFinish',
+      uploadId:uploadId
+    });
+    if(!finish||finish.ok!==true)throw new Error(text(finish&&finish.error||'Impossibile completare il backup.'));
+
+    driveBackupMeta.lastFingerprint=fingerprint;
+    driveBackupMeta.lastBackupAt=text(finish.backupAt||payload.capturedAt);
+    driveBackupMeta.lastFileName=text(finish.fileName);
+    saveDriveBackupMeta();
+    updateDriveBackupStatus();
+
+    if(showNotice){
+      setNotice(
+        $('#driveBackupNotice'),
+        'Backup creato ✅ '+text(finish.fileName||'').replace(/_/g,' '),
+        'ok'
+      );
+    }
+
+    return {ok:true,fileName:finish.fileName};
+  }catch(err){
+    if(showNotice)setNotice($('#driveBackupNotice'),'Backup fallito: '+text(err&&err.message||err),'error');
+    throw err;
+  }finally{
+    driveBackupInProgress=false;
+
+    if(driveBackupQueued){
+      driveBackupQueued=false;
+      setTimeout(function(){performDriveBackup(false).catch(function(){})},600);
+    }
+  }
+}
+
+function updateDriveBackupStatus(){
+  var el=$('#driveBackupStatus');
+  if(!el)return;
+
+  if(driveBackupMeta.lastBackupAt){
+    var d=new Date(driveBackupMeta.lastBackupAt);
+    var when=Number.isNaN(d.getTime())?driveBackupMeta.lastBackupAt:d.toLocaleString('it-IT');
+    el.innerHTML='Cartella Drive: <strong>Card_Lab_Art — Backup automatici</strong><br>Ultimo backup: <strong>'+esc(when)+'</strong>'+(driveBackupMeta.lastFileName?'<br>File: '+esc(driveBackupMeta.lastFileName):'');
+  }else{
+    el.innerHTML='Cartella Drive: <strong>Card_Lab_Art — Backup automatici</strong><br>Nessun backup creato da questo dispositivo.';
+  }
+}
+
 function normalizePersonName(v){
   return text(v).toLowerCase()
     .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
@@ -859,7 +1028,7 @@ function render(){
   $('#clientCode').value=nextCode();$('#eurosPerPoint').value=state.settings.eurosPerPoint;
   var em=emailSettings();
   $('#emailPublicKey').value=em.publicKey||'';$('#emailServiceId').value=em.serviceId||'';$('#emailIntakeTemplateId').value=em.intakeTemplateId||'';$('#emailShippedTemplateId').value=em.shippedTemplateId||'';$('#emailFromName').value=em.fromName||'Card_Lab_Art';$('#emailIntakeEnabled').checked=intakeEmailEnabled();$('#emailShippedEnabled').checked=shippedEmailEnabled();
-  var ti=trackingIntegration();$('#trackingWebAppUrl').value=ti.webAppUrl||'';$('#trackingWebAppToken').value=ti.token||'';$('#cloudSyncEnabled').checked=!!cloudMeta.enabled;
+  var ti=trackingIntegration();$('#trackingWebAppUrl').value=ti.webAppUrl||'';$('#trackingWebAppToken').value=ti.token||'';$('#cloudSyncEnabled').checked=!!cloudMeta.enabled;$('#driveBackupEnabled').checked=!!driveBackupMeta.enabled;updateDriveBackupStatus();
   var revenue=state.orders.reduce(function(a,o){return a+num(o.amount)},0);
   $('#sClients').textContent=state.clients.length;$('#sOrders').textContent=state.orders.length;$('#sRevenue').textContent=money(revenue);$('#sWork').textContent=state.orders.filter(function(o){return ['Nuovo','In lavorazione','Da approvare','Pronto'].indexOf(o.orderStatus)>=0}).length;$('#sShip').textContent=state.orders.filter(function(o){return o.orderStatus==='Da spedire'}).length;$('#sPoints').textContent=state.clients.reduce(function(a,c){return a+clientStats(c.id).balance},0);
   var q=$('#clientSearch').value.trim().toLowerCase();var clients=state.clients.filter(function(c){return [c.code,c.firstName,c.lastName,c.name,c.email,c.phone,c.address,c.zip,c.city,c.province,c.instagram,c.notes].some(function(v){return text(v).toLowerCase().indexOf(q)!==-1})});
@@ -1035,6 +1204,7 @@ $('#saveTrackingIntegration').addEventListener('click',function(){
   }
   setNotice($('#trackingIntegrationNotice'),'Integrazione tracking salvata. Il gestionale importerà automaticamente i tracking trovati dal controllo Gmail.','ok');
   if(cloudMeta.enabled)scheduleCloudSync();
+  if(driveBackupMeta.enabled)scheduleDriveBackup();
 });
 
 
@@ -1081,6 +1251,51 @@ $('#syncCloudNowBtn').addEventListener('click',async function(){
   finally{this.disabled=false}
 });
 
+
+
+$('#saveDriveBackupSettings').addEventListener('click',async function(){
+  driveBackupMeta.enabled=$('#driveBackupEnabled').checked;
+  saveDriveBackupMeta();
+  updateDriveBackupStatus();
+
+  if(!driveBackupMeta.enabled){
+    setNotice($('#driveBackupNotice'),'Backup automatico disattivato su questo dispositivo.','ok');
+    return;
+  }
+
+  if(!trackingIntegrationReady()){
+    setNotice($('#driveBackupNotice'),'Prima configura URL Apps Script e token nella sezione tracking.','error');
+    return;
+  }
+
+  this.disabled=true;
+  try{
+    await performDriveBackup(true,true);
+  }catch(e){}
+  finally{
+    this.disabled=false;
+  }
+});
+
+$('#driveBackupNowBtn').addEventListener('click',async function(){
+  driveBackupMeta.enabled=true;
+  $('#driveBackupEnabled').checked=true;
+  saveDriveBackupMeta();
+
+  if(!trackingIntegrationReady()){
+    setNotice($('#driveBackupNotice'),'Prima configura URL Apps Script e token nella sezione tracking.','error');
+    return;
+  }
+
+  this.disabled=true;
+  try{
+    await performDriveBackup(true,true);
+  }catch(e){}
+  finally{
+    this.disabled=false;
+  }
+});
+
 $('#addReward').addEventListener('click',function(){var sorted=state.settings.rewards.slice().sort(function(a,b){return a.points-b.points}),last=sorted[sorted.length-1];state.settings.rewards.push({points:(last?last.points:0)+5,name:'Nuovo premio'});render()});
 $('#exportBtn').addEventListener('click',function(){var blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='card-lab-art-manager-backup.json';a.click();setTimeout(function(){URL.revokeObjectURL(a.href)},1000)});
 $('#csvBtn').addEventListener('click',function(){var rows=[['Codice cliente','Cliente','Data ordine','Prodotto','Importo','Stato ordine','Consegna prevista','Pagamento','Incassato','Metodo','Costo materiali','Costo spedizione','Corriere','Tracking','Link tracking','Note','Checklist']];state.orders.forEach(function(o){var c=state.clients.find(function(x){return x.id===o.clientId}),p=orderChecklistProgress(o);rows.push([c?c.code:'',c?c.name:'Cliente rimosso',o.date,o.product,o.amount,o.orderStatus,o.dueDate,o.paymentStatus,o.paidAmount,o.paymentMethod,o.materialCost,o.shippingCost,o.carrier,o.trackingCode,o.trackingUrl,o.orderNotes,p.done+'/'+p.total])});var csv=rows.map(function(r){return r.map(function(v){return '"'+text(v).replace(/"/g,'""')+'"'}).join(';')}).join('\n');var blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='card-lab-art-ordini.csv';a.click();setTimeout(function(){URL.revokeObjectURL(a.href)},1000)});
@@ -1090,6 +1305,7 @@ setSelectOptions();$('#orderDate').value=today();$('#orderStatus').value='Nuovo'
 setTimeout(function(){syncRecentTrackingsFromGmail(false,false).catch(function(){})},2500);
 setInterval(function(){syncRecentTrackingsFromGmail(false,false).catch(function(){})},60000);
 setTimeout(function(){if(cloudSyncConfigured())syncCloudData(false).catch(function(){})},3500);
+setTimeout(function(){updateDriveBackupStatus();if(driveBackupConfigured())performDriveBackup(false).catch(function(){})},5000);
 setInterval(function(){if(document.visibilityState==='visible'&&cloudSyncConfigured())syncCloudData(false).catch(function(){})},60000);
 })();
 </script>
