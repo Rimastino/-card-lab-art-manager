@@ -752,6 +752,266 @@ thead th{
   #settingsAdminPassword{max-width:none}
 }
 
+
+/* ==========================================
+   V16 — DARK / BLACK UI, ALTA LEGGIBILITÀ
+   ========================================== */
+:root{
+  color-scheme:dark;
+  --bg:#050608;
+  --bg2:#080b10;
+  --card:#0e1117;
+  --card-strong:#11151d;
+  --text:#f8fafc;
+  --muted:#a7b0c0;
+  --line:#252b36;
+  --input:#0a0d12;
+  --soft:#171c24;
+  --primary:#7c6cff;
+  --primary-2:#a855f7;
+  --secondary:#0ea5e9;
+  --secondary-2:#22c55e;
+  --danger:#ef4444;
+  --danger-2:#f97316;
+  --success:#4ade80;
+  --warning:#fbbf24;
+  --shadow:0 20px 45px rgba(0,0,0,.42);
+  --shadow-soft:0 10px 24px rgba(0,0,0,.28);
+}
+
+html,body{
+  background:#050608!important;
+  color:var(--text)!important;
+}
+body{
+  background:
+    radial-gradient(circle at 15% 0%,rgba(124,108,255,.10),transparent 24%),
+    radial-gradient(circle at 85% 0%,rgba(14,165,233,.08),transparent 22%),
+    #050608!important;
+}
+body::before,body::after{display:none!important}
+
+.app{max-width:1450px}
+
+.brand{
+  background:#0d1016!important;
+  border:1px solid var(--line)!important;
+  box-shadow:var(--shadow)!important;
+}
+.brand::after{display:none!important}
+.brand h1{
+  color:#ffffff!important;
+  background:none!important;
+  -webkit-text-fill-color:#ffffff!important;
+}
+.brand p{color:#aab3c2!important}
+
+.tabs{
+  background:#0a0d12!important;
+  border:1px solid var(--line)!important;
+  box-shadow:var(--shadow-soft)!important;
+  backdrop-filter:none!important;
+}
+.tab{
+  color:#aab3c2!important;
+  background:transparent!important;
+}
+.tab.active{
+  color:#fff!important;
+  background:linear-gradient(135deg,#6d5dfc,#8b5cf6)!important;
+}
+
+.card,
+.modal-box,
+#claLoginBox{
+  background:#0e1117!important;
+  border:1px solid var(--line)!important;
+  box-shadow:var(--shadow)!important;
+  backdrop-filter:none!important;
+}
+.card::before{
+  height:3px!important;
+  background:linear-gradient(90deg,#7c6cff,#0ea5e9,#ec4899)!important;
+}
+.card h2,.card h3,.profile-title h2{
+  color:#ffffff!important;
+}
+.reward,.small,.profile-meta,.order-photo-hint,.rank-meta,.search-result-meta{
+  color:#9ca7b8!important;
+}
+
+input,select,textarea{
+  background:#080b10!important;
+  color:#ffffff!important;
+  border:1px solid #2a303b!important;
+}
+input::placeholder,textarea::placeholder{color:#677286!important}
+input:focus,select:focus,textarea:focus{
+  border-color:#7c6cff!important;
+  box-shadow:0 0 0 3px rgba(124,108,255,.18)!important
+}
+label{color:#b4bdca!important}
+
+button.ghost,
+.file-label{
+  background:#141922!important;
+  color:#f8fafc!important;
+  border:1px solid #303744!important
+}
+button.secondary{
+  background:linear-gradient(135deg,#0284c7,#0ea5e9)!important;
+  color:#fff!important;
+}
+button.primary{
+  background:linear-gradient(135deg,#6d5dfc,#8b5cf6)!important;
+  color:#fff!important;
+}
+button.danger{
+  background:linear-gradient(135deg,#dc2626,#f97316)!important;
+  color:#fff!important;
+}
+.whatsapp-btn{
+  background:linear-gradient(135deg,#16a34a,#22c55e)!important;
+  color:#fff!important
+}
+
+.stat,
+.attention-stat,
+.stats-detail-card{
+  color:#fff!important;
+}
+.stat small,
+.attention-stat small,
+.stats-detail-card small{
+  color:rgba(255,255,255,.90)!important;
+}
+.stat strong,
+.attention-stat strong,
+.stats-detail-card strong{
+  color:#fff!important;
+}
+
+.tablewrap{
+  background:#0a0d12!important;
+  border-color:var(--line)!important;
+}
+table{background:#0a0d12!important}
+th{
+  background:#11151d!important;
+  color:#b8c0cd!important;
+}
+td{
+  color:#eef2f7!important;
+  border-bottom:1px solid #202631!important;
+}
+tbody tr:hover td{background:#111722!important}
+
+.pill,.status-pill,.kanban-chip,.attention-tag{
+  background:#171c24!important;
+  color:#edf2f7!important;
+  border:1px solid #2a303b!important;
+}
+
+.profile-stat,
+.checkitem,
+.order-photo-box,
+.smart-import-box,
+.quick-message-box,
+.smart-filter-bar{
+  background:#11151d!important;
+  border-color:#28303a!important;
+}
+
+.kanban-column{
+  background:#0a0d12!important;
+  border-color:#242b35!important;
+}
+.kanban-card{
+  background:#11151d!important;
+  border-color:#2a303b!important;
+  color:#fff!important;
+}
+.kanban-client,.kanban-amount{color:#fff!important}
+.kanban-product{color:#a7b0c0!important}
+.kanban-empty{color:#7f8999!important}
+
+.global-search-box,
+.global-search-results,
+.search-result-item{
+  background:#0d1117!important;
+  color:#fff!important;
+  border-color:#262d38!important;
+}
+.search-result-item:hover{background:#171d27!important}
+.search-result-kind{
+  background:#171c24!important;
+  color:#cbd5e1!important;
+  border-color:#2a303b!important;
+}
+
+.notice.ok{color:#4ade80!important}
+.notice.error{color:#fb7185!important}
+.notice{color:#9ca7b8!important}
+
+.settings-lock-card{
+  background:#10141c!important;
+}
+.settings-lock-status.locked{
+  color:#fdba74!important;
+  background:#26170b!important;
+  border-color:#92400e!important
+}
+.settings-lock-status.unlocked{
+  color:#86efac!important;
+  background:#0e2517!important;
+  border-color:#166534!important
+}
+#panel-settings.settings-is-locked .card:not(.settings-lock-card){
+  opacity:.45!important;
+}
+#panel-settings.settings-is-locked .card:not(.settings-lock-card)::after{
+  background:#1a120a!important;
+  color:#fdba74!important;
+  border-color:#92400e!important
+}
+
+#claLoginScreen{
+  background:#050608!important;
+}
+#claLoginBox h1{
+  background:none!important;
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important
+}
+#claLoginBox .login-sub,
+#claLoginHelp{color:#9ca7b8!important}
+
+.month-track{background:#171c24!important;border-color:#2a303b!important}
+.rank-item{
+  background:#10141b!important;
+  border-color:#272e39!important
+}
+.rank-title{color:#fff!important}
+.month-label,.month-value{color:#e5e7eb!important}
+
+.duplicate-box{
+  background:#25170a!important;
+  color:#fdba74!important;
+  border-color:#92400e!important
+}
+
+.storage-warning{
+  background:#25170a!important;
+  color:#fdba74!important;
+  border-color:#92400e!important
+}
+
+@media(max-width:560px){
+  .tabs{
+    position:static!important;
+  }
+}
+
 </style>
 
 <script>
@@ -863,7 +1123,7 @@ thead th{
 
 <div id="claManagerApp" class="cla-locked"><div class="app" id="cla-root">
   <div class="top">
-    <div class="brand"><h1>Card_Lab_Art — Gestione clienti e ordini</h1><p>La tua dashboard creativa: ordini, clienti, spedizioni, premi e attività sotto controllo.</p></div>
+    <div class="brand"><h1>Card_Lab_Art — Gestione clienti e ordini</h1><p>Dashboard operativa Card_Lab_Art — ordini, clienti, spedizioni, premi e attività.</p></div>
     <div class="actions">
       <button class="secondary" id="exportBtn" type="button">Esporta backup</button>
       <label class="file-label" for="importFile">Importa backup</label><input id="importFile" type="file" accept="application/json" hidden>
