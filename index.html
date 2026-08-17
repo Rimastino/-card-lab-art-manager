@@ -567,6 +567,42 @@ tr:last-child td{border-bottom:0}
   .global-search{margin-bottom:12px}
 }
 
+
+.clickable-card{
+  cursor:pointer;
+  user-select:none;
+  -webkit-tap-highlight-color:transparent;
+  transition:transform .16s ease, box-shadow .18s ease, filter .18s ease;
+  position:relative
+}
+.clickable-card:hover{transform:translateY(-2px);filter:saturate(1.08);box-shadow:0 16px 30px rgba(54,60,125,.18)}
+.clickable-card:active{transform:scale(.985)}
+.clickable-card:focus-visible{outline:3px solid rgba(109,93,252,.32);outline-offset:3px}
+.card-arrow{
+  position:absolute;right:13px;bottom:11px;
+  width:25px;height:25px;border-radius:999px;display:flex;align-items:center;justify-content:center;
+  background:rgba(255,255,255,.18);font-weight:950;font-size:14px
+}
+.stat .card-arrow{right:12px;bottom:10px}
+.stats-detail-card{position:relative}
+.stats-detail-card .card-arrow{right:12px;bottom:12px}
+.attention-stat::after{
+  content:"→";margin-left:auto;width:24px;height:24px;border-radius:999px;
+  background:rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:950;flex:0 0 auto
+}
+.smart-filter-bar{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  margin-bottom:10px;padding:10px 12px;border-radius:15px;
+  border:1px solid rgba(109,93,252,.18);
+  background:linear-gradient(135deg,rgba(109,93,252,.08),rgba(14,165,233,.05))
+}
+.smart-filter-bar strong{font-size:13px;color:var(--primary)}
+@media(max-width:560px){
+  .smart-filter-bar{align-items:flex-start;flex-direction:column}
+  .smart-filter-bar button{width:100%}
+}
+
 </style>
 
 <script>
@@ -697,12 +733,12 @@ tr:last-child td{border-bottom:0}
   <div id="storageWarning" class="storage-warning">⚠️ Il browser non permette il salvataggio permanente in questa modalità. Apri il gestionale in Safari/Chrome come pagina web e fai backup periodici.</div>
 
   <div class="stats">
-    <div class="stat"><small>Clienti</small><strong id="sClients">0</strong></div>
-    <div class="stat"><small>Ordini</small><strong id="sOrders">0</strong></div>
-    <div class="stat"><small>Fatturato registrato</small><strong id="sRevenue">€ 0,00</strong></div>
-    <div class="stat"><small>In lavorazione</small><strong id="sWork">0</strong></div>
-    <div class="stat"><small>Da spedire</small><strong id="sShip">0</strong></div>
-    <div class="stat"><small>Punti in circolazione</small><strong id="sPoints">0</strong></div>
+    <div class="stat clickable-card" role="button" tabindex="0" data-dash-action="clients"><small>Clienti</small><strong id="sClients">0</strong><span class="card-arrow">→</span></div>
+    <div class="stat clickable-card" role="button" tabindex="0" data-dash-action="orders"><small>Ordini</small><strong id="sOrders">0</strong><span class="card-arrow">→</span></div>
+    <div class="stat clickable-card" role="button" tabindex="0" data-dash-action="stats"><small>Fatturato registrato</small><strong id="sRevenue">€ 0,00</strong><span class="card-arrow">→</span></div>
+    <div class="stat clickable-card" role="button" tabindex="0" data-dash-action="work"><small>In lavorazione</small><strong id="sWork">0</strong><span class="card-arrow">→</span></div>
+    <div class="stat clickable-card" role="button" tabindex="0" data-dash-action="ship"><small>Da spedire</small><strong id="sShip">0</strong><span class="card-arrow">→</span></div>
+    <div class="stat clickable-card" role="button" tabindex="0" data-dash-action="rewards"><small>Punti in circolazione</small><strong id="sPoints">0</strong><span class="card-arrow">→</span></div>
   </div>
 
   <div class="tabs" role="tablist">
@@ -727,6 +763,10 @@ tr:last-child td{border-bottom:0}
         </div>
       </div>
 
+      <div id="clientSmartFilterBar" class="smart-filter-bar" style="display:none">
+        <div><strong id="clientSmartFilterTitle">Filtro clienti</strong><div id="clientSmartFilterText" class="small"></div></div>
+        <button class="ghost mini" id="clearClientSmartFilter" type="button">✕ Rimuovi filtro</button>
+      </div>
       <div class="searchrow" style="margin-top:14px">
         <input id="clientSearch" placeholder="Cerca nome, codice, e-mail, telefono, città...">
       </div>
@@ -767,23 +807,23 @@ tr:last-child td{border-bottom:0}
       </div>
 
       <div class="attention-grid">
-        <div class="attention-stat attention-overdue">
+        <div class="attention-stat attention-overdue clickable-card" role="button" tabindex="0" data-dash-action="overdue">
           <div class="attention-icon">⏰</div>
           <div><small>In ritardo</small><strong id="aOverdue">0</strong></div>
         </div>
-        <div class="attention-stat attention-approval">
+        <div class="attention-stat attention-approval clickable-card" role="button" tabindex="0" data-dash-action="approval">
           <div class="attention-icon">👀</div>
           <div><small>Da approvare</small><strong id="aApproval">0</strong></div>
         </div>
-        <div class="attention-stat attention-ship">
+        <div class="attention-stat attention-ship clickable-card" role="button" tabindex="0" data-dash-action="ship">
           <div class="attention-icon">📦</div>
           <div><small>Da spedire</small><strong id="aShip">0</strong></div>
         </div>
-        <div class="attention-stat attention-track">
+        <div class="attention-stat attention-track clickable-card" role="button" tabindex="0" data-dash-action="missingTracking">
           <div class="attention-icon">🔎</div>
           <div><small>Senza tracking</small><strong id="aTracking">0</strong></div>
         </div>
-        <div class="attention-stat attention-pay">
+        <div class="attention-stat attention-pay clickable-card" role="button" tabindex="0" data-dash-action="pendingPayment">
           <div class="attention-icon">💶</div>
           <div><small>Pagamento da chiudere</small><strong id="aPayment">0</strong></div>
         </div>
@@ -838,6 +878,10 @@ tr:last-child td{border-bottom:0}
       <div class="reward">Dopo il salvataggio puoi aprire “Gestisci” per aggiornare pagamento, tracking, costi e checklist di lavorazione.</div>
     </div>
     <div class="card">
+      <div id="orderSmartFilterBar" class="smart-filter-bar" style="display:none">
+        <div><strong id="orderSmartFilterTitle">Filtro ordini</strong><div id="orderSmartFilterText" class="small"></div></div>
+        <button class="ghost mini" id="clearOrderSmartFilter" type="button">✕ Rimuovi filtro</button>
+      </div>
       <div class="searchrow"><input id="orderSearch" placeholder="Cerca cliente, prodotto, stato, tracking..."></div>
       <div class="tablewrap"><table><thead><tr><th>Data</th><th>Cliente</th><th>Prodotto</th><th>Importo</th><th>Pagamento</th><th>Stato</th><th>Consegna</th><th>Tracking</th><th></th></tr></thead><tbody id="orderRows"></tbody></table></div>
     </div>
@@ -853,12 +897,12 @@ tr:last-child td{border-bottom:0}
       </div>
 
       <div class="stats-detail-grid">
-        <div class="stats-detail-card stat-purple"><small>Fatturato questo mese</small><strong id="stMonthRevenue">€ 0,00</strong></div>
-        <div class="stats-detail-card stat-blue"><small>Ordini questo mese</small><strong id="stMonthOrders">0</strong></div>
-        <div class="stats-detail-card stat-orange"><small>Valore medio ordine</small><strong id="stAvgOrder">€ 0,00</strong></div>
-        <div class="stats-detail-card stat-green"><small>Clienti di ritorno</small><strong id="stReturningClients">0</strong></div>
-        <div class="stats-detail-card stat-pink"><small>Clienti VIP</small><strong id="stVipClients">0</strong></div>
-        <div class="stats-detail-card stat-slate"><small>Ordini consegnati</small><strong id="stDelivered">0</strong></div>
+        <div class="stats-detail-card stat-purple clickable-card" role="button" tabindex="0" data-dash-action="currentMonth"><small>Fatturato questo mese</small><strong id="stMonthRevenue">€ 0,00</strong><span class="card-arrow">→</span></div>
+        <div class="stats-detail-card stat-blue clickable-card" role="button" tabindex="0" data-dash-action="currentMonth"><small>Ordini questo mese</small><strong id="stMonthOrders">0</strong><span class="card-arrow">→</span></div>
+        <div class="stats-detail-card stat-orange clickable-card" role="button" tabindex="0" data-dash-action="orders"><small>Valore medio ordine</small><strong id="stAvgOrder">€ 0,00</strong><span class="card-arrow">→</span></div>
+        <div class="stats-detail-card stat-green clickable-card" role="button" tabindex="0" data-dash-action="returningClients"><small>Clienti di ritorno</small><strong id="stReturningClients">0</strong><span class="card-arrow">→</span></div>
+        <div class="stats-detail-card stat-pink clickable-card" role="button" tabindex="0" data-dash-action="vipClients"><small>Clienti VIP</small><strong id="stVipClients">0</strong><span class="card-arrow">→</span></div>
+        <div class="stats-detail-card stat-slate clickable-card" role="button" tabindex="0" data-dash-action="delivered"><small>Ordini consegnati</small><strong id="stDelivered">0</strong><span class="card-arrow">→</span></div>
       </div>
     </div>
 
@@ -2369,6 +2413,105 @@ async function importLatestTrackingIntoOrder(orderId){
     subject:text(result.subject)
   };
 }
+
+var activeClientSmartFilter='';
+var activeOrderSmartFilter='';
+
+function clientMatchesSmartFilter(c,filter){
+  if(!filter)return true;
+  if(filter==='vip')return clientVipInfo(c.id).vip;
+  if(filter==='returning')return clientOrderCount(c.id)>=2;
+  return true;
+}
+
+function orderMatchesSmartFilter(o,filter){
+  if(!filter)return true;
+  if(filter==='work')return ['Nuovo','In lavorazione','Da approvare','Pronto'].indexOf(o.orderStatus)>=0;
+  if(filter==='ship')return o.orderStatus==='Da spedire';
+  if(filter==='approval')return o.orderStatus==='Da approvare';
+  if(filter==='overdue')return isOrderOverdue(o);
+  if(filter==='missingTracking')return orderNeedsTracking(o);
+  if(filter==='pendingPayment')return orderNeedsPayment(o);
+  if(filter==='delivered')return o.orderStatus==='Consegnato';
+  if(filter==='currentMonth')return monthKey(o.date)===currentMonthKey();
+  return true;
+}
+
+function updateSmartFilterBars(){
+  var clientLabels={
+    vip:['⭐ Clienti VIP','Mostro solo clienti VIP e TOP VIP.'],
+    returning:['🔁 Clienti di ritorno','Mostro clienti con almeno 2 ordini.']
+  };
+  var orderLabels={
+    work:['🛠️ In lavorazione','Ordini Nuovo, In lavorazione, Da approvare o Pronto.'],
+    ship:['📦 Da spedire','Mostro solo gli ordini nello stato Da spedire.'],
+    approval:['👀 Da approvare','Mostro solo gli ordini da approvare.'],
+    overdue:['⏰ In ritardo','Mostro gli ordini con data prevista superata e non consegnati.'],
+    missingTracking:['🔎 Senza tracking','Mostro ordini Da spedire/Spedito senza codice tracking.'],
+    pendingPayment:['💶 Pagamento da chiudere','Mostro ordini non ancora completamente pagati.'],
+    delivered:['✅ Consegnati','Mostro solo gli ordini consegnati.'],
+    currentMonth:['📅 Questo mese','Mostro solo gli ordini registrati nel mese corrente.']
+  };
+
+  var cb=$('#clientSmartFilterBar');
+  if(activeClientSmartFilter&&clientLabels[activeClientSmartFilter]){
+    cb.style.display='flex';
+    $('#clientSmartFilterTitle').textContent=clientLabels[activeClientSmartFilter][0];
+    $('#clientSmartFilterText').textContent=clientLabels[activeClientSmartFilter][1];
+  }else{
+    cb.style.display='none';
+  }
+
+  var ob=$('#orderSmartFilterBar');
+  if(activeOrderSmartFilter&&orderLabels[activeOrderSmartFilter]){
+    ob.style.display='flex';
+    $('#orderSmartFilterTitle').textContent=orderLabels[activeOrderSmartFilter][0];
+    $('#orderSmartFilterText').textContent=orderLabels[activeOrderSmartFilter][1];
+  }else{
+    ob.style.display='none';
+  }
+}
+
+function openClientsWithFilter(filter){
+  activeClientSmartFilter=filter||'';
+  activeOrderSmartFilter='';
+  $('#clientSearch').value='';
+  activateTab('clients');
+  render();
+  setTimeout(function(){
+    var bar=$('#clientSmartFilterBar');
+    if(bar&&activeClientSmartFilter)bar.scrollIntoView({behavior:'smooth',block:'start'});
+  },80);
+}
+
+function openOrdersWithFilter(filter){
+  activeOrderSmartFilter=filter||'';
+  activeClientSmartFilter='';
+  $('#orderSearch').value='';
+  activateTab('orders');
+  render();
+  setTimeout(function(){
+    var bar=$('#orderSmartFilterBar');
+    if(bar&&activeOrderSmartFilter)bar.scrollIntoView({behavior:'smooth',block:'start'});
+  },80);
+}
+
+function handleDashboardAction(action){
+  if(action==='clients'){openClientsWithFilter('');return}
+  if(action==='orders'){openOrdersWithFilter('');return}
+  if(action==='stats'){activateTab('stats');return}
+  if(action==='rewards'){activateTab('rewards');return}
+  if(action==='work'){openOrdersWithFilter('work');return}
+  if(action==='ship'){openOrdersWithFilter('ship');return}
+  if(action==='approval'){openOrdersWithFilter('approval');return}
+  if(action==='overdue'){openOrdersWithFilter('overdue');return}
+  if(action==='missingTracking'){openOrdersWithFilter('missingTracking');return}
+  if(action==='pendingPayment'){openOrdersWithFilter('pendingPayment');return}
+  if(action==='delivered'){openOrdersWithFilter('delivered');return}
+  if(action==='currentMonth'){openOrdersWithFilter('currentMonth');return}
+  if(action==='returningClients'){openClientsWithFilter('returning');return}
+  if(action==='vipClients'){openClientsWithFilter('vip');return}
+}
 function render(){
   ensureCodes();showStorageStatus();
   $('#clientCode').value=nextCode();$('#eurosPerPoint').value=state.settings.eurosPerPoint;
@@ -2377,16 +2520,17 @@ function render(){
   var ti=trackingIntegration();$('#trackingWebAppUrl').value=ti.webAppUrl||'';$('#trackingWebAppToken').value=ti.token||'';$('#cloudSyncEnabled').checked=!!cloudMeta.enabled;$('#driveBackupEnabled').checked=!!driveBackupMeta.enabled;updateDriveBackupStatus();
   var revenue=state.orders.reduce(function(a,o){return a+num(o.amount)},0);
   $('#sClients').textContent=state.clients.length;$('#sOrders').textContent=state.orders.length;$('#sRevenue').textContent=money(revenue);$('#sWork').textContent=state.orders.filter(function(o){return ['Nuovo','In lavorazione','Da approvare','Pronto'].indexOf(o.orderStatus)>=0}).length;$('#sShip').textContent=state.orders.filter(function(o){return o.orderStatus==='Da spedire'}).length;$('#sPoints').textContent=state.clients.reduce(function(a,c){return a+clientStats(c.id).balance},0);
-  var q=$('#clientSearch').value.trim().toLowerCase();var clients=state.clients.filter(function(c){return [c.code,c.firstName,c.lastName,c.name,c.email,c.phone,c.address,c.zip,c.city,c.province,c.instagram,c.notes].some(function(v){return text(v).toLowerCase().indexOf(q)!==-1})});
+  var q=$('#clientSearch').value.trim().toLowerCase();var clients=state.clients.filter(function(c){return clientMatchesSmartFilter(c,activeClientSmartFilter)&&[c.code,c.firstName,c.lastName,c.name,c.email,c.phone,c.address,c.zip,c.city,c.province,c.instagram,c.notes].some(function(v){return text(v).toLowerCase().indexOf(q)!==-1})});
   $('#clientRows').innerHTML=clients.length?clients.map(function(c){var s=clientStats(c.id),last=latestOrderForClient(c.id);return '<tr><td><span class="pill">'+esc(c.code)+'</span></td><td><strong>'+esc(c.name||'Cliente')+'</strong>'+vipBadgeHtml(c.id)+'</td><td>'+clientContactHtml(c)+'</td><td>'+esc(c.city||'—')+'</td><td>'+money(s.spent)+'</td><td><strong>'+s.balance+'</strong></td><td>'+(last?statusBadge(last.orderStatus):'—')+'</td><td>'+(last?statusBadge(last.paymentStatus):'—')+'</td><td><div class="row-actions"><button class="mini primary open-profile" type="button" data-id="'+esc(c.id)+'">Apri</button>'+(c.phone?'<button class="mini whatsapp-btn quick-wa-client" type="button" data-id="'+esc(c.id)+'">💬</button>':'')+'</div></td></tr>'}).join(''):'<tr><td colspan="9" class="empty">Nessun cliente registrato.</td></tr>';
   $('#orderClient').innerHTML='<option value="">Seleziona cliente</option>'+state.clients.map(function(c){return '<option value="'+esc(c.id)+'">'+esc(c.code)+' — '+esc(c.name)+'</option>'}).join('');
-  var oq=$('#orderSearch').value.trim().toLowerCase();var orders=state.orders.filter(function(o){var c=state.clients.find(function(x){return x.id===o.clientId});return [o.date,o.product,o.orderNotes,o.orderStatus,o.paymentStatus,o.trackingCode,o.carrier,c&&c.name,c&&c.code].some(function(v){return text(v).toLowerCase().indexOf(oq)!==-1})});
+  var oq=$('#orderSearch').value.trim().toLowerCase();var orders=state.orders.filter(function(o){var c=state.clients.find(function(x){return x.id===o.clientId});return orderMatchesSmartFilter(o,activeOrderSmartFilter)&&[o.date,o.product,o.orderNotes,o.orderStatus,o.paymentStatus,o.trackingCode,o.carrier,c&&c.name,c&&c.code].some(function(v){return text(v).toLowerCase().indexOf(oq)!==-1})});
   $('#orderRows').innerHTML=orders.length?orders.slice().reverse().map(function(o){var c=state.clients.find(function(x){return x.id===o.clientId});return '<tr><td>'+esc(o.date)+'</td><td>'+(c?'<strong>'+esc(c.name)+'</strong><div class="small">'+esc(c.code)+'</div>':'Cliente rimosso')+'</td><td>'+esc(o.product)+(o.attachment&&o.attachment.fileId?'<div class="photo-dot">📷 Foto allegata</div>':'')+'</td><td>'+money(o.amount)+'</td><td>'+statusBadge(o.paymentStatus)+'<div class="small">'+money(o.paidAmount)+' incassati</div></td><td>'+statusBadge(o.orderStatus)+'</td><td>'+dueHtml(o)+'</td><td>'+trackingHtml(o)+'</td><td><button type="button" class="mini primary manage-order" data-id="'+esc(o.id)+'">Gestisci</button></td></tr>'}).join(''):'<tr><td colspan="9" class="empty">Nessun ordine registrato.</td></tr>';
   var rewardData=state.clients.map(function(c){var s=clientStats(c.id);return {c:c,s:s,r:rewardFor(s.balance)}}).sort(function(a,b){return b.s.balance-a.s.balance});
   $('#rewardRows').innerHTML=rewardData.length?rewardData.map(function(x){return '<tr><td><strong>'+esc(x.c.name)+'</strong><div class="reward">'+esc(x.c.code)+'</div></td><td><span class="pill">'+x.s.balance+' pt</span></td><td>'+(x.r.current?esc(x.r.current.name):'—')+'</td><td>'+(x.r.next?esc(x.r.next.name):'Soglia massima raggiunta')+'</td><td>'+(x.r.next?Math.max(0,x.r.next.points-x.s.balance)+' pt':'—')+'</td></tr>'}).join(''):'<tr><td colspan="5" class="empty">Aggiungi clienti per vedere i premi.</td></tr>';
   renderRewardsSettings();
   renderOperationsBoard();
   renderStatistics();
+  updateSmartFilterBars();
 }
 function setNotice(el,msg,type){el.textContent=msg;el.className='notice'+(type?' '+type:'')}
 function openProfile(id){
@@ -2878,9 +3022,37 @@ function activateTab(name){
   if(name==='board')renderOperationsBoard();
 }
 $$('.tab').forEach(function(b){
-  b.addEventListener('click',function(){activateTab(b.dataset.tab)});
+  b.addEventListener('click',function(){
+    if(b.dataset.tab==='clients')activeClientSmartFilter='';
+    if(b.dataset.tab==='orders')activeOrderSmartFilter='';
+    activateTab(b.dataset.tab);
+    render();
+  });
 });
 
+
+
+document.addEventListener('click',function(e){
+  var card=e.target.closest('[data-dash-action]');
+  if(!card)return;
+  handleDashboardAction(card.dataset.dashAction);
+});
+
+document.addEventListener('keydown',function(e){
+  if((e.key==='Enter'||e.key===' ')&&e.target&&e.target.matches('[data-dash-action]')){
+    e.preventDefault();
+    handleDashboardAction(e.target.dataset.dashAction);
+  }
+});
+
+$('#clearClientSmartFilter').addEventListener('click',function(){
+  activeClientSmartFilter='';
+  render();
+});
+$('#clearOrderSmartFilter').addEventListener('click',function(){
+  activeOrderSmartFilter='';
+  render();
+});
 
 $('#openBoardBtn').addEventListener('click',function(){activateTab('board')});
 $('#refreshBoardBtn').addEventListener('click',function(){
