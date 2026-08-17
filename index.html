@@ -1023,6 +1023,19 @@ tbody tr:hover td{background:#111722!important}
   color:#fed7aa!important;background:#2a1709!important;border-color:#9a3412!important
 }
 
+
+.cloud-server-status{
+  margin-top:10px;padding:10px 12px;border-radius:14px;
+  background:#0b1118;border:1px solid #24303c;
+  color:#aeb8c7;font-size:12px;font-weight:800
+}
+.cloud-server-status.ok{
+  color:#bbf7d0;border-color:#166534;background:#0c2014
+}
+.cloud-server-status.warn{
+  color:#fed7aa;border-color:#9a3412;background:#25150a
+}
+
 </style>
 
 <script>
@@ -1419,10 +1432,14 @@ tbody tr:hover td{background:#111722!important}
         <div class="span4 toolbar">
           <button class="primary" type="button" id="saveCloudSyncSettings">Salva sincronizzazione</button>
           <button class="secondary" type="button" id="syncCloudNowBtn">Sincronizza PC / iPhone adesso</button>
+          <button class="ghost" type="button" id="checkCloudNowBtn">🔎 Controlla database cloud</button>
+          <button class="danger" type="button" id="repairCloudFromDeviceBtn">🛠 Ripubblica dati di questo dispositivo</button>
         </div>
       </div>
       <div class="notice" id="cloudSyncNotice"></div>
+      <div id="cloudServerStatus" class="cloud-server-status">Database cloud: non verificato.</div>
       <div class="reward" style="margin-top:10px">Le configurazioni EmailJS e il token restano locali sul singolo dispositivo; vengono condivisi solo <strong>clienti e ordini</strong>.</div>
+      <div class="reward" style="margin-top:6px"><strong>Ripubblica dati</strong> va usato solo sul dispositivo che contiene già i clienti/ordini corretti (es. Mac/PC). Se il dispositivo è vuoto, il pulsante si rifiuta di procedere.</div>
     </div>
 
     <div class="card">
@@ -2612,6 +2629,120 @@ var cloudSyncTimer=null;
 var cloudSyncInProgress=false;
 var cloudSyncQueued=false;
 
+
+function updateCloudServerStatus(clients,orders,revision){
+  var el=$('#cloudServerStatus');
+  if(!el)return;
+  clients=num(clients);orders=num(orders);
+  el.textContent='Database cloud: '+clients+' clienti • '+orders+' ordini'+(revision?' • revisione '+text(revision).slice(0,19):'');
+  el.className='cloud-server-status '+((clients||orders)?'ok':'warn');
+}
+
+async function checkCloudDatabase(showNotice){
+  if(!cloudSyncConfigured()){
+    if(showNotice)setNotice($('#cloudSyncNotice'),'URL Apps Script o token non configurati.','error');
+    return {ok:false};
+  }
+
+  if(showNotice)setNotice($('#cloudSyncNotice'),'Controllo database cloud in corso...','');
+  try{
+    var snapshot=await cloudApi({action:'cloudSnapshot'});
+    if(!snapshot||snapshot.ok!==true){
+      throw new Error(text(snapshot&&snapshot.error||'Database cloud non disponibile.'));
+    }
+    updateCloudServerStatus(
+      (snapshot.clients||[]).length,
+      (snapshot.orders||[]).length,
+      snapshot.revision||''
+    );
+    if(showNotice){
+      setNotice(
+        $('#cloudSyncNotice'),
+        'Database cloud verificato: '+(snapshot.clients||[]).length+' clienti e '+(snapshot.orders||[]).length+' ordini.',
+        ((snapshot.clients||[]).length||(snapshot.orders||[]).length)?'ok':'error'
+      );
+    }
+    return snapshot;
+  }catch(err){
+    if(showNotice)setNotice($('#cloudSyncNotice'),'Controllo cloud fallito: '+text(err&&err.message||err),'error');
+    throw err;
+  }
+}
+
+async function republishLocalDataToCloud(){
+  var localClients=state.clients.length;
+  var localOrders=state.orders.length;
+
+  if(localClients===0&&localOrders===0){
+    setNotice(
+      $('#cloudSyncNotice'),
+      'Bloccato per sicurezza: questo dispositivo non contiene clienti né ordini. Usa “Ripubblica” sul Mac/PC che contiene i dati corretti.',
+      'error'
+    );
+    return;
+  }
+
+  var ok=confirm(
+    'Ripubblicare nel cloud tutti i dati presenti SU QUESTO DISPOSITIVO?\n\n'+
+    localClients+' clienti\n'+localOrders+' ordini\n\n'+
+    'Usa questa funzione soltanto sul dispositivo che contiene i dati corretti.'
+  );
+  if(!ok)return;
+
+  var now=new Date().toISOString();
+
+  state.clients.forEach(function(c){
+    c._syncUpdatedAt=now;
+    cloudMeta.dirtyClients[c.id]=now;
+    delete cloudMeta.deletedClients[c.id];
+    delete cloudMeta.pendingDeletedClients[c.id];
+  });
+
+  state.orders.forEach(function(o){
+    o._syncUpdatedAt=now;
+    cloudMeta.dirtyOrders[o.id]=now;
+    delete cloudMeta.deletedOrders[o.id];
+    delete cloudMeta.pendingDeletedOrders[o.id];
+  });
+
+  cloudMeta.needsReconcile=false;
+  saveCloudMeta();
+
+  applyingCloudState=true;
+  saveState({fromCloud:true});
+  applyingCloudState=false;
+  resetCloudBaseline();
+
+  setNotice(
+    $('#cloudSyncNotice'),
+    'Ripubblicazione in corso: '+localClients+' clienti e '+localOrders+' ordini...',
+    ''
+  );
+
+  try{
+    await syncCloudData(false);
+    var snapshot=await checkCloudDatabase(false);
+    var serverClients=(snapshot.clients||[]).length;
+    var serverOrders=(snapshot.orders||[]).length;
+
+    if(serverClients>=localClients&&serverOrders>=localOrders){
+      setNotice(
+        $('#cloudSyncNotice'),
+        'Cloud riparato ✅ Ora contiene '+serverClients+' clienti e '+serverOrders+' ordini. Sul nuovo dispositivo premi “Sincronizza PC / iPhone adesso”.',
+        'ok'
+      );
+    }else{
+      setNotice(
+        $('#cloudSyncNotice'),
+        'Ripubblicazione completata, ma i conteggi cloud non coincidono ancora. Cloud: '+serverClients+' clienti e '+serverOrders+' ordini.',
+        'error'
+      );
+    }
+  }catch(err){
+    setNotice($('#cloudSyncNotice'),'Riparazione cloud fallita: '+text(err&&err.message||err),'error');
+  }
+}
+
 function scheduleCloudSync(){
   if(!cloudSyncConfigured())return;
 
@@ -2657,6 +2788,11 @@ async function syncCloudData(showNotice){
     mergeCloudSnapshot(snapshot);
     cloudMeta.lastSyncAt=new Date().toISOString();
     saveCloudMeta();
+    updateCloudServerStatus(
+      (snapshot.clients||[]).length,
+      (snapshot.orders||[]).length,
+      snapshot.revision||''
+    );
 
     render();
     refreshOpenProfileIfNeeded();
@@ -4261,6 +4397,14 @@ $('#syncTrackingNowBtn').addEventListener('click',async function(){
 });
 
 
+
+
+$('#checkCloudNowBtn').addEventListener('click',function(){
+  checkCloudDatabase(true).catch(function(){});
+});
+$('#repairCloudFromDeviceBtn').addEventListener('click',function(){
+  republishLocalDataToCloud();
+});
 
 $('#saveCloudSyncSettings').addEventListener('click',async function(){
   cloudMeta.enabled=$('#cloudSyncEnabled').checked;
