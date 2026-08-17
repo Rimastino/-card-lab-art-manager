@@ -1036,6 +1036,12 @@ tbody tr:hover td{background:#111722!important}
   color:#fed7aa;border-color:#9a3412;background:#25150a
 }
 
+
+.gmail-test-box{
+  margin-top:14px;padding:14px;border-radius:18px;
+  background:#10151d;border:1px solid #273140
+}
+
 </style>
 
 <script>
@@ -1440,6 +1446,34 @@ tbody tr:hover td{background:#111722!important}
       <div class="notice" id="emailSettingsNotice"></div>
       <div id="gmailSenderStatus" class="cloud-server-status">Gmail: non verificato.</div>
 
+      <div class="gmail-test-box">
+        <h3 style="margin:0 0 6px">🧪 E-mail di test</h3>
+        <div class="reward" style="margin-bottom:10px">
+          Invia una prova della mail “Spedito” senza modificare lo stato di nessun ordine.
+          Puoi scegliere un ordine esistente per provare anche la sua foto.
+        </div>
+
+        <div class="formgrid">
+          <div class="span2">
+            <label for="gmailTestRecipient">Invia test a</label>
+            <input id="gmailTestRecipient" type="email" autocomplete="email" placeholder="La tua e-mail">
+          </div>
+
+          <div class="span2">
+            <label for="gmailTestOrder">Usa dati/foto di questo ordine</label>
+            <select id="gmailTestOrder">
+              <option value="">Test generico senza ordine</option>
+            </select>
+          </div>
+
+          <div class="span4 toolbar">
+            <button class="secondary" type="button" id="sendGmailTestBtn">🧪 Invia e-mail di test</button>
+          </div>
+        </div>
+
+        <div class="notice" id="gmailTestNotice"></div>
+      </div>
+
       <div class="reward" style="margin-top:10px">
         <strong>Presa in carico:</strong> parte dal tuo Gmail quando crei il cliente.
         <br>
@@ -1677,9 +1711,9 @@ mario@email.it
         <div class="toolbar">
           <span class="status-pill" id="orderShippedEmailStatus">Non inviata</span>
           <span class="status-pill" id="orderEmailPreviewStatus">📷 Nessuna anteprima</span>
-          <button class="secondary" type="button" id="sendShippedEmailBtn">Invia e-mail spedizione</button>
+          <button class="secondary" type="button" id="sendShippedEmailBtn">✉️ Invia ora (manuale)</button>
         </div>
-        <div class="reward" style="margin-top:7px">Se questo ordine ha una foto allegata, il gestionale prova a inserirla come piccola anteprima direttamente nella mail di spedizione.</div>
+        <div class="reward" style="margin-top:7px">Puoi inviare questa mail manualmente anche senza cambiare lo stato dell’ordine. Se c’è una foto allegata, Gmail la inserisce come piccola anteprima.</div>
       </div>
       <div class="span4 toolbar"><button class="primary" type="submit">Salva ordine</button><button class="secondary" type="button" id="importTrackingGmailBtn">Importa ultimo tracking Gmail</button><button class="secondary" type="button" id="copyTrackingBtn">Copia tracking</button><button class="secondary" type="button" id="openTrackingBtn">Apri tracking</button><button class="danger" type="button" id="deleteOrderFromModal">Elimina ordine</button></div>
     </form>
@@ -2197,7 +2231,10 @@ async function checkGmailSender(showNotice){
   try{
     var r=await gmailApi({action:'gmailSenderStatus'});
     var line='Gmail pronto';
-    if(r.senderEmail)line+=' • '+r.senderEmail;
+    if(r.senderEmail){
+      line+=' • '+r.senderEmail;
+      if($('#gmailTestRecipient')&&!$('#gmailTestRecipient').value.trim())$('#gmailTestRecipient').value=r.senderEmail;
+    }
     if(r.remainingQuota!=null)line+=' • quota residua oggi: '+r.remainingQuota;
     $('#gmailSenderStatus').textContent=line;
     $('#gmailSenderStatus').className='cloud-server-status ok';
@@ -2315,6 +2352,43 @@ async function sendShippedEmail(o,force){
     throw err;
   }
 }
+
+async function sendGmailTestEmail(){
+  var to=$('#gmailTestRecipient').value.trim();
+  if(!to||!$('#gmailTestRecipient').checkValidity()){
+    throw new Error('Inserisci un indirizzo e-mail valido per il test.');
+  }
+  if(!trackingIntegrationReady()){
+    throw new Error('Configura prima URL Apps Script e token.');
+  }
+
+  var orderId=$('#gmailTestOrder').value;
+  var o=orderId?state.orders.find(function(x){return x.id===orderId}):null;
+  var c=o?state.clients.find(function(x){return x.id===o.clientId}):null;
+  var em=emailSettings();
+
+  var params={
+    action:'sendShippedGmail',
+    requestId:uid(),
+    toEmail:to,
+    firstName:c&&c.firstName?c.firstName:'Test',
+    lastName:c&&c.lastName?c.lastName:'',
+    clientName:c&&c.name?c.name:'Cliente Test',
+    clientCode:c&&c.code?c.code:'TEST',
+    fromName:text(em.fromName||'Card_Lab_Art'),
+    replyTo:text(em.replyTo||''),
+    product:o?text(o.product):'Prodotto Test Card_Lab_Art',
+    orderDate:o?text(o.date):today(),
+    orderStatus:'TEST',
+    carrier:o&&o.carrier?text(o.carrier):'Corriere Test',
+    trackingCode:o&&o.trackingCode?text(o.trackingCode):'TEST-CARDLAB-001',
+    trackingUrl:o&&o.trackingUrl?text(o.trackingUrl):'',
+    fileId:o&&o.attachment&&o.attachment.fileId?text(o.attachment.fileId):''
+  };
+
+  return gmailApi(params);
+}
+
 function intakeEmailEnabled(){var e=emailSettings();return typeof e.intakeEnabled==='boolean'?e.intakeEnabled:!!e.enabled}
 function shippedEmailEnabled(){return !!emailSettings().shippedEnabled}
 
@@ -3320,6 +3394,17 @@ function render(){
   $('#gmailReplyTo').value=em.replyTo||'';
   $('#emailIntakeEnabled').checked=intakeEmailEnabled();
   $('#emailShippedEnabled').checked=shippedEmailEnabled();
+
+  if($('#gmailTestOrder')){
+    var selectedTestOrder=$('#gmailTestOrder').value;
+    $('#gmailTestOrder').innerHTML='<option value="">Test generico senza ordine</option>'+
+      state.orders.slice().reverse().map(function(o){
+        var c=state.clients.find(function(x){return x.id===o.clientId});
+        return '<option value="'+esc(o.id)+'">'+esc((c?c.name:'Cliente')+' — '+o.product+' — '+o.date)+'</option>';
+      }).join('');
+    if(selectedTestOrder&&state.orders.some(function(o){return o.id===selectedTestOrder}))$('#gmailTestOrder').value=selectedTestOrder;
+  }
+
   var ti=trackingIntegration();$('#trackingWebAppUrl').value=ti.webAppUrl||'';$('#trackingWebAppToken').value=ti.token||'';$('#cloudSyncEnabled').checked=!!cloudMeta.enabled;$('#driveBackupEnabled').checked=!!driveBackupMeta.enabled;updateDriveBackupStatus();
   var revenue=state.orders.reduce(function(a,o){return a+num(o.amount)},0);
   $('#sClients').textContent=state.clients.length;$('#sOrders').textContent=state.orders.length;$('#sRevenue').textContent=money(revenue);$('#sWork').textContent=state.orders.filter(function(o){return ['Nuovo','In lavorazione','Da approvare','Pronto'].indexOf(o.orderStatus)>=0}).length;$('#sShip').textContent=state.orders.filter(function(o){return o.orderStatus==='Da spedire'}).length;$('#sPoints').textContent=state.clients.reduce(function(a,c){return a+clientStats(c.id).balance},0);
@@ -4442,7 +4527,7 @@ $('#sendShippedEmailBtn').addEventListener('click',async function(){
   var id=$('#editOrderId').value,o=state.orders.find(function(x){return x.id===id});if(!o)return;
   var c=state.clients.find(function(x){return x.id===o.clientId});
   if(!c||!c.email){setNotice($('#orderEditNotice'),'Il cliente non ha un indirizzo e-mail salvato.','error');return}
-  if(!text(o.trackingCode).trim()){setNotice($('#orderEditNotice'),'Manca il tracking. Importalo da Gmail prima di inviare la mail.','error');return}
+  if(!text(o.trackingCode).trim()){setNotice($('#orderEditNotice'),'Manca il tracking. Per una mail reale di spedizione inserisci prima il tracking. Per una prova usa “E-mail di test” nelle Impostazioni.','error');return}
   if(!shippedEmailConfigReady()){setNotice($('#orderEditNotice'),'Configura prima URL Apps Script e token nelle Impostazioni, poi verifica Gmail.','error');return}
   if(o.shippedEmailSentAt&&!confirm('L’e-mail di spedizione risulta già inviata. Vuoi inviarla di nuovo?'))return;
   setNotice($('#orderEditNotice'),'Invio e-mail di spedizione...','');
@@ -4475,6 +4560,25 @@ $('#openTrackingBtn').addEventListener('click',function(){var url=safeTrackingUr
 $('#deleteOrderFromModal').addEventListener('click',function(){var id=$('#editOrderId').value,o=state.orders.find(function(x){return x.id===id});if(!o)return;if(!confirm('Eliminare definitivamente questo ordine?'))return;state.orders=state.orders.filter(function(x){return x.id!==id});saveState();closeOrderModal();render();refreshOpenProfileIfNeeded();setNotice($('#orderNotice'),'Ordine eliminato.','ok')});
 $('#saveSettings').addEventListener('click',function(){state.settings.eurosPerPoint=Math.max(1,Math.floor(num($('#eurosPerPoint').value)||10));var ps=$$('[data-rp]'),ns=$$('[data-rn]');state.settings.rewards=ps.map(function(p,i){return {points:Math.max(1,Math.floor(num(p.value)||1)),name:(ns[i].value||'Premio').trim()}}).sort(function(a,b){return a.points-b.points});saveState();render();setNotice($('#settingsNotice'),'Impostazioni salvate.','ok')});
 
+
+
+$('#sendGmailTestBtn').addEventListener('click',async function(){
+  var btn=this;
+  btn.disabled=true;
+  setNotice($('#gmailTestNotice'),'Invio test Gmail in corso...','');
+
+  try{
+    var r=await sendGmailTestEmail();
+    var msg='E-mail di test inviata ✅';
+    if(r.previewIncluded)msg+=' Foto ordine inclusa 🖼️';
+    else if($('#gmailTestOrder').value)msg+=' Nessuna foto inclusa.';
+    setNotice($('#gmailTestNotice'),msg,'ok');
+  }catch(err){
+    setNotice($('#gmailTestNotice'),'Test non riuscito: '+text(err&&err.message||err),'error');
+  }finally{
+    btn.disabled=false;
+  }
+});
 
 $('#gmailSenderStatusBtn').addEventListener('click',async function(){
   this.disabled=true;
