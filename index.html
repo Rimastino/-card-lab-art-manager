@@ -1155,6 +1155,41 @@ button.photo-list-badge{
   .profile-save-actions{grid-template-columns:1fr}
 }
 
+
+/* V24 — layout pulsanti sicuro per iPad/tablet */
+@media(max-width:1180px){
+  .order-photo-actions{
+    grid-template-columns:1fr 1fr;
+  }
+  #uploadOrderPhotoBtn{
+    grid-column:1/-1;
+  }
+  #openOrderPhotoBtn,
+  #removeOrderPhotoBtn{
+    width:100%;
+  }
+
+  .order-save-actions{
+    grid-template-columns:1fr;
+  }
+  .order-secondary-actions{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+  }
+  .order-main-save,
+  .order-delete-btn{
+    width:100%;
+  }
+}
+@media(max-width:720px){
+  .order-photo-actions,
+  .order-secondary-actions{
+    grid-template-columns:1fr;
+  }
+  #uploadOrderPhotoBtn{
+    grid-column:auto;
+  }
+}
+
 </style>
 
 <script>
@@ -1267,7 +1302,7 @@ button.photo-list-badge{
 <div id="claManagerApp" class="cla-locked"><div class="app" id="cla-root">
   <div class="top">
     <div class="brand"><h1>Card_Lab_Art — Gestione clienti e ordini</h1><p>Dashboard operativa Card_Lab_Art — ordini, clienti, spedizioni, premi e attività.</p>
-        <span id="uiVersionBadge" style="font-size:10px;color:#778296;font-weight:800">UI V23</span></div>
+        <span id="uiVersionBadge" style="font-size:10px;color:#778296;font-weight:800">UI V24</span></div>
     <div class="actions">
       <button class="secondary" id="exportBtn" type="button">Esporta backup</button>
       <label class="file-label" for="importFile">Importa backup</label><input id="importFile" type="file" accept="application/json" hidden>
@@ -3538,12 +3573,65 @@ function verifyOrderAttachmentSaved(orderId,fileId){
     var raw=localStorage.getItem(STORAGE_KEY);
     if(!raw)return false;
     var parsed=JSON.parse(raw);
-    var found=(parsed.orders||[]).find(function(o){return o.id===orderId});
+    var wantedId=text(orderId);
+    var found=(parsed.orders||[]).find(function(o){return text(o.id)===wantedId});
     return !!(found&&found.attachment&&text(found.attachment.fileId)===text(fileId));
   }catch(e){
     return false;
   }
 }
+
+var PHOTO_LINK_RECOVERY_KEY='card-lab-art-photo-link-recovery-v1';
+
+function savePendingPhotoLink(orderId,attachment){
+  try{
+    localStorage.setItem(PHOTO_LINK_RECOVERY_KEY,JSON.stringify({
+      orderId:text(orderId),
+      attachment:attachment,
+      savedAt:new Date().toISOString()
+    }));
+  }catch(e){}
+}
+function clearPendingPhotoLink(orderId,fileId){
+  try{
+    var raw=localStorage.getItem(PHOTO_LINK_RECOVERY_KEY);
+    if(!raw)return;
+    var x=JSON.parse(raw);
+    if(text(x.orderId)===text(orderId) &&
+       (!fileId || (x.attachment&&text(x.attachment.fileId)===text(fileId)))){
+      localStorage.removeItem(PHOTO_LINK_RECOVERY_KEY);
+    }
+  }catch(e){}
+}
+function recoverPendingPhotoLink(){
+  try{
+    var raw=localStorage.getItem(PHOTO_LINK_RECOVERY_KEY);
+    if(!raw)return false;
+    var x=JSON.parse(raw);
+    if(!x||!x.orderId||!x.attachment||!x.attachment.fileId)return false;
+
+    var current=state.orders.find(function(o){return text(o.id)===text(x.orderId)});
+    if(!current)return false;
+
+    if(!hasOrderPhoto(current) ||
+       text(current.attachment.fileId)!==text(x.attachment.fileId)){
+      current.attachment={
+        fileId:text(x.attachment.fileId),
+        fileName:text(x.attachment.fileName),
+        mimeType:text(x.attachment.mimeType),
+        uploadedAt:text(x.attachment.uploadedAt)
+      };
+      if(!saveState())return false;
+    }
+
+    if(verifyOrderAttachmentSaved(current.id,x.attachment.fileId)){
+      clearPendingPhotoLink(current.id,x.attachment.fileId);
+      return true;
+    }
+  }catch(e){}
+  return false;
+}
+
 function openPhotoForOrderId(orderId,noticeEl){
   var o=state.orders.find(function(x){return x.id===orderId});
   if(!hasOrderPhoto(o)){
@@ -3560,7 +3648,8 @@ function openPhotoForOrderId(orderId,noticeEl){
 }
 
 function render(){
-  ensureCodes();showStorageStatus();
+  ensureCodes();recoverPendingPhotoLink();
+showStorageStatus();
   $('#clientCode').value=nextCode();$('#eurosPerPoint').value=state.settings.eurosPerPoint;
   var em=emailSettings();
   $('#emailFromName').value=em.fromName||'Card_Lab_Art';
@@ -4614,30 +4703,54 @@ async function uploadOrderPhoto(order,file){
     uploadedAt:text(finish.uploadedAt||new Date().toISOString())
   };
 
-  order.attachment=savedAttachment;
+  // V24: durante un upload lungo una sincronizzazione cloud può sostituire
+  // gli oggetti in state.orders. Per questo NON usiamo più il vecchio
+  // riferimento "order": recuperiamo sempre l'ordine attuale tramite ID.
+  var orderId=text(order.id);
+  savePendingPhotoLink(orderId,savedAttachment);
+
+  var currentOrder=state.orders.find(function(x){return text(x.id)===orderId});
+  if(!currentOrder){
+    throw new Error('Foto salvata su Drive, ma l’ordine non è più presente nel gestionale.');
+  }
+
+  currentOrder.attachment=savedAttachment;
 
   if(!saveState()){
     throw new Error('Foto caricata su Drive, ma non riesco a salvare il collegamento nell’ordine.');
   }
 
-  if(!verifyOrderAttachmentSaved(order.id,savedAttachment.fileId)){
-    throw new Error('La foto è su Drive ma il collegamento non è rimasto salvato nel gestionale.');
+  if(!verifyOrderAttachmentSaved(orderId,savedAttachment.fileId)){
+    // Secondo tentativo sul record attuale, utile se un refresh cloud era
+    // terminato esattamente mentre si concludeva l'upload.
+    currentOrder=state.orders.find(function(x){return text(x.id)===orderId});
+    if(currentOrder){
+      currentOrder.attachment=savedAttachment;
+      saveState();
+    }
   }
 
-  // Salviamo subito anche il collegamento foto nel database condiviso.
-  // Se la sincronizzazione non è disponibile, la foto resta comunque salvata localmente.
+  if(!verifyOrderAttachmentSaved(orderId,savedAttachment.fileId)){
+    throw new Error('La foto è su Drive ma non riesco a collegarla all’ordine. Il fileId è stato conservato per il recupero automatico.');
+  }
+
+  // Ora il collegamento locale è realmente persistente.
+  clearPendingPhotoLink(orderId,savedAttachment.fileId);
+
+  // Sincronizzazione cloud: consideriamo riuscito solo un vero risultato ok.
   var cloudSynced=false;
   if(cloudSyncConfigured()){
     try{
-      await syncCloudData(false);
-      cloudSynced=true;
+      var syncResult=await syncCloudData(false);
+      cloudSynced=!!(syncResult&&syncResult.ok===true);
 
-      var current=state.orders.find(function(x){return x.id===order.id});
-      if(current&&!hasOrderPhoto(current)){
-        // Protezione extra contro un eventuale merge remoto vecchio.
-        current.attachment=savedAttachment;
+      // Verifica post-merge: se un dato remoto più vecchio avesse tolto la foto,
+      // la rimettiamo e la lasciamo dirty per il giro successivo.
+      currentOrder=state.orders.find(function(x){return text(x.id)===orderId});
+      if(currentOrder&&!hasOrderPhoto(currentOrder)){
+        currentOrder.attachment=savedAttachment;
         saveState();
-        await syncCloudData(false);
+        cloudSynced=false;
       }
     }catch(syncErr){
       cloudSynced=false;
@@ -4707,8 +4820,8 @@ $('#uploadOrderPhotoBtn').addEventListener('click',async function(){
     setNotice(
       $('#orderPhotoNotice'),
       uploadResult.cloudSynced
-        ? 'Foto salvata ✅ Drive + ordine + sincronizzazione completati.'
-        : 'Foto salvata ✅ Drive + ordine. La sincronizzazione cloud avverrà appena disponibile.',
+        ? 'Foto salvata ✅ È collegata all’ordine, visibile nella lista e sincronizzata.'
+        : 'Foto salvata ✅ È collegata all’ordine e visibile nella lista. Sync cloud in attesa.',
       'ok'
     );
   }catch(err){
