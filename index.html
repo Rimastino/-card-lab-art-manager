@@ -947,6 +947,214 @@ tbody tr:last-child td{border-bottom:0}
   .stats-detail-grid{grid-template-columns:1fr}
   .profile-stats{grid-template-columns:1fr}
 }
+
+/* V23 — audit dimensioni/posizioni pulsanti */
+button{
+  min-height:44px;
+  padding:10px 14px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  white-space:normal;
+  text-align:center;
+}
+button.mini{
+  min-height:34px;
+  padding:6px 10px;
+  white-space:nowrap;
+}
+.actions > button{min-width:112px}
+#newClientBtn,#newOrderFromBoardBtn{min-width:150px}
+#openBoardBtn,#refreshBoardBtn{min-width:130px}
+#saveEmailSettings,#gmailSenderStatusBtn,#sendGmailTestBtn,
+#saveTrackingIntegration,#syncTrackingNowBtn,
+#saveCloudSyncSettings,#syncCloudNowBtn,#checkCloudNowBtn,#repairCloudFromDeviceBtn,
+#saveDriveBackupSettings,#driveBackupNowBtn{
+  min-width:180px;
+}
+.modal-close{min-width:94px}
+
+.order-photo-box{
+  overflow:hidden;
+  border:1px solid #303a48;
+  background:linear-gradient(180deg,#111720,#0e131a);
+}
+.order-photo-title-row{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+  margin-bottom:13px;
+}
+.photo-state-badge{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:34px;
+  padding:6px 10px;
+  border-radius:999px;
+  font-size:11px;
+  font-weight:950;
+  white-space:nowrap;
+}
+.photo-state-badge.no-photo{
+  color:#cbd5e1;
+  background:#191f29;
+  border:1px solid #343d4b;
+}
+.photo-state-badge.has-photo{
+  color:#bbf7d0;
+  background:#0c2817;
+  border:1px solid #16703a;
+}
+.photo-file-row{
+  display:grid;
+  grid-template-columns:150px minmax(0,1fr);
+  gap:10px;
+  align-items:center;
+  margin-top:13px;
+}
+.photo-file-label{
+  margin:0;
+  color:#d9e0ea;
+  font-size:12px;
+  font-weight:900;
+}
+#orderPhotoFile{
+  min-height:44px;
+  padding:7px;
+}
+#orderPhotoFile::file-selector-button{
+  min-height:34px;
+  margin-right:9px;
+  padding:6px 10px;
+  border:0;
+  border-radius:9px;
+  background:#252d39;
+  color:#fff;
+  font-weight:850;
+}
+.order-photo-actions{
+  display:grid;
+  grid-template-columns:minmax(180px,1.5fr) minmax(150px,1fr) minmax(170px,1fr);
+  gap:8px;
+  margin-top:11px;
+}
+.order-photo-actions button{width:100%;min-width:0}
+#uploadOrderPhotoBtn{background:linear-gradient(135deg,#4f46e5,#7c3aed)}
+#openOrderPhotoBtn{background:linear-gradient(135deg,#087fae,#12aacb)}
+
+.order-email-row{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(210px,auto);
+  gap:10px;
+  align-items:center;
+}
+.order-email-statuses{
+  display:flex;
+  gap:7px;
+  flex-wrap:wrap;
+  align-items:center;
+}
+#sendShippedEmailBtn{width:100%;min-width:210px}
+
+.order-save-actions{
+  display:grid;
+  grid-template-columns:minmax(180px,1.15fr) minmax(0,2fr) minmax(150px,.9fr);
+  gap:9px;
+  align-items:stretch;
+  margin-top:4px;
+}
+.order-main-save,.order-delete-btn{width:100%}
+.order-secondary-actions{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+}
+.order-secondary-actions button{width:100%;min-width:0}
+
+.profile-save-actions{
+  display:grid;
+  grid-template-columns:minmax(180px,1fr) minmax(160px,.6fr);
+  gap:9px;
+}
+.profile-save-actions button{width:100%}
+
+.photo-list-badge{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:31px;
+  padding:5px 9px;
+  border:1px solid #166534;
+  border-radius:999px;
+  background:#0c2817;
+  color:#bbf7d0;
+  font-size:10.5px;
+  font-weight:950;
+  white-space:nowrap;
+}
+button.photo-list-badge{
+  cursor:pointer;
+}
+.photo-list-none{
+  display:inline-flex;
+  align-items:center;
+  min-height:29px;
+  padding:4px 8px;
+  border:1px solid #303846;
+  border-radius:999px;
+  background:#151a22;
+  color:#7f8a9b;
+  font-size:10px;
+  font-weight:850;
+  white-space:nowrap;
+}
+.photo-dot{
+  display:none;
+}
+.kanban-chip.photo-chip{
+  border-color:#166534!important;
+  background:#0c2817!important;
+  color:#bbf7d0!important;
+}
+
+@media(max-width:900px){
+  .order-photo-actions{
+    grid-template-columns:1fr 1fr;
+  }
+  #uploadOrderPhotoBtn{
+    grid-column:1/-1;
+  }
+  .order-save-actions{
+    grid-template-columns:1fr;
+  }
+  .order-secondary-actions{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+  }
+  .order-delete-btn{margin-top:2px}
+}
+@media(max-width:640px){
+  button{min-height:46px}
+  .actions > button,
+  #newClientBtn,#newOrderFromBoardBtn,#openBoardBtn,#refreshBoardBtn,
+  #saveEmailSettings,#gmailSenderStatusBtn,#sendGmailTestBtn,
+  #saveTrackingIntegration,#syncTrackingNowBtn,
+  #saveCloudSyncSettings,#syncCloudNowBtn,#checkCloudNowBtn,#repairCloudFromDeviceBtn,
+  #saveDriveBackupSettings,#driveBackupNowBtn{
+    min-width:0;
+  }
+  .photo-file-row{grid-template-columns:1fr}
+  .order-photo-actions{grid-template-columns:1fr}
+  #uploadOrderPhotoBtn{grid-column:auto}
+  .order-email-row{grid-template-columns:1fr}
+  #sendShippedEmailBtn{min-width:0}
+  .order-secondary-actions{grid-template-columns:1fr}
+  .profile-save-actions{grid-template-columns:1fr}
+}
+
 </style>
 
 <script>
@@ -1059,7 +1267,7 @@ tbody tr:last-child td{border-bottom:0}
 <div id="claManagerApp" class="cla-locked"><div class="app" id="cla-root">
   <div class="top">
     <div class="brand"><h1>Card_Lab_Art — Gestione clienti e ordini</h1><p>Dashboard operativa Card_Lab_Art — ordini, clienti, spedizioni, premi e attività.</p>
-        <span id="uiVersionBadge" style="font-size:10px;color:#778296;font-weight:800">UI V22</span></div>
+        <span id="uiVersionBadge" style="font-size:10px;color:#778296;font-weight:800">UI V23</span></div>
     <div class="actions">
       <button class="secondary" id="exportBtn" type="button">Esporta backup</button>
       <label class="file-label" for="importFile">Importa backup</label><input id="importFile" type="file" accept="application/json" hidden>
@@ -1231,7 +1439,7 @@ tbody tr:last-child td{border-bottom:0}
         <button class="ghost mini" id="clearOrderSmartFilter" type="button">✕ Rimuovi filtro</button>
       </div>
       <div class="searchrow"><input id="orderSearch" placeholder="Cerca cliente, prodotto, stato, tracking..."></div>
-      <div class="tablewrap"><table><thead><tr><th>Data</th><th>Cliente</th><th>Prodotto</th><th>Importo</th><th>Pagamento</th><th>Stato</th><th>Consegna</th><th>Tracking</th><th></th></tr></thead><tbody id="orderRows"></tbody></table></div>
+      <div class="tablewrap"><table><thead><tr><th>Data</th><th>Cliente</th><th>Prodotto</th><th>Foto</th><th>Importo</th><th>Pagamento</th><th>Stato</th><th>Consegna</th><th>Tracking</th><th>Azioni</th></tr></thead><tbody id="orderRows"></tbody></table></div>
     </div>
   </section>
 
@@ -1560,12 +1768,12 @@ mario@email.it
           <button class="secondary" type="button" id="sendIntakeEmailBtn">Invia presa in carico</button>
         </div>
       </div>
-      <div class="span4 row-actions"><button class="primary" type="submit">Salva modifiche</button><button class="danger" type="button" id="deleteClient">Elimina cliente</button></div>
+      <div class="span4 profile-save-actions"><button class="primary" type="submit">💾 Salva modifiche</button><button class="danger" type="button" id="deleteClient">🗑️ Elimina cliente</button></div>
     </form>
     <div class="notice" id="profileNotice"></div>
     <div class="divider"></div>
     <h3>Storico ordini</h3>
-    <div class="tablewrap"><table><thead><tr><th>Data</th><th>Prodotto</th><th>Importo</th><th>Pagamento</th><th>Stato</th><th>Consegna</th><th></th></tr></thead><tbody id="profileOrders"></tbody></table></div>
+    <div class="tablewrap"><table><thead><tr><th>Data</th><th>Prodotto</th><th>Foto</th><th>Importo</th><th>Pagamento</th><th>Stato</th><th>Consegna</th><th>Azioni</th></tr></thead><tbody id="profileOrders"></tbody></table></div>
   </div>
 </div>
 
@@ -1592,20 +1800,33 @@ mario@email.it
       <div class="span4"><label for="editOrderNotes">Note ordine</label><textarea id="editOrderNotes"></textarea></div>
 
       <div class="span4 order-photo-box">
-        <h3 style="margin-top:0">Foto / allegato ordine</h3>
+        <div class="order-photo-title-row">
+          <div>
+            <h3 style="margin:0">Foto / allegato ordine</h3>
+            <div class="reward">La foto viene salvata su Drive e collegata in modo permanente a questo ordine.</div>
+          </div>
+          <span class="photo-state-badge no-photo" id="orderPhotoSavedBadge">📷 Nessuna foto</span>
+        </div>
+
         <div class="order-photo-preview">
           <div class="order-photo-icon" id="orderPhotoIcon">📷</div>
           <div class="order-photo-info">
             <div class="order-photo-name" id="orderPhotoName">Nessuna foto allegata</div>
-            <div class="order-photo-hint" id="orderPhotoHint">Scatta o scegli una foto per ricordarti esattamente cosa ha ordinato il cliente. <strong>Upload V20 ottimizzato iPad.</strong></div>
+            <div class="order-photo-hint" id="orderPhotoHint">Scegli una foto e premi “Salva foto nell’ordine”.</div>
           </div>
         </div>
-        <div class="toolbar" style="margin-top:12px">
-          <input id="orderPhotoFile" type="file" accept="image/*" style="max-width:100%">
-          <button class="secondary" type="button" id="uploadOrderPhotoBtn">Carica foto su Drive</button>
-          <button class="secondary" type="button" id="openOrderPhotoBtn">Apri foto</button>
-          <button class="danger" type="button" id="removeOrderPhotoBtn">Rimuovi dal gestionale</button>
+
+        <div class="photo-file-row">
+          <label for="orderPhotoFile" class="photo-file-label">1. Scegli foto</label>
+          <input id="orderPhotoFile" type="file" accept="image/*">
         </div>
+
+        <div class="order-photo-actions">
+          <button class="primary" type="button" id="uploadOrderPhotoBtn">📥 Salva foto nell’ordine</button>
+          <button class="secondary" type="button" id="openOrderPhotoBtn">🖼️ Visualizza foto</button>
+          <button class="danger" type="button" id="removeOrderPhotoBtn">🗑️ Rimuovi collegamento</button>
+        </div>
+
         <div class="notice" id="orderPhotoNotice"></div>
       </div>
 
@@ -1614,14 +1835,24 @@ mario@email.it
 
       <div class="span4">
         <label>E-mail spedizione</label>
-        <div class="toolbar">
-          <span class="status-pill" id="orderShippedEmailStatus">Non inviata</span>
-          <span class="status-pill" id="orderEmailPreviewStatus">📷 Nessuna anteprima</span>
-          <button class="secondary" type="button" id="sendShippedEmailBtn">✉️ Invia ora (manuale)</button>
+        <div class="order-email-row">
+          <div class="order-email-statuses">
+            <span class="status-pill" id="orderShippedEmailStatus">Non inviata</span>
+            <span class="status-pill" id="orderEmailPreviewStatus">📷 Nessuna anteprima</span>
+          </div>
+          <button class="secondary" type="button" id="sendShippedEmailBtn">✉️ Invia e-mail manualmente</button>
         </div>
         <div class="reward" style="margin-top:7px">Puoi inviare questa mail manualmente anche senza cambiare lo stato dell’ordine. Se c’è una foto allegata, Gmail la inserisce come piccola anteprima.</div>
       </div>
-      <div class="span4 toolbar"><button class="primary" type="submit">Salva ordine</button><button class="secondary" type="button" id="importTrackingGmailBtn">Importa ultimo tracking Gmail</button><button class="secondary" type="button" id="copyTrackingBtn">Copia tracking</button><button class="secondary" type="button" id="openTrackingBtn">Apri tracking</button><button class="danger" type="button" id="deleteOrderFromModal">Elimina ordine</button></div>
+      <div class="span4 order-save-actions">
+        <button class="primary order-main-save" type="submit">💾 Salva ordine</button>
+        <div class="order-secondary-actions">
+          <button class="secondary" type="button" id="importTrackingGmailBtn">📨 Importa tracking</button>
+          <button class="ghost" type="button" id="copyTrackingBtn">📋 Copia tracking</button>
+          <button class="ghost" type="button" id="openTrackingBtn">↗ Apri tracking</button>
+        </div>
+        <button class="danger order-delete-btn" type="button" id="deleteOrderFromModal">🗑️ Elimina ordine</button>
+      </div>
     </form>
     <div class="notice" id="orderEditNotice"></div>
   </div>
@@ -3292,6 +3523,42 @@ function handleDashboardAction(action){
   if(action==='returningClients'){openClientsWithFilter('returning');return}
   if(action==='vipClients'){openClientsWithFilter('vip');return}
 }
+
+function hasOrderPhoto(o){
+  return !!(o&&o.attachment&&text(o.attachment.fileId).trim());
+}
+function orderPhotoStatusHtml(o){
+  if(hasOrderPhoto(o)){
+    return '<button type="button" class="photo-list-badge open-order-photo-list" data-id="'+esc(o.id)+'" title="Apri foto ordine">🖼️ Foto ✓</button>';
+  }
+  return '<span class="photo-list-none">— Nessuna</span>';
+}
+function verifyOrderAttachmentSaved(orderId,fileId){
+  try{
+    var raw=localStorage.getItem(STORAGE_KEY);
+    if(!raw)return false;
+    var parsed=JSON.parse(raw);
+    var found=(parsed.orders||[]).find(function(o){return o.id===orderId});
+    return !!(found&&found.attachment&&text(found.attachment.fileId)===text(fileId));
+  }catch(e){
+    return false;
+  }
+}
+function openPhotoForOrderId(orderId,noticeEl){
+  var o=state.orders.find(function(x){return x.id===orderId});
+  if(!hasOrderPhoto(o)){
+    if(noticeEl)setNotice(noticeEl,'Questo ordine non ha una foto allegata.','error');
+    return false;
+  }
+  var url=orderPhotoViewUrl(o.attachment.fileId);
+  if(!url){
+    if(noticeEl)setNotice(noticeEl,'Configura URL Apps Script e token.','error');
+    return false;
+  }
+  window.open(url,'_blank','noopener');
+  return true;
+}
+
 function render(){
   ensureCodes();showStorageStatus();
   $('#clientCode').value=nextCode();$('#eurosPerPoint').value=state.settings.eurosPerPoint;
@@ -3318,7 +3585,7 @@ function render(){
   $('#clientRows').innerHTML=clients.length?clients.map(function(c){var s=clientStats(c.id),last=latestOrderForClient(c.id);return '<tr><td><span class="pill">'+esc(c.code)+'</span></td><td><strong>'+esc(c.name||'Cliente')+'</strong>'+vipBadgeHtml(c.id)+'</td><td>'+clientContactHtml(c)+'</td><td>'+esc(c.city||'—')+'</td><td>'+money(s.spent)+'</td><td><strong>'+s.balance+'</strong></td><td>'+(last?statusBadge(last.orderStatus):'—')+'</td><td>'+(last?statusBadge(last.paymentStatus):'—')+'</td><td><div class="row-actions"><button class="mini primary open-profile" type="button" data-id="'+esc(c.id)+'">Apri</button>'+(c.phone?'<button class="mini whatsapp-btn quick-wa-client" type="button" data-id="'+esc(c.id)+'">💬</button>':'')+'</div></td></tr>'}).join(''):'<tr><td colspan="9" class="empty">Nessun cliente registrato.</td></tr>';
   $('#orderClient').innerHTML='<option value="">Seleziona cliente</option>'+state.clients.map(function(c){return '<option value="'+esc(c.id)+'">'+esc(c.code)+' — '+esc(c.name)+'</option>'}).join('');
   var oq=$('#orderSearch').value.trim().toLowerCase();var orders=state.orders.filter(function(o){var c=state.clients.find(function(x){return x.id===o.clientId});return orderMatchesSmartFilter(o,activeOrderSmartFilter)&&[o.date,o.product,o.orderNotes,o.orderStatus,o.paymentStatus,o.trackingCode,o.carrier,c&&c.name,c&&c.code].some(function(v){return text(v).toLowerCase().indexOf(oq)!==-1})});
-  $('#orderRows').innerHTML=orders.length?orders.slice().reverse().map(function(o){var c=state.clients.find(function(x){return x.id===o.clientId});return '<tr><td>'+esc(o.date)+'</td><td>'+(c?'<strong>'+esc(c.name)+'</strong><div class="small">'+esc(c.code)+'</div>':'Cliente rimosso')+'</td><td>'+esc(o.product)+(o.attachment&&o.attachment.fileId?'<div class="photo-dot">📷 Foto allegata</div>':'')+'</td><td>'+money(o.amount)+'</td><td>'+statusBadge(o.paymentStatus)+'<div class="small">'+money(o.paidAmount)+' incassati</div></td><td>'+statusBadge(o.orderStatus)+'</td><td>'+dueHtml(o)+'</td><td>'+trackingHtml(o)+'</td><td><button type="button" class="mini primary manage-order" data-id="'+esc(o.id)+'">Gestisci</button></td></tr>'}).join(''):'<tr><td colspan="9" class="empty">Nessun ordine registrato.</td></tr>';
+  $('#orderRows').innerHTML=orders.length?orders.slice().reverse().map(function(o){var c=state.clients.find(function(x){return x.id===o.clientId});return '<tr><td>'+esc(o.date)+'</td><td>'+(c?'<strong>'+esc(c.name)+'</strong><div class="small">'+esc(c.code)+'</div>':'Cliente rimosso')+'</td><td>'+esc(o.product)+'</td><td>'+orderPhotoStatusHtml(o)+'</td><td>'+money(o.amount)+'</td><td>'+statusBadge(o.paymentStatus)+'<div class="small">'+money(o.paidAmount)+' incassati</div></td><td>'+statusBadge(o.orderStatus)+'</td><td>'+dueHtml(o)+'</td><td>'+trackingHtml(o)+'</td><td><button type="button" class="mini primary manage-order" data-id="'+esc(o.id)+'">Gestisci</button></td></tr>'}).join(''):'<tr><td colspan="10" class="empty">Nessun ordine registrato.</td></tr>';
   var rewardData=state.clients.map(function(c){var s=clientStats(c.id);return {c:c,s:s,r:rewardFor(s.balance)}}).sort(function(a,b){return b.s.balance-a.s.balance});
   $('#rewardRows').innerHTML=rewardData.length?rewardData.map(function(x){return '<tr><td><strong>'+esc(x.c.name)+'</strong><div class="reward">'+esc(x.c.code)+'</div></td><td><span class="pill">'+x.s.balance+' pt</span></td><td>'+(x.r.current?esc(x.r.current.name):'—')+'</td><td>'+(x.r.next?esc(x.r.next.name):'Soglia massima raggiunta')+'</td><td>'+(x.r.next?Math.max(0,x.r.next.points-x.s.balance)+' pt':'—')+'</td></tr>'}).join(''):'<tr><td colspan="5" class="empty">Aggiungi clienti per vedere i premi.</td></tr>';
   renderRewardsSettings();
@@ -3362,8 +3629,8 @@ function openProfile(id){
 
   var os=state.orders.filter(function(o){return o.clientId===id}).slice().reverse();
   $('#profileOrders').innerHTML=os.length?os.map(function(o){
-    return '<tr><td>'+esc(o.date)+'</td><td>'+esc(o.product)+(o.attachment&&o.attachment.fileId?'<div class="photo-dot">📷 Foto allegata</div>':'')+'</td><td>'+money(o.amount)+'</td><td>'+statusBadge(o.paymentStatus)+'</td><td>'+statusBadge(o.orderStatus)+'</td><td>'+dueHtml(o)+'</td><td><button type="button" class="mini primary manage-order" data-id="'+esc(o.id)+'">Gestisci</button></td></tr>'
-  }).join(''):'<tr><td colspan="7" class="empty">Nessun ordine per questo cliente.</td></tr>';
+    return '<tr><td>'+esc(o.date)+'</td><td>'+esc(o.product)+'</td><td>'+orderPhotoStatusHtml(o)+'</td><td>'+money(o.amount)+'</td><td>'+statusBadge(o.paymentStatus)+'</td><td>'+statusBadge(o.orderStatus)+'</td><td>'+dueHtml(o)+'</td><td><button type="button" class="mini primary manage-order" data-id="'+esc(o.id)+'">Gestisci</button></td></tr>'
+  }).join(''):'<tr><td colspan="8" class="empty">Nessun ordine per questo cliente.</td></tr>';
 
   var modal=$('#profileModal');modal.classList.add('open');modal.setAttribute('aria-hidden','false')
 }
@@ -3454,7 +3721,7 @@ function kanbanCardHtml(o){
   var c=orderClient(o);
   var chips=[];
   if(isOrderOverdue(o))chips.push('<span class="kanban-chip overdue-chip">⏰ In ritardo</span>');
-  if(o.attachment&&o.attachment.fileId)chips.push('<span class="kanban-chip photo-chip">📷 Foto</span>');
+  if(o.attachment&&o.attachment.fileId)chips.push('<span class="kanban-chip photo-chip">🖼️ Foto ✓</span>');
   if(o.trackingCode)chips.push('<span class="kanban-chip track-chip">🔎 Tracking</span>');
   if(orderNeedsPayment(o))chips.push('<span class="kanban-chip">💶 '+esc(o.paymentStatus)+'</span>');
   if(o.dueDate&&!isOrderOverdue(o))chips.push('<span class="kanban-chip">📅 '+esc(o.dueDate)+'</span>');
@@ -4111,14 +4378,23 @@ $('#orderForm').addEventListener('submit',async function(e){
 });
 
 function renderOrderPhotoBox(o){
-  var has=!!(o&&o.attachment&&o.attachment.fileId);
+  var has=hasOrderPhoto(o);
+  var badge=$('#orderPhotoSavedBadge');
+
   $('#orderPhotoName').textContent=has?(o.attachment.fileName||'Foto ordine'):'Nessuna foto allegata';
   $('#orderPhotoHint').textContent=has
-    ? ('Salvata su Google Drive'+(o.attachment.uploadedAt?' • '+new Date(o.attachment.uploadedAt).toLocaleString('it-IT'):''))
-    : 'Scatta o scegli una foto per ricordarti esattamente cosa ha ordinato il cliente.';
+    ? ('✅ Collegata a questo ordine e salvata su Google Drive'+(o.attachment.uploadedAt?' • '+new Date(o.attachment.uploadedAt).toLocaleString('it-IT'):''))
+    : 'Scegli una foto e premi “Salva foto nell’ordine”.';
+
   $('#orderPhotoIcon').textContent=has?'🖼️':'📷';
   $('#openOrderPhotoBtn').disabled=!has;
   $('#removeOrderPhotoBtn').disabled=!has;
+
+  if(badge){
+    badge.textContent=has?'✅ Foto salvata':'📷 Nessuna foto';
+    badge.className='photo-state-badge '+(has?'has-photo':'no-photo');
+  }
+
   $('#orderPhotoFile').value='';
   setNotice($('#orderPhotoNotice'),'','');
 }
@@ -4331,19 +4607,56 @@ async function uploadOrderPhoto(order,file){
     throw new Error(text(finish&&finish.error||'Impossibile completare il caricamento.'));
   }
 
-  order.attachment={
+  var savedAttachment={
     fileId:text(finish.fileId),
     fileName:text(finish.fileName),
     mimeType:text(finish.mimeType),
     uploadedAt:text(finish.uploadedAt||new Date().toISOString())
   };
 
+  order.attachment=savedAttachment;
+
   if(!saveState()){
     throw new Error('Foto caricata su Drive, ma non riesco a salvare il collegamento nell’ordine.');
   }
 
-  return order.attachment;
+  if(!verifyOrderAttachmentSaved(order.id,savedAttachment.fileId)){
+    throw new Error('La foto è su Drive ma il collegamento non è rimasto salvato nel gestionale.');
+  }
+
+  // Salviamo subito anche il collegamento foto nel database condiviso.
+  // Se la sincronizzazione non è disponibile, la foto resta comunque salvata localmente.
+  var cloudSynced=false;
+  if(cloudSyncConfigured()){
+    try{
+      await syncCloudData(false);
+      cloudSynced=true;
+
+      var current=state.orders.find(function(x){return x.id===order.id});
+      if(current&&!hasOrderPhoto(current)){
+        // Protezione extra contro un eventuale merge remoto vecchio.
+        current.attachment=savedAttachment;
+        saveState();
+        await syncCloudData(false);
+      }
+    }catch(syncErr){
+      cloudSynced=false;
+    }
+  }
+
+  return {attachment:savedAttachment,cloudSynced:cloudSynced};
 }
+
+
+function openPhotoListClick(e){
+  var b=e.target.closest('.open-order-photo-list');
+  if(!b)return;
+  e.preventDefault();
+  e.stopPropagation();
+  openPhotoForOrderId(b.dataset.id,null);
+}
+$('#orderRows').addEventListener('click',openPhotoListClick);
+$('#profileOrders').addEventListener('click',openPhotoListClick);
 
 function manageOrderClick(e){var b=e.target.closest('.manage-order');if(b)openOrderModal(b.dataset.id)}
 $('#orderRows').addEventListener('click',manageOrderClick);$('#profileOrders').addEventListener('click',manageOrderClick);
@@ -4386,11 +4699,18 @@ $('#uploadOrderPhotoBtn').addEventListener('click',async function(){
   setNotice($('#orderPhotoNotice'),'Preparo la foto per un caricamento veloce su iPad...','');
 
   try{
-    var att=await uploadOrderPhoto(o,file);
+    var uploadResult=await uploadOrderPhoto(o,file);
+    var current=state.orders.find(function(x){return x.id===id})||o;
     render();
     refreshOpenProfileIfNeeded();
-    renderOrderPhotoBox(o);
-    setNotice($('#orderPhotoNotice'),'Foto allegata ✅ Salvata su Google Drive. Gmail la userà come anteprima nella mail di spedizione.','ok');
+    renderOrderPhotoBox(current);
+    setNotice(
+      $('#orderPhotoNotice'),
+      uploadResult.cloudSynced
+        ? 'Foto salvata ✅ Drive + ordine + sincronizzazione completati.'
+        : 'Foto salvata ✅ Drive + ordine. La sincronizzazione cloud avverrà appena disponibile.',
+      'ok'
+    );
   }catch(err){
     setNotice($('#orderPhotoNotice'),'Caricamento fallito: '+text(err&&err.message||err),'error');
   }finally{
@@ -4400,18 +4720,7 @@ $('#uploadOrderPhotoBtn').addEventListener('click',async function(){
 });
 
 $('#openOrderPhotoBtn').addEventListener('click',function(){
-  var id=$('#editOrderId').value;
-  var o=state.orders.find(function(x){return x.id===id});
-  if(!o||!o.attachment||!o.attachment.fileId){
-    setNotice($('#orderPhotoNotice'),'Nessuna foto allegata.','error');
-    return;
-  }
-  var url=orderPhotoViewUrl(o.attachment.fileId);
-  if(!url){
-    setNotice($('#orderPhotoNotice'),'Configura URL Apps Script e token.','error');
-    return;
-  }
-  window.open(url,'_blank','noopener');
+  openPhotoForOrderId($('#editOrderId').value,$('#orderPhotoNotice'));
 });
 
 $('#removeOrderPhotoBtn').addEventListener('click',function(){
