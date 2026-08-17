@@ -570,7 +570,7 @@ tr:last-child td{border-bottom:0}
 
     <div class="card">
       <h2>Sincronizzazione PC ↔ iPhone</h2>
-      <p class="reward">Clienti e ordini vengono salvati anche nel tuo database Google e sincronizzati tra i dispositivi. Usa lo <strong>stesso URL Apps Script e lo stesso token</strong> su PC e iPhone.</p>
+      <p class="reward">Clienti e ordini vengono salvati nel database Google e sincronizzati tra PC e iPhone. La V9 invia soltanto le modifiche reali e recupera automaticamente quelle fatte sull’altro dispositivo. Usa lo <strong>stesso URL Apps Script e lo stesso token</strong> su entrambi.</p>
       <div class="formgrid">
         <div class="span4"><label class="checkitem"><input id="cloudSyncEnabled" type="checkbox"> Attiva sincronizzazione cloud automatica</label></div>
         <div class="span4 toolbar">
@@ -735,8 +735,52 @@ var CLOUD_META_KEY='card-lab-art-cloud-sync-meta-v1';
 function loadState(){try{var raw=localStorage.getItem(STORAGE_KEY);return raw?normalizeState(JSON.parse(raw)):defaultState()}catch(e){storageOK=false;return defaultState()}}
 var state=loadState();
 
-function defaultCloudMeta(){return {enabled:true,lastPushedAt:'',lastSyncAt:'',deletedClients:{},deletedOrders:{}}}
-function loadCloudMeta(){try{return Object.assign(defaultCloudMeta(),JSON.parse(localStorage.getItem(CLOUD_META_KEY)||'{}'))}catch(e){return defaultCloudMeta()}}
+function defaultCloudMeta(){
+  return {
+    version:2,
+    enabled:true,
+    lastSyncAt:'',
+    dirtyClients:{},
+    dirtyOrders:{},
+    deletedClients:{},
+    deletedOrders:{},
+    pendingDeletedClients:{},
+    pendingDeletedOrders:{},
+    needsReconcile:false
+  }
+}
+function loadCloudMeta(){
+  try{
+    var raw=JSON.parse(localStorage.getItem(CLOUD_META_KEY)||'{}');
+    var meta=Object.assign(defaultCloudMeta(),raw||{});
+
+    meta.dirtyClients=meta.dirtyClients&&typeof meta.dirtyClients==='object'?meta.dirtyClients:{};
+    meta.dirtyOrders=meta.dirtyOrders&&typeof meta.dirtyOrders==='object'?meta.dirtyOrders:{};
+    meta.deletedClients=meta.deletedClients&&typeof meta.deletedClients==='object'?meta.deletedClients:{};
+    meta.deletedOrders=meta.deletedOrders&&typeof meta.deletedOrders==='object'?meta.deletedOrders:{};
+    meta.pendingDeletedClients=meta.pendingDeletedClients&&typeof meta.pendingDeletedClients==='object'?meta.pendingDeletedClients:{};
+    meta.pendingDeletedOrders=meta.pendingDeletedOrders&&typeof meta.pendingDeletedOrders==='object'?meta.pendingDeletedOrders:{};
+
+    // Migrazione automatica dalla sincronizzazione V5/V6/V7/V8.
+    if(num(raw&&raw.version)<2){
+      meta.version=2;
+      meta.needsReconcile=true;
+
+      // Le vecchie cancellazioni vengono verificate una volta sul server.
+      Object.keys(meta.deletedClients).forEach(function(id){
+        meta.pendingDeletedClients[id]=meta.deletedClients[id];
+      });
+      Object.keys(meta.deletedOrders).forEach(function(id){
+        meta.pendingDeletedOrders[id]=meta.deletedOrders[id];
+      });
+    }
+    return meta;
+  }catch(e){
+    var meta=defaultCloudMeta();
+    meta.needsReconcile=true;
+    return meta;
+  }
+}
 var cloudMeta=loadCloudMeta();
 function saveCloudMeta(){try{localStorage.setItem(CLOUD_META_KEY,JSON.stringify(cloudMeta))}catch(e){}}
 
@@ -751,6 +795,7 @@ function comparableEntity(obj){
   delete x._syncUpdatedAt;
   return JSON.stringify(x);
 }
+
 var cloudBaseline={clients:{},orders:{}};
 function resetCloudBaseline(){
   cloudBaseline={clients:{},orders:{}};
@@ -760,26 +805,48 @@ function resetCloudBaseline(){
 resetCloudBaseline();
 
 var applyingCloudState=false;
+
 function stampLocalEntityChanges(){
   if(applyingCloudState)return;
+
   var now=new Date().toISOString(),seenClients={},seenOrders={};
 
   state.clients.forEach(function(c){
     seenClients[c.id]=true;
     var fp=comparableEntity(c);
-    if(!cloudBaseline.clients[c.id]||cloudBaseline.clients[c.id]!==fp)c._syncUpdatedAt=now;
+    if(!cloudBaseline.clients[c.id]||cloudBaseline.clients[c.id]!==fp){
+      c._syncUpdatedAt=now;
+      cloudMeta.dirtyClients[c.id]=now;
+      delete cloudMeta.deletedClients[c.id];
+      delete cloudMeta.pendingDeletedClients[c.id];
+    }
   });
+
   Object.keys(cloudBaseline.clients).forEach(function(id){
-    if(!seenClients[id])cloudMeta.deletedClients[id]=now;
+    if(!seenClients[id]){
+      cloudMeta.deletedClients[id]=now;
+      cloudMeta.pendingDeletedClients[id]=now;
+      delete cloudMeta.dirtyClients[id];
+    }
   });
 
   state.orders.forEach(function(o){
     seenOrders[o.id]=true;
     var fp=comparableEntity(o);
-    if(!cloudBaseline.orders[o.id]||cloudBaseline.orders[o.id]!==fp)o._syncUpdatedAt=now;
+    if(!cloudBaseline.orders[o.id]||cloudBaseline.orders[o.id]!==fp){
+      o._syncUpdatedAt=now;
+      cloudMeta.dirtyOrders[o.id]=now;
+      delete cloudMeta.deletedOrders[o.id];
+      delete cloudMeta.pendingDeletedOrders[o.id];
+    }
   });
+
   Object.keys(cloudBaseline.orders).forEach(function(id){
-    if(!seenOrders[id])cloudMeta.deletedOrders[id]=now;
+    if(!seenOrders[id]){
+      cloudMeta.deletedOrders[id]=now;
+      cloudMeta.pendingDeletedOrders[id]=now;
+      delete cloudMeta.dirtyOrders[id];
+    }
   });
 
   resetCloudBaseline();
@@ -790,11 +857,14 @@ function saveState(opts){
   opts=opts||{};
   try{
     if(!opts.fromCloud)stampLocalEntityChanges();
+
     var payload=JSON.stringify(state);
     localStorage.setItem(STORAGE_KEY,payload);
     if(localStorage.getItem(STORAGE_KEY)!==payload)throw new Error('Verifica salvataggio non riuscita');
+
     storageOK=true;
     showStorageStatus();
+
     if(!opts.fromCloud)scheduleCloudSync();
     scheduleDriveBackup();
     return true
@@ -903,20 +973,18 @@ function jsonpRequest(baseUrl,params){
 function cloudSyncConfigured(){
   return !!cloudMeta.enabled&&trackingIntegrationReady();
 }
+
 function cloudEncodePayload(obj){
   var json=JSON.stringify(obj||{});
   var b64=btoa(unescape(encodeURIComponent(json)));
   return b64.replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
 }
-function cloudTime(v){var n=Date.parse(text(v));return Number.isFinite(n)?n:0}
-function maxCloudTimestamp(){
-  var m=0;
-  state.clients.forEach(function(c){m=Math.max(m,cloudTime(c._syncUpdatedAt))});
-  state.orders.forEach(function(o){m=Math.max(m,cloudTime(o._syncUpdatedAt))});
-  Object.keys(cloudMeta.deletedClients||{}).forEach(function(id){m=Math.max(m,cloudTime(cloudMeta.deletedClients[id]))});
-  Object.keys(cloudMeta.deletedOrders||{}).forEach(function(id){m=Math.max(m,cloudTime(cloudMeta.deletedOrders[id]))});
-  return m?new Date(m).toISOString():'';
+
+function cloudTime(v){
+  var n=Date.parse(text(v));
+  return Number.isFinite(n)?n:0;
 }
+
 function cloudApi(params){
   var cfg=trackingIntegration();
   if(!trackingIntegrationReady())return Promise.reject(new Error('Configura prima URL Apps Script e token nelle Impostazioni.'));
@@ -924,35 +992,234 @@ function cloudApi(params){
   params.token=text(cfg.token).trim();
   return jsonpRequest(text(cfg.webAppUrl).trim(),params);
 }
+
+function findClientLocal(id){
+  return state.clients.find(function(c){return c.id===id});
+}
+function findOrderLocal(id){
+  return state.orders.find(function(o){return o.id===id});
+}
+
+/*
+ * V9: niente più "ultimo timestamp globale".
+ * Ogni dispositivo tiene una lista precisa dei record realmente modificati.
+ * Questo evita che una modifica venga saltata se arriva mentre una sync è già in corso.
+ */
 async function pushPendingCloudChanges(){
-  var since=cloudTime(cloudMeta.lastPushedAt),jobs=[];
+  var changedState=false;
+  var ids, i, id, item, sentFingerprint, result;
 
-  state.clients.forEach(function(c){
-    if(!since||cloudTime(c._syncUpdatedAt)>since){
-      jobs.push(cloudApi({action:'cloudUpsertClient',payload:cloudEncodePayload(c)}));
-    }
-  });
-  state.orders.forEach(function(o){
-    if(!since||cloudTime(o._syncUpdatedAt)>since){
-      jobs.push(cloudApi({action:'cloudUpsertOrder',payload:cloudEncodePayload(o)}));
-    }
-  });
-  Object.keys(cloudMeta.deletedClients||{}).forEach(function(id){
-    var t=cloudMeta.deletedClients[id];
-    if(!since||cloudTime(t)>since)jobs.push(cloudApi({action:'cloudDeleteClient',id:id,deletedAt:t}));
-  });
-  Object.keys(cloudMeta.deletedOrders||{}).forEach(function(id){
-    var t=cloudMeta.deletedOrders[id];
-    if(!since||cloudTime(t)>since)jobs.push(cloudApi({action:'cloudDeleteOrder',id:id,deletedAt:t}));
-  });
+  ids=Object.keys(cloudMeta.dirtyClients||{});
+  for(i=0;i<ids.length;i++){
+    id=ids[i];
+    item=findClientLocal(id);
 
-  for(var i=0;i<jobs.length;i++){
-    var r=await jobs[i];
-    if(!r||r.ok!==true)throw new Error(text(r&&r.error||'Errore durante il salvataggio cloud.'));
+    if(!item){
+      delete cloudMeta.dirtyClients[id];
+      changedState=true;
+      continue;
+    }
+
+    sentFingerprint=comparableEntity(item);
+    result=await cloudApi({
+      action:'cloudUpsertClient',
+      payload:cloudEncodePayload(item)
+    });
+    if(!result||result.ok!==true)throw new Error(text(result&&result.error||'Errore durante il salvataggio cliente nel cloud.'));
+
+    item=findClientLocal(id);
+    if(item&&comparableEntity(item)===sentFingerprint){
+      item._syncUpdatedAt=text(result.serverUpdatedAt||item._syncUpdatedAt||new Date().toISOString());
+      delete cloudMeta.dirtyClients[id];
+      delete cloudMeta.deletedClients[id];
+      delete cloudMeta.pendingDeletedClients[id];
+      changedState=true;
+    }
   }
 
-  var mx=maxCloudTimestamp();
-  if(mx)cloudMeta.lastPushedAt=mx;
+  ids=Object.keys(cloudMeta.dirtyOrders||{});
+  for(i=0;i<ids.length;i++){
+    id=ids[i];
+    item=findOrderLocal(id);
+
+    if(!item){
+      delete cloudMeta.dirtyOrders[id];
+      changedState=true;
+      continue;
+    }
+
+    sentFingerprint=comparableEntity(item);
+    result=await cloudApi({
+      action:'cloudUpsertOrder',
+      payload:cloudEncodePayload(item)
+    });
+    if(!result||result.ok!==true)throw new Error(text(result&&result.error||'Errore durante il salvataggio ordine nel cloud.'));
+
+    item=findOrderLocal(id);
+    if(item&&comparableEntity(item)===sentFingerprint){
+      item._syncUpdatedAt=text(result.serverUpdatedAt||item._syncUpdatedAt||new Date().toISOString());
+      delete cloudMeta.dirtyOrders[id];
+      delete cloudMeta.deletedOrders[id];
+      delete cloudMeta.pendingDeletedOrders[id];
+      changedState=true;
+    }
+  }
+
+  ids=Object.keys(cloudMeta.pendingDeletedClients||{});
+  for(i=0;i<ids.length;i++){
+    id=ids[i];
+    var sentDeleteClient=text(cloudMeta.pendingDeletedClients[id]);
+
+    // Se nel frattempo il record è ricomparso, non inviamo la cancellazione.
+    if(findClientLocal(id)){
+      delete cloudMeta.pendingDeletedClients[id];
+      delete cloudMeta.deletedClients[id];
+      changedState=true;
+      continue;
+    }
+
+    result=await cloudApi({
+      action:'cloudDeleteClient',
+      id:id,
+      deletedAt:sentDeleteClient
+    });
+    if(!result||result.ok!==true)throw new Error(text(result&&result.error||'Errore cancellazione cliente nel cloud.'));
+
+    if(text(cloudMeta.pendingDeletedClients[id])===sentDeleteClient){
+      cloudMeta.deletedClients[id]=text(result.serverDeletedAt||sentDeleteClient);
+      delete cloudMeta.pendingDeletedClients[id];
+      changedState=true;
+    }
+  }
+
+  ids=Object.keys(cloudMeta.pendingDeletedOrders||{});
+  for(i=0;i<ids.length;i++){
+    id=ids[i];
+    var sentDeleteOrder=text(cloudMeta.pendingDeletedOrders[id]);
+
+    if(findOrderLocal(id)){
+      delete cloudMeta.pendingDeletedOrders[id];
+      delete cloudMeta.deletedOrders[id];
+      changedState=true;
+      continue;
+    }
+
+    result=await cloudApi({
+      action:'cloudDeleteOrder',
+      id:id,
+      deletedAt:sentDeleteOrder
+    });
+    if(!result||result.ok!==true)throw new Error(text(result&&result.error||'Errore cancellazione ordine nel cloud.'));
+
+    if(text(cloudMeta.pendingDeletedOrders[id])===sentDeleteOrder){
+      cloudMeta.deletedOrders[id]=text(result.serverDeletedAt||sentDeleteOrder);
+      delete cloudMeta.pendingDeletedOrders[id];
+      changedState=true;
+    }
+  }
+
+  if(changedState){
+    applyingCloudState=true;
+    saveState({fromCloud:true});
+    applyingCloudState=false;
+    resetCloudBaseline();
+  }
+  saveCloudMeta();
+}
+
+/*
+ * Prima sincronizzazione dopo l'aggiornamento V9:
+ * confronta il vecchio stato locale con il database cloud senza perdere
+ * eventuali clienti rimasti solo su PC o solo su iPhone.
+ */
+function reconcileLegacyCloudSnapshot(snapshot){
+  var remoteClients={},remoteOrders={},remoteDeletedClients={},remoteDeletedOrders={};
+
+  (snapshot.clients||[]).forEach(function(x){remoteClients[x.id]=migrateClient(x)});
+  (snapshot.orders||[]).forEach(function(x){remoteOrders[x.id]=normalizeOrder(x)});
+  (snapshot.deletedClients||[]).forEach(function(x){remoteDeletedClients[x.id]=x});
+  (snapshot.deletedOrders||[]).forEach(function(x){remoteDeletedOrders[x.id]=x});
+
+  var localClients={},localOrders={};
+  state.clients.forEach(function(c){localClients[c.id]=c});
+  state.orders.forEach(function(o){localOrders[o.id]=o});
+
+  // Clienti locali.
+  Object.keys(localClients).forEach(function(id){
+    var local=localClients[id],remote=remoteClients[id],del=remoteDeletedClients[id];
+
+    if(del){
+      if(cloudTime(local._syncUpdatedAt)>cloudTime(del.deletedAt)){
+        cloudMeta.dirtyClients[id]=local._syncUpdatedAt||new Date().toISOString();
+      }else{
+        delete localClients[id];
+        cloudMeta.deletedClients[id]=del.deletedAt;
+      }
+      return;
+    }
+
+    if(!remote){
+      // ID presente soltanto sul dispositivo: probabilmente era la modifica saltata.
+      cloudMeta.dirtyClients[id]=local._syncUpdatedAt||new Date().toISOString();
+      return;
+    }
+
+    if(cloudTime(local._syncUpdatedAt)>cloudTime(remote._syncUpdatedAt)){
+      cloudMeta.dirtyClients[id]=local._syncUpdatedAt||new Date().toISOString();
+    }else{
+      localClients[id]=remote;
+    }
+  });
+
+  // Clienti presenti soltanto nel cloud.
+  Object.keys(remoteClients).forEach(function(id){
+    if(!localClients[id]&&!remoteDeletedClients[id]){
+      localClients[id]=remoteClients[id];
+    }
+  });
+
+  // Ordini locali.
+  Object.keys(localOrders).forEach(function(id){
+    var local=localOrders[id],remote=remoteOrders[id],del=remoteDeletedOrders[id];
+
+    if(del){
+      if(cloudTime(local._syncUpdatedAt)>cloudTime(del.deletedAt)){
+        cloudMeta.dirtyOrders[id]=local._syncUpdatedAt||new Date().toISOString();
+      }else{
+        delete localOrders[id];
+        cloudMeta.deletedOrders[id]=del.deletedAt;
+      }
+      return;
+    }
+
+    if(!remote){
+      cloudMeta.dirtyOrders[id]=local._syncUpdatedAt||new Date().toISOString();
+      return;
+    }
+
+    if(cloudTime(local._syncUpdatedAt)>cloudTime(remote._syncUpdatedAt)){
+      cloudMeta.dirtyOrders[id]=local._syncUpdatedAt||new Date().toISOString();
+    }else{
+      localOrders[id]=remote;
+    }
+  });
+
+  Object.keys(remoteOrders).forEach(function(id){
+    if(!localOrders[id]&&!remoteDeletedOrders[id]){
+      localOrders[id]=remoteOrders[id];
+    }
+  });
+
+  state.clients=Object.keys(localClients).map(function(id){return localClients[id]});
+  state.orders=Object.keys(localOrders).map(function(id){return localOrders[id]});
+
+  cloudMeta.version=2;
+  cloudMeta.needsReconcile=false;
+
+  applyingCloudState=true;
+  saveState({fromCloud:true});
+  applyingCloudState=false;
+  resetCloudBaseline();
   saveCloudMeta();
 }
 
@@ -962,37 +1229,63 @@ function mergeCloudSnapshot(snapshot){
   state.orders.forEach(function(o){localOrders[o.id]=o});
 
   (snapshot.deletedClients||[]).forEach(function(d){
+    // Una modifica locale ancora in attesa ha priorità finché non viene inviata.
+    if(cloudMeta.dirtyClients[d.id])return;
+
     var local=localClients[d.id];
-    if(!local||cloudTime(d.deletedAt)>=cloudTime(local._syncUpdatedAt)){
-      delete localClients[d.id];
-      cloudMeta.deletedClients[d.id]=d.deletedAt;
+    var pending=cloudMeta.pendingDeletedClients[d.id];
+
+    if(!pending){
+      if(!local||cloudTime(d.deletedAt)>=cloudTime(local._syncUpdatedAt)){
+        delete localClients[d.id];
+        cloudMeta.deletedClients[d.id]=d.deletedAt;
+      }
     }
   });
+
   (snapshot.deletedOrders||[]).forEach(function(d){
+    if(cloudMeta.dirtyOrders[d.id])return;
+
     var local=localOrders[d.id];
-    if(!local||cloudTime(d.deletedAt)>=cloudTime(local._syncUpdatedAt)){
-      delete localOrders[d.id];
-      cloudMeta.deletedOrders[d.id]=d.deletedAt;
+    var pending=cloudMeta.pendingDeletedOrders[d.id];
+
+    if(!pending){
+      if(!local||cloudTime(d.deletedAt)>=cloudTime(local._syncUpdatedAt)){
+        delete localOrders[d.id];
+        cloudMeta.deletedOrders[d.id]=d.deletedAt;
+      }
     }
   });
 
-  (snapshot.clients||[]).forEach(function(remote){
-    var local=localClients[remote.id];
-    var tomb=cloudMeta.deletedClients[remote.id];
-    if(tomb&&cloudTime(tomb)>cloudTime(remote._syncUpdatedAt))return;
+  (snapshot.clients||[]).forEach(function(remoteRaw){
+    var remote=migrateClient(remoteRaw);
+    var id=remote.id;
+
+    if(cloudMeta.dirtyClients[id]||cloudMeta.pendingDeletedClients[id])return;
+
+    var tomb=cloudMeta.deletedClients[id];
+    if(tomb&&cloudTime(tomb)>=cloudTime(remote._syncUpdatedAt))return;
+
+    var local=localClients[id];
     if(!local||cloudTime(remote._syncUpdatedAt)>=cloudTime(local._syncUpdatedAt)){
-      localClients[remote.id]=migrateClient(remote);
-      delete cloudMeta.deletedClients[remote.id];
+      localClients[id]=remote;
+      delete cloudMeta.deletedClients[id];
     }
   });
 
-  (snapshot.orders||[]).forEach(function(remote){
-    var local=localOrders[remote.id];
-    var tomb=cloudMeta.deletedOrders[remote.id];
-    if(tomb&&cloudTime(tomb)>cloudTime(remote._syncUpdatedAt))return;
+  (snapshot.orders||[]).forEach(function(remoteRaw){
+    var remote=normalizeOrder(remoteRaw);
+    var id=remote.id;
+
+    if(cloudMeta.dirtyOrders[id]||cloudMeta.pendingDeletedOrders[id])return;
+
+    var tomb=cloudMeta.deletedOrders[id];
+    if(tomb&&cloudTime(tomb)>=cloudTime(remote._syncUpdatedAt))return;
+
+    var local=localOrders[id];
     if(!local||cloudTime(remote._syncUpdatedAt)>=cloudTime(local._syncUpdatedAt)){
-      localOrders[remote.id]=normalizeOrder(remote);
-      delete cloudMeta.deletedOrders[remote.id];
+      localOrders[id]=remote;
+      delete cloudMeta.deletedOrders[id];
     }
   });
 
@@ -1006,56 +1299,86 @@ function mergeCloudSnapshot(snapshot){
   saveCloudMeta();
 }
 
-var cloudSyncTimer=null,cloudSyncInProgress=false;
+var cloudSyncTimer=null;
+var cloudSyncInProgress=false;
+var cloudSyncQueued=false;
+
 function scheduleCloudSync(){
   if(!cloudSyncConfigured())return;
+
   clearTimeout(cloudSyncTimer);
-  cloudSyncTimer=setTimeout(function(){syncCloudData(false).catch(function(){})},900);
+  cloudSyncTimer=setTimeout(function(){
+    syncCloudData(false).catch(function(){});
+  },700);
 }
+
 async function syncCloudData(showNotice){
   if(!cloudSyncConfigured()){
     if(showNotice)setNotice($('#cloudSyncNotice'),'Per sincronizzare servono lo stesso URL Apps Script e token usati per il tracking.','error');
     return {ok:false,reason:'not-configured'};
   }
-  if(cloudSyncInProgress)return {ok:false,reason:'busy'};
+
+  if(cloudSyncInProgress){
+    cloudSyncQueued=true;
+    if(showNotice)setNotice($('#cloudSyncNotice'),'Una sincronizzazione è già in corso. La nuova modifica verrà sincronizzata subito dopo.','');
+    return {ok:false,reason:'busy'};
+  }
 
   cloudSyncInProgress=true;
   if(showNotice)setNotice($('#cloudSyncNotice'),'Sincronizzazione PC / iPhone in corso...','');
 
   try{
-    // Prima carichiamo le modifiche locali: così al primo avvio non perdi
-    // eventuali clienti creati separatamente su PC o iPhone.
+    if(cloudMeta.needsReconcile){
+      var firstSnapshot=await cloudApi({action:'cloudSnapshot'});
+      if(!firstSnapshot||firstSnapshot.ok!==true){
+        throw new Error(text(firstSnapshot&&firstSnapshot.error||'Database cloud non disponibile.'));
+      }
+      reconcileLegacyCloudSnapshot(firstSnapshot);
+    }
+
+    // 1) invia solo i record realmente modificati su questo dispositivo
     await pushPendingCloudChanges();
 
+    // 2) riceve le modifiche effettuate sull'altro dispositivo
     var snapshot=await cloudApi({action:'cloudSnapshot'});
-    if(!snapshot||snapshot.ok!==true)throw new Error(text(snapshot&&snapshot.error||'Database cloud non disponibile.'));
+    if(!snapshot||snapshot.ok!==true){
+      throw new Error(text(snapshot&&snapshot.error||'Database cloud non disponibile.'));
+    }
 
     mergeCloudSnapshot(snapshot);
     cloudMeta.lastSyncAt=new Date().toISOString();
-
-    // Dopo il merge consideriamo allineati tutti i record ricevuti dal server.
-    var mx=maxCloudTimestamp();
-    if(mx)cloudMeta.lastPushedAt=mx;
     saveCloudMeta();
 
     render();
     refreshOpenProfileIfNeeded();
 
     if(showNotice){
-      setNotice($('#cloudSyncNotice'),
-        'Sincronizzato ✅ '+state.clients.length+' clienti e '+state.orders.length+' ordini. PC e iPhone ora usano gli stessi dati.',
+      setNotice(
+        $('#cloudSyncNotice'),
+        'Sincronizzato ✅ '+state.clients.length+' clienti e '+state.orders.length+' ordini.',
         'ok'
       );
     }
+
     return {ok:true};
   }catch(err){
-    if(showNotice)setNotice($('#cloudSyncNotice'),'Sincronizzazione fallita: '+text(err&&err.message||err),'error');
+    if(showNotice){
+      setNotice($('#cloudSyncNotice'),'Sincronizzazione fallita: '+text(err&&err.message||err),'error');
+    }
     throw err;
   }finally{
     cloudSyncInProgress=false;
+
+    // Se una modifica è arrivata mentre stavamo sincronizzando,
+    // eseguiamo subito un secondo giro e non la perdiamo.
+    if(cloudSyncQueued){
+      cloudSyncQueued=false;
+      setTimeout(function(){
+        if(cloudSyncConfigured())syncCloudData(false).catch(function(){});
+      },250);
+    }
   }
 }
-
 
 // ============================================================
 // BACKUP AUTOMATICO GOOGLE DRIVE
@@ -1831,7 +2154,7 @@ setTimeout(function(){syncRecentTrackingsFromGmail(false,false).catch(function()
 setInterval(function(){syncRecentTrackingsFromGmail(false,false).catch(function(){})},60000);
 setTimeout(function(){if(cloudSyncConfigured())syncCloudData(false).catch(function(){})},3500);
 setTimeout(function(){updateDriveBackupStatus();if(driveBackupConfigured())performDriveBackup(false).catch(function(){})},5000);
-setInterval(function(){if(document.visibilityState==='visible'&&cloudSyncConfigured())syncCloudData(false).catch(function(){})},60000);
+setInterval(function(){if(document.visibilityState==='visible'&&cloudSyncConfigured())syncCloudData(false).catch(function(){})},20000);
 })();
 </script>
 </div>
