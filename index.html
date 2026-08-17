@@ -1190,6 +1190,497 @@ button.photo-list-badge{
   }
 }
 
+
+/* ==========================================================
+   V25 — revisione completa interfaccia grafica
+   Override finale intenzionale: elimina incongruenze residue
+   tra desktop, iPad e iPhone senza toccare la logica.
+   ========================================================== */
+
+html,body{
+  width:100%;
+  max-width:100%;
+  overflow-x:hidden;
+}
+body{
+  padding-left:env(safe-area-inset-left,0px);
+  padding-right:env(safe-area-inset-right,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+.app{
+  width:min(100%,1440px);
+  padding-top:max(16px,env(safe-area-inset-top,0px));
+}
+.ui-version-badge{
+  display:inline-flex;
+  margin-top:7px;
+  padding:3px 7px;
+  border:1px solid #27303c;
+  border-radius:999px;
+  color:#8190a4;
+  background:#0b0f15;
+  font-size:10px;
+  line-height:1;
+  font-weight:900;
+}
+
+/* Header: stessa gerarchia su ogni schermo */
+.top{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:12px;
+  align-items:stretch;
+}
+.brand{
+  display:flex;
+  min-height:104px;
+  flex-direction:column;
+  justify-content:center;
+  padding:18px 20px;
+}
+.actions{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(132px,1fr));
+  gap:8px;
+  align-content:start;
+  justify-content:stretch;
+}
+.actions>button,.actions>.file-label{
+  width:100%;
+  min-width:0;
+  min-height:48px;
+}
+.file-label{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+}
+
+/* Tap targets e tipografia pulsanti */
+button,.file-label{
+  border-radius:12px;
+  font-size:13px;
+  line-height:1.2;
+  letter-spacing:0;
+}
+button:not(.mini),.file-label{min-height:46px}
+button.mini{min-height:36px}
+button:focus-visible,.file-label:focus-visible{
+  outline:3px solid rgba(117,103,255,.34);
+  outline-offset:2px;
+}
+button.primary{background:linear-gradient(135deg,#6254ee,#815af3)}
+button.secondary{background:linear-gradient(135deg,#078eae,#11abc9)}
+button.ghost,.file-label{background:#151b24;border-color:#323b49;color:#f0f4f8}
+button.danger{background:linear-gradient(135deg,#c92f3a,#e64f31)}
+
+/* Search */
+.global-search-box{
+  min-height:56px;
+  border-radius:16px;
+}
+#clearGlobalSearch{
+  width:40px;
+  min-width:40px;
+  height:40px;
+  min-height:40px;
+  padding:0;
+}
+
+/* Dashboard */
+.stats{gap:9px}
+.stat{min-height:108px;padding:16px}
+.stat small{font-size:12px;line-height:1.25}
+.stat strong{font-size:24px}
+.card-arrow{right:12px;bottom:12px}
+
+/* Tabs: no item schiacciati, area cliccabile uniforme */
+.tabs{
+  display:grid;
+  grid-template-columns:repeat(6,minmax(0,1fr));
+  gap:6px;
+  overflow:visible;
+}
+.tab{
+  width:100%;
+  min-width:0;
+  min-height:46px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:8px 9px;
+  text-align:center;
+}
+
+/* Card e sezioni */
+.card{
+  padding:18px;
+  border-radius:18px;
+  overflow:hidden;
+}
+.card h2{font-size:20px;line-height:1.2}
+.card h3{line-height:1.25}
+.profile-head{gap:10px}
+.reward,.small,.profile-meta,.order-photo-hint{line-height:1.5}
+
+/* Forms */
+.formgrid{gap:12px 14px}
+label{margin-bottom:6px;line-height:1.25}
+input,select,textarea{
+  min-height:48px;
+  border-radius:12px;
+  background:#090d12;
+}
+textarea{min-height:104px}
+.checkitem{
+  min-height:50px;
+  padding:11px 13px;
+  align-items:flex-start;
+}
+.checkitem input[type="checkbox"]{flex:0 0 20px;margin-top:1px}
+.create-order-actions{
+  display:flex;
+  justify-content:flex-end;
+  padding-top:2px;
+}
+.create-order-actions button{min-width:220px}
+
+/* Toolbars: bottoni mai accavallati */
+.toolbar{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+  gap:8px;
+  width:100%;
+}
+.toolbar>button,.toolbar>.file-label{width:100%;min-width:0}
+.row-actions{gap:7px}
+
+/* Tables */
+.tablewrap{
+  max-width:100%;
+  border-radius:14px;
+  overscroll-behavior-x:contain;
+}
+table{min-width:720px}
+#panel-orders table{min-width:1120px}
+#panel-clients table{min-width:900px}
+#panel-rewards table{min-width:720px}
+#profileOrders{min-width:0}
+th,td{padding:12px 11px}
+th{font-size:11px}
+td{font-size:12.5px}
+
+/* Modal: header sempre raggiungibile, scroll confinato */
+.modal{
+  padding:14px;
+  overscroll-behavior:contain;
+  backdrop-filter:blur(3px);
+  -webkit-backdrop-filter:blur(3px);
+}
+.modal-box{
+  position:relative;
+  width:min(100%,1040px);
+  max-height:calc(100dvh - 28px);
+  padding:0 17px 18px;
+  overflow:auto;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+}
+.modal-head{
+  position:sticky;
+  top:0;
+  z-index:20;
+  margin:0 -17px 14px;
+  padding:15px 17px 13px;
+  border-bottom:1px solid var(--line);
+  background:rgba(14,17,23,.97);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+}
+.modal-head+.divider{display:none}
+.modal-close{
+  flex:0 0 auto;
+  min-width:100px;
+}
+#orderModal .modal-box{padding-bottom:14px}
+
+/* Foto ordine: chiaro stato + selettore controllato */
+.order-photo-box{
+  padding:15px;
+  border-radius:16px;
+}
+.order-photo-title-row{margin-bottom:12px}
+.order-photo-preview{
+  min-height:72px;
+  padding:11px;
+  border:1px solid #28313e;
+  border-radius:13px;
+  background:#0c1118;
+}
+.order-photo-icon{width:48px;height:48px;flex-basis:48px}
+.photo-file-row{
+  grid-template-columns:145px minmax(0,1fr);
+  align-items:center;
+  margin-top:12px;
+}
+.photo-file-step{
+  color:#d8e0eb;
+  font-size:12px;
+  font-weight:900;
+}
+.photo-picker-wrap{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr);
+  gap:9px;
+  align-items:center;
+  min-width:0;
+}
+.photo-file-input{
+  position:absolute!important;
+  width:1px!important;
+  height:1px!important;
+  opacity:0!important;
+  pointer-events:none!important;
+}
+.photo-picker-button{
+  display:inline-flex;
+  min-height:44px;
+  align-items:center;
+  justify-content:center;
+  margin:0;
+  padding:9px 13px;
+  border:1px solid #343e4c;
+  border-radius:11px;
+  background:#1a212b;
+  color:#fff;
+  font-size:12.5px;
+  font-weight:900;
+  cursor:pointer;
+  white-space:nowrap;
+}
+.photo-selected-name{
+  display:block;
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:#b8c2cf;
+  font-size:12px;
+}
+.order-photo-actions{
+  grid-template-columns:minmax(0,1.35fr) minmax(0,1fr) minmax(0,1fr);
+  gap:8px;
+}
+.order-photo-actions button{min-width:0}
+.photo-state-badge{min-height:34px}
+
+/* E-mail e footer ordine */
+.order-email-row{gap:12px}
+.order-email-statuses{gap:6px}
+.order-save-actions{
+  position:sticky;
+  bottom:-14px;
+  z-index:15;
+  margin:14px -17px -14px;
+  padding:12px 17px max(12px,env(safe-area-inset-bottom,0px));
+  border-top:1px solid var(--line);
+  background:rgba(14,17,23,.97);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+}
+.order-main-save{min-width:0}
+.order-secondary-actions{gap:7px}
+
+/* Client profile action footer stays clean */
+.profile-save-actions{
+  gap:8px;
+  margin-top:3px;
+}
+
+/* Settings: blocco leggibile, niente badge ripetuto su ogni card */
+.settings-card{overflow:hidden}
+#panel-settings.settings-is-locked .card:not(.settings-lock-card){
+  opacity:.72;
+  filter:saturate(.82);
+}
+#panel-settings.settings-is-locked .card:not(.settings-lock-card)::after{display:none!important}
+.settings-lock-card{
+  position:sticky;
+  top:8px;
+  z-index:30;
+  border-color:#323b49;
+  box-shadow:0 12px 28px rgba(0,0,0,.34);
+}
+.settings-lock-grid{grid-template-columns:minmax(230px,1fr) auto auto}
+.danger-zone{
+  border-color:#52252a;
+  background:linear-gradient(180deg,#151014,#0e1117);
+}
+.gmail-test-box{margin-top:12px}
+.cloud-server-status{overflow-wrap:anywhere}
+
+/* Kanban */
+.kanban-wrap{
+  margin:0 -2px;
+  padding:2px 2px 8px;
+}
+.kanban-board{gap:9px}
+.kanban-column{width:260px}
+.kanban-card{overflow:hidden}
+.kanban-card select{width:100%}
+
+/* Tablet / iPad */
+@media(max-width:1180px){
+  .app{padding-left:12px;padding-right:12px}
+  .top{grid-template-columns:1fr}
+  .brand{min-height:auto}
+  .actions{
+    grid-template-columns:repeat(4,minmax(0,1fr));
+  }
+  .stats{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .tabs{grid-template-columns:repeat(6,minmax(0,1fr))}
+  .order-photo-actions{grid-template-columns:1fr 1fr}
+  #uploadOrderPhotoBtn{grid-column:1/-1}
+  .order-save-actions{grid-template-columns:1fr}
+  .order-secondary-actions{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .settings-lock-grid{grid-template-columns:1fr 1fr}
+  .settings-lock-grid>div:first-child{grid-column:1/-1}
+}
+
+@media(max-width:900px){
+  .brand h1{font-size:25px}
+  .stat strong{font-size:22px}
+  .formgrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .formgrid>.span2{grid-column:span 1}
+  .formgrid>.span4{grid-column:span 2}
+  .create-order-actions{justify-content:stretch}
+  .create-order-actions button{width:100%;min-width:0}
+  .attention-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .profile-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .modal{padding:8px}
+  .modal-box{
+    max-height:calc(100dvh - 16px);
+    padding-left:14px;
+    padding-right:14px;
+  }
+  .modal-head{
+    margin-left:-14px;
+    margin-right:-14px;
+    padding-left:14px;
+    padding-right:14px;
+  }
+  .order-save-actions{
+    margin-left:-14px;
+    margin-right:-14px;
+    padding-left:14px;
+    padding-right:14px;
+  }
+  .settings-lock-card{top:6px}
+}
+
+@media(max-width:720px){
+  .actions{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .tabs{
+    display:flex;
+    overflow-x:auto;
+    scrollbar-width:none;
+    padding:6px;
+  }
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{
+    flex:0 0 auto;
+    min-width:108px;
+    padding-left:12px;
+    padding-right:12px;
+  }
+  .formgrid{grid-template-columns:1fr}
+  .formgrid>.span2,.formgrid>.span4{grid-column:span 1}
+  .attention-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .stats-detail-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .photo-file-row{grid-template-columns:1fr;gap:7px}
+  .photo-picker-wrap{grid-template-columns:1fr}
+  .photo-picker-button{width:100%}
+  .photo-selected-name{
+    padding:8px 10px;
+    border:1px solid #252d38;
+    border-radius:10px;
+    background:#0a0e14;
+  }
+  .order-photo-actions{grid-template-columns:1fr}
+  #uploadOrderPhotoBtn{grid-column:auto}
+  .order-email-row{grid-template-columns:1fr}
+  .order-secondary-actions{grid-template-columns:1fr}
+  .profile-save-actions{grid-template-columns:1fr}
+  .settings-lock-grid{grid-template-columns:1fr}
+  .settings-lock-grid>div:first-child{grid-column:auto}
+  .modal-close{min-width:84px}
+  table{font-size:12px}
+}
+
+@media(max-width:460px){
+  .app{padding-left:8px;padding-right:8px}
+  .brand{padding:14px 15px}
+  .brand h1{font-size:21px}
+  .brand p{font-size:12px}
+  .global-search-box{padding-left:10px}
+  .stats{gap:7px}
+  .stat{min-height:94px;padding:12px}
+  .stat strong{font-size:19px}
+  .card{padding:13px}
+  .attention-grid{grid-template-columns:1fr}
+  .stats-detail-grid{grid-template-columns:1fr}
+  .profile-stats{grid-template-columns:1fr}
+  .modal{padding:4px}
+  .modal-box{max-height:calc(100dvh - 8px);border-radius:14px}
+}
+
+
+/* V25.1 — rifiniture emerse dal test reale a 390px e 834px */
+.ui-version-badge{align-self:flex-start;width:auto!important;max-width:max-content}
+.order-utility-actions{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(160px,.42fr);
+  gap:8px;
+  align-items:stretch;
+}
+.order-utility-actions .order-secondary-actions{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:7px;
+}
+.order-utility-actions button{width:100%;min-width:0}
+.order-save-actions{
+  display:block;
+  margin-top:0;
+  padding-top:10px;
+  padding-bottom:max(10px,env(safe-area-inset-bottom,0px));
+}
+.order-main-save{width:100%;min-height:50px}
+
+@media(max-width:1180px){
+  .order-utility-actions{grid-template-columns:1fr}
+  .order-utility-actions .order-secondary-actions{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:720px){
+  .tabs{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:6px;
+    overflow:visible;
+  }
+  .tab{
+    min-width:0;
+    width:100%;
+    min-height:44px;
+    padding:8px 6px;
+    font-size:11.5px;
+    white-space:normal;
+  }
+  .order-utility-actions .order-secondary-actions{grid-template-columns:1fr}
+}
+
 </style>
 
 <script>
@@ -1302,7 +1793,7 @@ button.photo-list-badge{
 <div id="claManagerApp" class="cla-locked"><div class="app" id="cla-root">
   <div class="top">
     <div class="brand"><h1>Card_Lab_Art — Gestione clienti e ordini</h1><p>Dashboard operativa Card_Lab_Art — ordini, clienti, spedizioni, premi e attività.</p>
-        <span id="uiVersionBadge" style="font-size:10px;color:#778296;font-weight:800">UI V24</span></div>
+        <span id="uiVersionBadge" class="ui-version-badge">UI V25</span></div>
     <div class="actions">
       <button class="secondary" id="exportBtn" type="button">Esporta backup</button>
       <label class="file-label" for="importFile">Importa backup</label><input id="importFile" type="file" accept="application/json" hidden>
@@ -1462,8 +1953,8 @@ button.photo-list-badge{
         <div><label for="orderTrackingCode">Codice tracking</label><input id="orderTrackingCode" placeholder="Tracking"></div>
         <div class="span2"><label for="orderTrackingUrl">Link tracking</label><input id="orderTrackingUrl" type="url" placeholder="https://..."></div>
         <div><label for="orderRedeem">Punti da utilizzare</label><input id="orderRedeem" type="number" min="0" step="1" value="0"></div>
-        <div class="submitrow"><button class="primary" type="submit">Registra ordine</button></div>
         <div class="span4"><label for="orderNote">Note ordine</label><textarea id="orderNote" placeholder="Dettagli dell’ordine, personalizzazione, richieste..."></textarea></div>
+        <div class="span4 create-order-actions"><button class="primary" type="submit">＋ Registra ordine</button></div>
       </form>
       <div class="notice" id="orderNotice" aria-live="polite"></div>
       <div class="reward">Dopo il salvataggio puoi aprire “Gestisci” per aggiornare pagamento, tracking, costi e checklist di lavorazione.</div>
@@ -1548,10 +2039,10 @@ button.photo-list-badge{
       </div>
       <div class="notice" id="settingsLockNotice"></div>
     </div>
-    <div class="card"><h2>Regole dei punti</h2><div class="settings"><div><label for="eurosPerPoint">Euro spesi per 1 punto</label><input id="eurosPerPoint" type="number" min="1" step="1"></div><button class="primary" type="button" id="saveSettings">Salva impostazioni</button></div><div class="notice" id="settingsNotice"></div></div>
-    <div class="card"><h2>Soglie premi</h2><div id="rewardSettings" class="rewards"></div><button type="button" class="secondary" id="addReward" style="margin-top:12px">+ Aggiungi soglia</button></div>
+    <div class="card settings-card"><h2>Regole dei punti</h2><div class="settings"><div><label for="eurosPerPoint">Euro spesi per 1 punto</label><input id="eurosPerPoint" type="number" min="1" step="1"></div><button class="primary" type="button" id="saveSettings">Salva impostazioni</button></div><div class="notice" id="settingsNotice"></div></div>
+    <div class="card settings-card"><h2>Soglie premi</h2><div id="rewardSettings" class="rewards"></div><button type="button" class="secondary" id="addReward" style="margin-top:12px">+ Aggiungi soglia</button></div>
 
-    <div class="card">
+    <div class="card settings-card">
       <h2>✉️ E-mail automatiche — Gmail diretto</h2>
       <p class="reward">
         Le e-mail partono direttamente dal <strong>Gmail collegato al tuo Google Apps Script</strong>.
@@ -1631,7 +2122,7 @@ button.photo-list-badge{
       </div>
     </div>
 
-    <div class="card">
+    <div class="card settings-card">
       <h2>Import tracking da Gmail</h2>
       <p class="reward">Collega il gestionale a un piccolo Google Apps Script. Google Apps Script controlla Gmail <strong>ogni 10 minuti anche quando il gestionale è chiuso</strong> e mette i nuovi tracking in attesa. Quando apri il gestionale, abbina Destinatario, tracking e corriere al cliente con lo stesso nome. Non cambia lo stato dell’ordine e non invia e-mail al cliente.</p>
       <div class="formgrid">
@@ -1642,7 +2133,7 @@ button.photo-list-badge{
       <div class="notice" id="trackingIntegrationNotice"></div>
     </div>
 
-    <div class="card">
+    <div class="card settings-card">
       <h2>Sincronizzazione PC ↔ iPhone</h2>
       <p class="reward">Clienti e ordini vengono salvati nel database Google e sincronizzati tra PC e iPhone. La V9 invia soltanto le modifiche reali e recupera automaticamente quelle fatte sull’altro dispositivo. Usa lo <strong>stesso URL Apps Script e lo stesso token</strong> su entrambi.</p>
       <div class="formgrid">
@@ -1660,7 +2151,7 @@ button.photo-list-badge{
       <div class="reward" style="margin-top:6px"><strong>Ripubblica dati</strong> va usato solo sul dispositivo che contiene già i clienti/ordini corretti (es. Mac/PC). Se il dispositivo è vuoto, il pulsante si rifiuta di procedere.</div>
     </div>
 
-    <div class="card">
+    <div class="card settings-card">
       <h2>Backup automatico su Google Drive</h2>
       <p class="reward">Ogni modifica salvata nel gestionale crea automaticamente un backup JSON privato su Drive: <strong>clienti, ordini, punti/premi, impostazioni Gmail, tracking e configurazioni</strong>. Le foto degli ordini vengono conservate separatamente nella cartella <strong>Card_Lab_Art — Foto ordini</strong>. Vengono mantenute le ultime 100 versioni più un file “ULTIMO_BACKUP”.</p>
       <div class="formgrid">
@@ -1674,14 +2165,14 @@ button.photo-list-badge{
       <div class="reward" id="driveBackupStatus" style="margin-top:10px">Cartella Drive: Card_Lab_Art — Backup automatici</div>
     </div>
 
-    <div class="card"><h2>Gestione dati</h2><p class="reward">Il browser mantiene una copia locale. Con la sincronizzazione cloud attiva, clienti e ordini vengono anche condivisi tra PC e iPhone. Continua comunque a fare un backup JSON periodico.</p><button class="danger" type="button" id="resetBtn">Azzera tutti i dati</button></div>
+    <div class="card settings-card danger-zone"><h2>Gestione dati</h2><p class="reward">Il browser mantiene una copia locale. Con la sincronizzazione cloud attiva, clienti e ordini vengono anche condivisi tra PC e iPhone. Continua comunque a fare un backup JSON periodico.</p><button class="danger" type="button" id="resetBtn">Azzera tutti i dati</button></div>
   </section>
 </div>
 
 
 <div class="modal" id="newClientModal" aria-hidden="true">
   <div class="modal-box" style="width:min(900px,100%)">
-    <div class="profile-head">
+    <div class="profile-head modal-head">
       <div>
         <h2 style="margin:0">Nuovo cliente</h2>
         <div class="profile-meta">Inserisci i dati manualmente oppure incollali tutti insieme: il gestionale prova a riconoscerli automaticamente.</div>
@@ -1738,7 +2229,7 @@ mario@email.it
 
 <div class="modal" id="profileModal" aria-hidden="true">
   <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="profileHeading">
-    <div class="profile-head"><div><div class="profile-title"><h2 id="profileHeading">Profilo cliente</h2><span class="pill" id="profileCode"></span><span class="vip-badge" id="profileVipBadge" hidden>⭐ VIP</span></div><div class="profile-meta" id="profileMeta"></div></div><button type="button" class="secondary modal-close" id="closeProfile">Chiudi</button></div>
+    <div class="profile-head modal-head"><div><div class="profile-title"><h2 id="profileHeading">Profilo cliente</h2><span class="pill" id="profileCode"></span><span class="vip-badge" id="profileVipBadge" hidden>⭐ VIP</span></div><div class="profile-meta" id="profileMeta"></div></div><button type="button" class="secondary modal-close" id="closeProfile">Chiudi</button></div>
     <div class="profile-stats">
       <div class="profile-stat"><small>Totale speso</small><strong id="pSpent">—</strong></div>
       <div class="profile-stat"><small>Saldo punti</small><strong id="pBalance">—</strong></div>
@@ -1814,7 +2305,7 @@ mario@email.it
 
 <div class="modal" id="orderModal" aria-hidden="true">
   <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="orderModalHeading">
-    <div class="profile-head"><div><h2 id="orderModalHeading">Gestisci ordine</h2><div class="profile-meta" id="orderModalMeta"></div></div><button type="button" class="secondary modal-close" id="closeOrderModal">Chiudi</button></div>
+    <div class="profile-head modal-head"><div><h2 id="orderModalHeading">Gestisci ordine</h2><div class="profile-meta" id="orderModalMeta"></div></div><button type="button" class="secondary modal-close" id="closeOrderModal">Chiudi</button></div>
     <div class="divider"></div>
     <form id="orderEditForm" class="formgrid">
       <input type="hidden" id="editOrderId">
@@ -1852,8 +2343,12 @@ mario@email.it
         </div>
 
         <div class="photo-file-row">
-          <label for="orderPhotoFile" class="photo-file-label">1. Scegli foto</label>
-          <input id="orderPhotoFile" type="file" accept="image/*">
+          <div class="photo-file-step">1. Scegli la foto</div>
+          <div class="photo-picker-wrap">
+            <input id="orderPhotoFile" class="photo-file-input" type="file" accept="image/*">
+            <label for="orderPhotoFile" class="photo-picker-button">📷 Scegli foto</label>
+            <span id="orderPhotoSelectedName" class="photo-selected-name">Nessun file selezionato</span>
+          </div>
         </div>
 
         <div class="order-photo-actions">
@@ -1879,14 +2374,16 @@ mario@email.it
         </div>
         <div class="reward" style="margin-top:7px">Puoi inviare questa mail manualmente anche senza cambiare lo stato dell’ordine. Se c’è una foto allegata, Gmail la inserisce come piccola anteprima.</div>
       </div>
-      <div class="span4 order-save-actions">
-        <button class="primary order-main-save" type="submit">💾 Salva ordine</button>
+      <div class="span4 order-utility-actions">
         <div class="order-secondary-actions">
           <button class="secondary" type="button" id="importTrackingGmailBtn">📨 Importa tracking</button>
           <button class="ghost" type="button" id="copyTrackingBtn">📋 Copia tracking</button>
           <button class="ghost" type="button" id="openTrackingBtn">↗ Apri tracking</button>
         </div>
         <button class="danger order-delete-btn" type="button" id="deleteOrderFromModal">🗑️ Elimina ordine</button>
+      </div>
+      <div class="span4 order-save-actions">
+        <button class="primary order-main-save" type="submit">💾 Salva ordine</button>
       </div>
     </form>
     <div class="notice" id="orderEditNotice"></div>
@@ -4485,6 +4982,7 @@ function renderOrderPhotoBox(o){
   }
 
   $('#orderPhotoFile').value='';
+  if($('#orderPhotoSelectedName'))$('#orderPhotoSelectedName').textContent='Nessun file selezionato';
   setNotice($('#orderPhotoNotice'),'','');
 }
 
@@ -4799,6 +5297,17 @@ $('#orderEditForm').addEventListener('submit',async function(e){
   }
 });
 
+
+
+$('#orderPhotoFile').addEventListener('change',function(){
+  var file=this.files&&this.files[0];
+  if($('#orderPhotoSelectedName')){
+    $('#orderPhotoSelectedName').textContent=file?file.name:'Nessun file selezionato';
+  }
+  if(file){
+    setNotice($('#orderPhotoNotice'),'Foto selezionata. Premi “Salva foto nell’ordine”.','');
+  }
+});
 
 $('#uploadOrderPhotoBtn').addEventListener('click',async function(){
   var id=$('#editOrderId').value;
