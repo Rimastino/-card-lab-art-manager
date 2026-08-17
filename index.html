@@ -51,6 +51,15 @@
 #claManagerApp.cla-locked{display:none!important}
 #logoutBtn{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 
+
+.order-photo-box{border:1px solid var(--line);border-radius:16px;padding:14px;background:rgba(255,255,255,.02)}
+.order-photo-preview{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.order-photo-icon{width:58px;height:58px;border-radius:12px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:28px;background:var(--bg)}
+.order-photo-info{min-width:0;flex:1}
+.order-photo-name{font-weight:800;word-break:break-word}
+.order-photo-hint{font-size:12px;color:var(--muted);margin-top:4px}
+.photo-dot{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:800}
+
 </style>
 
 <script>
@@ -293,7 +302,7 @@
 
     <div class="card">
       <h2>Backup automatico su Google Drive</h2>
-      <p class="reward">Ogni modifica salvata nel gestionale crea automaticamente un backup JSON privato su Drive: <strong>clienti, ordini, punti/premi, impostazioni EmailJS, tracking e configurazioni</strong>. Vengono mantenute le ultime 100 versioni più un file “ULTIMO_BACKUP”.</p>
+      <p class="reward">Ogni modifica salvata nel gestionale crea automaticamente un backup JSON privato su Drive: <strong>clienti, ordini, punti/premi, impostazioni EmailJS, tracking e configurazioni</strong>. Le foto degli ordini vengono conservate separatamente nella cartella <strong>Card_Lab_Art — Foto ordini</strong>. Vengono mantenute le ultime 100 versioni più un file “ULTIMO_BACKUP”.</p>
       <div class="formgrid">
         <div class="span4"><label class="checkitem"><input id="driveBackupEnabled" type="checkbox"> Attiva backup automatico dopo ogni modifica</label></div>
         <div class="span4 toolbar">
@@ -364,6 +373,25 @@
       <div class="span2"><label for="editTrackingUrl">Link tracking</label><input id="editTrackingUrl" type="url" placeholder="https://..."></div>
       <div><label for="editRedeem">Punti utilizzati</label><input id="editRedeem" type="number" min="0" step="1"></div>
       <div class="span4"><label for="editOrderNotes">Note ordine</label><textarea id="editOrderNotes"></textarea></div>
+
+      <div class="span4 order-photo-box">
+        <h3 style="margin-top:0">Foto / allegato ordine</h3>
+        <div class="order-photo-preview">
+          <div class="order-photo-icon" id="orderPhotoIcon">📷</div>
+          <div class="order-photo-info">
+            <div class="order-photo-name" id="orderPhotoName">Nessuna foto allegata</div>
+            <div class="order-photo-hint" id="orderPhotoHint">Scatta o scegli una foto per ricordarti esattamente cosa ha ordinato il cliente.</div>
+          </div>
+        </div>
+        <div class="toolbar" style="margin-top:12px">
+          <input id="orderPhotoFile" type="file" accept="image/*" style="max-width:100%">
+          <button class="secondary" type="button" id="uploadOrderPhotoBtn">Carica foto su Drive</button>
+          <button class="secondary" type="button" id="openOrderPhotoBtn">Apri foto</button>
+          <button class="danger" type="button" id="removeOrderPhotoBtn">Rimuovi dal gestionale</button>
+        </div>
+        <div class="notice" id="orderPhotoNotice"></div>
+      </div>
+
       <div class="span4"><h3>Checklist lavorazione</h3><div id="checklistBox" class="checklist"></div></div>
       <div class="span4 summaryline"><span class="pill" id="editChecklistPreview">Checklist: —</span></div>
 
@@ -414,7 +442,7 @@ function money(n){return new Intl.NumberFormat('it-IT',{style:'currency',currenc
 function today(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function migrateClient(c){c=c||{};var pieces=text(c.name).trim().split(/\s+/).filter(Boolean);var first=text(c.firstName||pieces[0]||'');var last=text(c.lastName||pieces.slice(1).join(' '));return {id:c.id||uid(),code:c.code||'',firstName:first,lastName:last,name:(first+' '+last).trim(),email:text(c.email),phone:text(c.phone),address:text(c.address),zip:text(c.zip),city:text(c.city),province:text(c.province),instagram:text(c.instagram||c.contact),notes:text(c.notes),intakeEmailSentAt:text(c.intakeEmailSentAt),intakeEmailError:text(c.intakeEmailError),_syncUpdatedAt:text(c._syncUpdatedAt||'2000-01-01T00:00:00.000Z')}}
 function legacyOrderProductAndNotes(o){var product=text(o.product),notes=text(o.orderNotes||o.notes);if(product)return {product:PRODUCTS.indexOf(product)>=0?product:'Altro',notes:notes||text(o.note)};var legacy=text(o.note);var parts=legacy.split(' — ');if(parts.length>1&&PRODUCTS.indexOf(parts[0])>=0)return {product:parts[0],notes:parts.slice(1).join(' — ')};if(PRODUCTS.indexOf(legacy)>=0)return {product:legacy,notes:''};return {product:'Altro',notes:legacy}}
-function normalizeOrder(o){o=o||{};var pn=legacyOrderProductAndNotes(o);var st=text(o.orderStatus||o.shippingStatus||o.status||'In lavorazione');if(st==='Arrivato')st='Consegnato';if(ORDER_STATUSES.indexOf(st)<0)st='In lavorazione';var ps=text(o.paymentStatus||'Da pagare');if(PAYMENT_STATUSES.indexOf(ps)<0)ps='Da pagare';var cl=Object.assign(defaultChecklist(),o.checklist||{});if(st==='Spedito'||st==='Consegnato')cl.shipped=true;return Object.assign({},o,{id:o.id||uid(),date:text(o.date||today()),clientId:text(o.clientId),amount:num(o.amount),earned:num(o.earned),redeemed:num(o.redeemed),product:pn.product,orderNotes:pn.notes,orderStatus:st,dueDate:text(o.dueDate),paymentStatus:ps,paidAmount:num(o.paidAmount),paymentMethod:text(o.paymentMethod),materialCost:num(o.materialCost),shippingCost:num(o.shippingCost),carrier:text(o.carrier),trackingCode:text(o.trackingCode),trackingUrl:text(o.trackingUrl),checklist:cl,shippedEmailSentAt:text(o.shippedEmailSentAt),shippedEmailError:text(o.shippedEmailError),_syncUpdatedAt:text(o._syncUpdatedAt||'2000-01-01T00:00:00.000Z')})}
+function normalizeOrder(o){o=o||{};var pn=legacyOrderProductAndNotes(o);var st=text(o.orderStatus||o.shippingStatus||o.status||'In lavorazione');if(st==='Arrivato')st='Consegnato';if(ORDER_STATUSES.indexOf(st)<0)st='In lavorazione';var ps=text(o.paymentStatus||'Da pagare');if(PAYMENT_STATUSES.indexOf(ps)<0)ps='Da pagare';var cl=Object.assign(defaultChecklist(),o.checklist||{});if(st==='Spedito'||st==='Consegnato')cl.shipped=true;return Object.assign({},o,{id:o.id||uid(),date:text(o.date||today()),clientId:text(o.clientId),amount:num(o.amount),earned:num(o.earned),redeemed:num(o.redeemed),product:pn.product,orderNotes:pn.notes,orderStatus:st,dueDate:text(o.dueDate),paymentStatus:ps,paidAmount:num(o.paidAmount),paymentMethod:text(o.paymentMethod),materialCost:num(o.materialCost),shippingCost:num(o.shippingCost),carrier:text(o.carrier),trackingCode:text(o.trackingCode),trackingUrl:text(o.trackingUrl),checklist:cl,shippedEmailSentAt:text(o.shippedEmailSentAt),shippedEmailError:text(o.shippedEmailError),attachment:(o.attachment&&o.attachment.fileId)?{fileId:text(o.attachment.fileId),fileName:text(o.attachment.fileName),mimeType:text(o.attachment.mimeType),uploadedAt:text(o.attachment.uploadedAt)}:null,_syncUpdatedAt:text(o._syncUpdatedAt||'2000-01-01T00:00:00.000Z')})}
 function normalizeState(data){var d=defaultState();if(!data||!Array.isArray(data.clients)||!Array.isArray(data.orders))return d;d.clients=data.clients.map(migrateClient);d.orders=data.orders.map(normalizeOrder);if(data.settings){d.settings.eurosPerPoint=Math.max(1,num(data.settings.eurosPerPoint)||10);if(Array.isArray(data.settings.rewards)&&data.settings.rewards.length)d.settings.rewards=data.settings.rewards.map(function(r){return {points:Math.max(1,num(r.points)||1),name:text(r.name||'Premio')}});d.settings.email=Object.assign(defaultEmailSettings(),data.settings.email||{});
 if(typeof d.settings.email.intakeEnabled!=='boolean')d.settings.email.intakeEnabled=!!d.settings.email.enabled;
 if(typeof d.settings.email.shippedEnabled!=='boolean')d.settings.email.shippedEnabled=false;
@@ -1035,17 +1063,17 @@ function render(){
   $('#clientRows').innerHTML=clients.length?clients.map(function(c){var s=clientStats(c.id),last=latestOrderForClient(c.id);return '<tr><td><span class="pill">'+esc(c.code)+'</span></td><td><strong>'+esc(c.name||'Cliente')+'</strong></td><td>'+clientContactHtml(c)+'</td><td>'+esc(c.city||'—')+'</td><td>'+money(s.spent)+'</td><td><strong>'+s.balance+'</strong></td><td>'+(last?statusBadge(last.orderStatus):'—')+'</td><td>'+(last?statusBadge(last.paymentStatus):'—')+'</td><td><button class="mini primary open-profile" type="button" data-id="'+esc(c.id)+'">Apri</button></td></tr>'}).join(''):'<tr><td colspan="9" class="empty">Nessun cliente registrato.</td></tr>';
   $('#orderClient').innerHTML='<option value="">Seleziona cliente</option>'+state.clients.map(function(c){return '<option value="'+esc(c.id)+'">'+esc(c.code)+' — '+esc(c.name)+'</option>'}).join('');
   var oq=$('#orderSearch').value.trim().toLowerCase();var orders=state.orders.filter(function(o){var c=state.clients.find(function(x){return x.id===o.clientId});return [o.date,o.product,o.orderNotes,o.orderStatus,o.paymentStatus,o.trackingCode,o.carrier,c&&c.name,c&&c.code].some(function(v){return text(v).toLowerCase().indexOf(oq)!==-1})});
-  $('#orderRows').innerHTML=orders.length?orders.slice().reverse().map(function(o){var c=state.clients.find(function(x){return x.id===o.clientId});return '<tr><td>'+esc(o.date)+'</td><td>'+(c?'<strong>'+esc(c.name)+'</strong><div class="small">'+esc(c.code)+'</div>':'Cliente rimosso')+'</td><td>'+esc(o.product)+'</td><td>'+money(o.amount)+'</td><td>'+statusBadge(o.paymentStatus)+'<div class="small">'+money(o.paidAmount)+' incassati</div></td><td>'+statusBadge(o.orderStatus)+'</td><td>'+dueHtml(o)+'</td><td>'+trackingHtml(o)+'</td><td><button type="button" class="mini primary manage-order" data-id="'+esc(o.id)+'">Gestisci</button></td></tr>'}).join(''):'<tr><td colspan="9" class="empty">Nessun ordine registrato.</td></tr>';
+  $('#orderRows').innerHTML=orders.length?orders.slice().reverse().map(function(o){var c=state.clients.find(function(x){return x.id===o.clientId});return '<tr><td>'+esc(o.date)+'</td><td>'+(c?'<strong>'+esc(c.name)+'</strong><div class="small">'+esc(c.code)+'</div>':'Cliente rimosso')+'</td><td>'+esc(o.product)+(o.attachment&&o.attachment.fileId?'<div class="photo-dot">📷 Foto allegata</div>':'')+'</td><td>'+money(o.amount)+'</td><td>'+statusBadge(o.paymentStatus)+'<div class="small">'+money(o.paidAmount)+' incassati</div></td><td>'+statusBadge(o.orderStatus)+'</td><td>'+dueHtml(o)+'</td><td>'+trackingHtml(o)+'</td><td><button type="button" class="mini primary manage-order" data-id="'+esc(o.id)+'">Gestisci</button></td></tr>'}).join(''):'<tr><td colspan="9" class="empty">Nessun ordine registrato.</td></tr>';
   var rewardData=state.clients.map(function(c){var s=clientStats(c.id);return {c:c,s:s,r:rewardFor(s.balance)}}).sort(function(a,b){return b.s.balance-a.s.balance});
   $('#rewardRows').innerHTML=rewardData.length?rewardData.map(function(x){return '<tr><td><strong>'+esc(x.c.name)+'</strong><div class="reward">'+esc(x.c.code)+'</div></td><td><span class="pill">'+x.s.balance+' pt</span></td><td>'+(x.r.current?esc(x.r.current.name):'—')+'</td><td>'+(x.r.next?esc(x.r.next.name):'Soglia massima raggiunta')+'</td><td>'+(x.r.next?Math.max(0,x.r.next.points-x.s.balance)+' pt':'—')+'</td></tr>'}).join(''):'<tr><td colspan="5" class="empty">Aggiungi clienti per vedere i premi.</td></tr>';
   renderRewardsSettings();
 }
 function setNotice(el,msg,type){el.textContent=msg;el.className='notice'+(type?' '+type:'')}
-function openProfile(id){var c=state.clients.find(function(x){return x.id===id});if(!c)return;var s=clientStats(id);$('#profileId').value=c.id;$('#profileCode').textContent=c.code;$('#profileHeading').textContent=c.name||'Profilo cliente';$('#profileMeta').textContent=[c.email,c.phone,c.city].filter(Boolean).join(' • ')||'Nessun contatto inserito';$('#pSpent').textContent=money(s.spent);$('#pBalance').textContent=s.balance;$('#pFirstName').value=c.firstName;$('#pLastName').value=c.lastName;$('#pEmail').value=c.email;$('#pPhone').value=c.phone;$('#pAddress').value=c.address;$('#pZip').value=c.zip;$('#pCity').value=c.city;$('#pProvince').value=c.province;$('#pInstagram').value=c.instagram;$('#pNotes').value=c.notes;setNotice($('#profileNotice'),'','');$('#profileIntakeEmailStatus').textContent=emailStatusLabel(c.intakeEmailSentAt,c.intakeEmailError);$('#sendIntakeEmailBtn').disabled=!c.email;var os=state.orders.filter(function(o){return o.clientId===id}).slice().reverse();$('#profileOrders').innerHTML=os.length?os.map(function(o){return '<tr><td>'+esc(o.date)+'</td><td>'+esc(o.product)+'</td><td>'+money(o.amount)+'</td><td>'+statusBadge(o.paymentStatus)+'</td><td>'+statusBadge(o.orderStatus)+'</td><td>'+dueHtml(o)+'</td><td><button type="button" class="mini primary manage-order" data-id="'+esc(o.id)+'">Gestisci</button></td></tr>'}).join(''):'<tr><td colspan="7" class="empty">Nessun ordine per questo cliente.</td></tr>';var modal=$('#profileModal');modal.classList.add('open');modal.setAttribute('aria-hidden','false')}
+function openProfile(id){var c=state.clients.find(function(x){return x.id===id});if(!c)return;var s=clientStats(id);$('#profileId').value=c.id;$('#profileCode').textContent=c.code;$('#profileHeading').textContent=c.name||'Profilo cliente';$('#profileMeta').textContent=[c.email,c.phone,c.city].filter(Boolean).join(' • ')||'Nessun contatto inserito';$('#pSpent').textContent=money(s.spent);$('#pBalance').textContent=s.balance;$('#pFirstName').value=c.firstName;$('#pLastName').value=c.lastName;$('#pEmail').value=c.email;$('#pPhone').value=c.phone;$('#pAddress').value=c.address;$('#pZip').value=c.zip;$('#pCity').value=c.city;$('#pProvince').value=c.province;$('#pInstagram').value=c.instagram;$('#pNotes').value=c.notes;setNotice($('#profileNotice'),'','');$('#profileIntakeEmailStatus').textContent=emailStatusLabel(c.intakeEmailSentAt,c.intakeEmailError);$('#sendIntakeEmailBtn').disabled=!c.email;var os=state.orders.filter(function(o){return o.clientId===id}).slice().reverse();$('#profileOrders').innerHTML=os.length?os.map(function(o){return '<tr><td>'+esc(o.date)+'</td><td>'+esc(o.product)+(o.attachment&&o.attachment.fileId?'<div class="photo-dot">📷 Foto allegata</div>':'')+'</td><td>'+money(o.amount)+'</td><td>'+statusBadge(o.paymentStatus)+'</td><td>'+statusBadge(o.orderStatus)+'</td><td>'+dueHtml(o)+'</td><td><button type="button" class="mini primary manage-order" data-id="'+esc(o.id)+'">Gestisci</button></td></tr>'}).join(''):'<tr><td colspan="7" class="empty">Nessun ordine per questo cliente.</td></tr>';var modal=$('#profileModal');modal.classList.add('open');modal.setAttribute('aria-hidden','false')}
 function closeProfile(){var modal=$('#profileModal');modal.classList.remove('open');modal.setAttribute('aria-hidden','true')}
 function renderChecklist(o){var box=$('#checklistBox');box.innerHTML=CHECKLIST_ITEMS.map(function(i){var checked=o.checklist&&o.checklist[i.key];return '<div class="checkitem"><input type="checkbox" id="check_'+esc(i.key)+'" data-check="'+esc(i.key)+'"'+(checked?' checked':'')+'><label for="check_'+esc(i.key)+'">'+esc(i.label)+'</label></div>'}).join('')}
 function updateOrderEditPreview(){var done=$$('[data-check]:checked',$('#checklistBox')).length;$('#editChecklistPreview').textContent='Checklist: '+done+'/'+CHECKLIST_ITEMS.length}
-function openOrderModal(id){var o=state.orders.find(function(x){return x.id===id});if(!o)return;var c=state.clients.find(function(x){return x.id===o.clientId});$('#editOrderId').value=o.id;$('#orderModalHeading').textContent='Gestisci ordine';$('#orderModalMeta').textContent=(c?c.code+' — '+c.name:'Cliente rimosso')+' • '+o.date;$('#editOrderDate').value=o.date;$('#editOrderProduct').value=PRODUCTS.indexOf(o.product)>=0?o.product:'Altro';$('#editOrderAmount').value=o.amount;$('#editOrderStatus').value=o.orderStatus;$('#editOrderDueDate').value=o.dueDate;$('#editPaymentStatus').value=o.paymentStatus;$('#editPaidAmount').value=o.paidAmount;$('#editPaymentMethod').value=PAYMENT_METHODS.indexOf(o.paymentMethod)>=0?o.paymentMethod:'Altro';$('#editMaterialCost').value=o.materialCost;$('#editShippingCost').value=o.shippingCost;$('#editCarrier').value=CARRIERS.indexOf(o.carrier)>=0?o.carrier:'Altro';$('#editTrackingCode').value=o.trackingCode;$('#editTrackingUrl').value=o.trackingUrl;$('#editRedeem').value=o.redeemed;$('#editOrderNotes').value=o.orderNotes;renderChecklist(o);setNotice($('#orderEditNotice'),'','');$('#orderShippedEmailStatus').textContent=emailStatusLabel(o.shippedEmailSentAt,o.shippedEmailError);$('#sendShippedEmailBtn').disabled=!(c&&c.email);updateOrderEditPreview();var modal=$('#orderModal');modal.classList.add('open');modal.setAttribute('aria-hidden','false')}
+function openOrderModal(id){var o=state.orders.find(function(x){return x.id===id});if(!o)return;var c=state.clients.find(function(x){return x.id===o.clientId});$('#editOrderId').value=o.id;$('#orderModalHeading').textContent='Gestisci ordine';$('#orderModalMeta').textContent=(c?c.code+' — '+c.name:'Cliente rimosso')+' • '+o.date;$('#editOrderDate').value=o.date;$('#editOrderProduct').value=PRODUCTS.indexOf(o.product)>=0?o.product:'Altro';$('#editOrderAmount').value=o.amount;$('#editOrderStatus').value=o.orderStatus;$('#editOrderDueDate').value=o.dueDate;$('#editPaymentStatus').value=o.paymentStatus;$('#editPaidAmount').value=o.paidAmount;$('#editPaymentMethod').value=PAYMENT_METHODS.indexOf(o.paymentMethod)>=0?o.paymentMethod:'Altro';$('#editMaterialCost').value=o.materialCost;$('#editShippingCost').value=o.shippingCost;$('#editCarrier').value=CARRIERS.indexOf(o.carrier)>=0?o.carrier:'Altro';$('#editTrackingCode').value=o.trackingCode;$('#editTrackingUrl').value=o.trackingUrl;$('#editRedeem').value=o.redeemed;$('#editOrderNotes').value=o.orderNotes;renderChecklist(o);setNotice($('#orderEditNotice'),'','');$('#orderShippedEmailStatus').textContent=emailStatusLabel(o.shippedEmailSentAt,o.shippedEmailError);$('#sendShippedEmailBtn').disabled=!(c&&c.email);updateOrderEditPreview();renderOrderPhotoBox(o);var modal=$('#orderModal');modal.classList.add('open');modal.setAttribute('aria-hidden','false')}
 function closeOrderModal(){var modal=$('#orderModal');modal.classList.remove('open');modal.setAttribute('aria-hidden','true')}
 function refreshOpenProfileIfNeeded(){if($('#profileModal').classList.contains('open')){var id=$('#profileId').value;if(id)openProfile(id)}}
 function safeTrackingUrl(v){var u=text(v).trim();return /^https?:\/\//i.test(u)?u:''}
@@ -1104,6 +1132,167 @@ $('#orderForm').addEventListener('submit',async function(e){
     catch(err){openOrderModal(order.id);setNotice($('#orderEditNotice'),'Ordine salvato, ma l’e-mail non è partita: '+text(err&&err.text||err&&err.message||err),'error')}
   }
 });
+
+function renderOrderPhotoBox(o){
+  var has=!!(o&&o.attachment&&o.attachment.fileId);
+  $('#orderPhotoName').textContent=has?(o.attachment.fileName||'Foto ordine'):'Nessuna foto allegata';
+  $('#orderPhotoHint').textContent=has
+    ? ('Salvata su Google Drive'+(o.attachment.uploadedAt?' • '+new Date(o.attachment.uploadedAt).toLocaleString('it-IT'):''))
+    : 'Scatta o scegli una foto per ricordarti esattamente cosa ha ordinato il cliente.';
+  $('#orderPhotoIcon').textContent=has?'🖼️':'📷';
+  $('#openOrderPhotoBtn').disabled=!has;
+  $('#removeOrderPhotoBtn').disabled=!has;
+  $('#orderPhotoFile').value='';
+  setNotice($('#orderPhotoNotice'),'','');
+}
+
+function orderPhotoViewUrl(fileId){
+  var cfg=trackingIntegration();
+  if(!trackingIntegrationReady()||!fileId)return '';
+  var base=text(cfg.webAppUrl).trim();
+  var sep=base.indexOf('?')>=0?'&':'?';
+  return base+sep+
+    'action=viewOrderAttachment'+
+    '&token='+encodeURIComponent(text(cfg.token).trim())+
+    '&fileId='+encodeURIComponent(fileId);
+}
+
+function fileToDataUrl(file){
+  return new Promise(function(resolve,reject){
+    var reader=new FileReader();
+    reader.onload=function(){resolve(String(reader.result||''))};
+    reader.onerror=function(){reject(new Error('Non riesco a leggere la foto selezionata.'))};
+    reader.readAsDataURL(file);
+  });
+}
+
+function blobToBase64Url(blob){
+  return new Promise(function(resolve,reject){
+    var reader=new FileReader();
+    reader.onload=function(){
+      var s=String(reader.result||'');
+      var idx=s.indexOf(',');
+      if(idx<0){reject(new Error('Foto non valida.'));return}
+      resolve(s.slice(idx+1).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''));
+    };
+    reader.onerror=function(){reject(new Error('Errore durante la preparazione della foto.'))};
+    reader.readAsDataURL(blob);
+  });
+}
+
+function canvasToBlob(canvas,type,quality){
+  return new Promise(function(resolve,reject){
+    canvas.toBlob(function(blob){
+      if(blob)resolve(blob);else reject(new Error('Non riesco a comprimere questa foto.'));
+    },type,quality);
+  });
+}
+
+async function compressOrderPhoto(file){
+  if(!file)throw new Error('Scegli prima una foto.');
+  if(file.size>20*1024*1024)throw new Error('La foto originale è troppo grande.');
+
+  var url=URL.createObjectURL(file);
+  try{
+    var img=await new Promise(function(resolve,reject){
+      var im=new Image();
+      im.onload=function(){resolve(im)};
+      im.onerror=function(){reject(new Error('Formato foto non supportato dal browser. Prova con JPG o PNG.'))};
+      im.src=url;
+    });
+
+    var maxSide=1400;
+    var scale=Math.min(1,maxSide/Math.max(img.naturalWidth||img.width,img.naturalHeight||img.height));
+    var width=Math.max(1,Math.round((img.naturalWidth||img.width)*scale));
+    var height=Math.max(1,Math.round((img.naturalHeight||img.height)*scale));
+    var targetBytes=430*1024;
+    var quality=.82;
+    var blob=null;
+
+    for(var attempt=0;attempt<8;attempt++){
+      var canvas=document.createElement('canvas');
+      canvas.width=width;canvas.height=height;
+      var ctx=canvas.getContext('2d',{alpha:false});
+      ctx.fillStyle='#fff';ctx.fillRect(0,0,width,height);
+      ctx.drawImage(img,0,0,width,height);
+
+      blob=await canvasToBlob(canvas,'image/jpeg',quality);
+      if(blob.size<=targetBytes)break;
+
+      if(quality>.55){
+        quality-=.09;
+      }else{
+        width=Math.max(500,Math.round(width*.82));
+        height=Math.max(500,Math.round(height*.82));
+        quality=.72;
+      }
+    }
+
+    if(!blob||blob.size>620*1024){
+      throw new Error('Non riesco a ridurre abbastanza la foto. Prova con un’immagine più piccola.');
+    }
+
+    return {
+      blob:blob,
+      mimeType:'image/jpeg',
+      fileName:(text(file.name).replace(/\.[^.]+$/,'')||'foto-ordine')+'.jpg'
+    };
+  }finally{
+    URL.revokeObjectURL(url);
+  }
+}
+
+async function uploadOrderPhoto(order,file){
+  if(!order)throw new Error('Ordine non trovato.');
+  if(!trackingIntegrationReady())throw new Error('Configura prima URL Apps Script e token.');
+
+  var client=state.clients.find(function(c){return c.id===order.clientId});
+  var prepared=await compressOrderPhoto(file);
+  var encoded=await blobToBase64Url(prepared.blob);
+  var chunkSize=2800;
+  var chunks=[];
+  for(var i=0;i<encoded.length;i+=chunkSize)chunks.push(encoded.slice(i,i+chunkSize));
+
+  if(chunks.length>235)throw new Error('Foto ancora troppo grande dopo la compressione.');
+
+  var uploadId='att_'+Date.now()+'_'+Math.random().toString(36).slice(2,10);
+  var started=await cloudApi({
+    action:'attachmentStart',
+    uploadId:uploadId,
+    totalChunks:String(chunks.length),
+    orderId:order.id,
+    clientName:client?client.name:'Cliente',
+    product:order.product||'Ordine',
+    fileName:prepared.fileName,
+    mimeType:prepared.mimeType,
+    capturedAt:new Date().toISOString()
+  });
+  if(!started||started.ok!==true)throw new Error(text(started&&started.error||'Impossibile avviare il caricamento.'));
+
+  for(var n=0;n<chunks.length;n++){
+    var result=await cloudApi({
+      action:'attachmentChunk',
+      uploadId:uploadId,
+      index:String(n),
+      data:chunks[n]
+    });
+    if(!result||result.ok!==true)throw new Error(text(result&&result.error||('Errore caricamento foto '+(n+1)+'/'+chunks.length)));
+  }
+
+  var finish=await cloudApi({action:'attachmentFinish',uploadId:uploadId});
+  if(!finish||finish.ok!==true)throw new Error(text(finish&&finish.error||'Impossibile completare il caricamento.'));
+
+  order.attachment={
+    fileId:text(finish.fileId),
+    fileName:text(finish.fileName),
+    mimeType:text(finish.mimeType),
+    uploadedAt:text(finish.uploadedAt||new Date().toISOString())
+  };
+
+  if(!saveState())throw new Error('Foto caricata su Drive, ma non riesco a salvare il collegamento nell’ordine.');
+  return order.attachment;
+}
+
 function manageOrderClick(e){var b=e.target.closest('.manage-order');if(b)openOrderModal(b.dataset.id)}
 $('#orderRows').addEventListener('click',manageOrderClick);$('#profileOrders').addEventListener('click',manageOrderClick);
 $('#closeOrderModal').addEventListener('click',closeOrderModal);$('#orderModal').addEventListener('click',function(e){if(e.target===this)closeOrderModal()});document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeOrderModal();closeProfile()}});
@@ -1130,6 +1319,60 @@ $('#orderEditForm').addEventListener('submit',async function(e){
     try{await sendShippedEmail(o,false);openOrderModal(id);setNotice($('#orderEditNotice'),'E-mail di spedizione inviata automaticamente.','ok')}
     catch(err){openOrderModal(id);setNotice($('#orderEditNotice'),'Ordine salvato, ma l’e-mail non è partita: '+text(err&&err.text||err&&err.message||err),'error')}
   }
+});
+
+
+$('#uploadOrderPhotoBtn').addEventListener('click',async function(){
+  var id=$('#editOrderId').value;
+  var o=state.orders.find(function(x){return x.id===id});
+  var file=$('#orderPhotoFile').files&&$('#orderPhotoFile').files[0];
+  if(!o){setNotice($('#orderPhotoNotice'),'Ordine non trovato.','error');return}
+  if(!file){setNotice($('#orderPhotoNotice'),'Scegli o scatta prima una foto.','error');return}
+
+  this.disabled=true;
+  $('#orderPhotoFile').disabled=true;
+  setNotice($('#orderPhotoNotice'),'Comprimo e carico la foto su Google Drive...','');
+
+  try{
+    var att=await uploadOrderPhoto(o,file);
+    render();
+    refreshOpenProfileIfNeeded();
+    renderOrderPhotoBox(o);
+    setNotice($('#orderPhotoNotice'),'Foto allegata ✅ Salvata su Google Drive.','ok');
+  }catch(err){
+    setNotice($('#orderPhotoNotice'),'Caricamento fallito: '+text(err&&err.message||err),'error');
+  }finally{
+    this.disabled=false;
+    $('#orderPhotoFile').disabled=false;
+  }
+});
+
+$('#openOrderPhotoBtn').addEventListener('click',function(){
+  var id=$('#editOrderId').value;
+  var o=state.orders.find(function(x){return x.id===id});
+  if(!o||!o.attachment||!o.attachment.fileId){
+    setNotice($('#orderPhotoNotice'),'Nessuna foto allegata.','error');
+    return;
+  }
+  var url=orderPhotoViewUrl(o.attachment.fileId);
+  if(!url){
+    setNotice($('#orderPhotoNotice'),'Configura URL Apps Script e token.','error');
+    return;
+  }
+  window.open(url,'_blank','noopener');
+});
+
+$('#removeOrderPhotoBtn').addEventListener('click',function(){
+  var id=$('#editOrderId').value;
+  var o=state.orders.find(function(x){return x.id===id});
+  if(!o||!o.attachment)return;
+  if(!confirm('Rimuovere la foto da questo ordine? Il file resterà nel Drive come storico/backup.'))return;
+  o.attachment=null;
+  saveState();
+  render();
+  refreshOpenProfileIfNeeded();
+  renderOrderPhotoBox(o);
+  setNotice($('#orderPhotoNotice'),'Foto rimossa dal gestionale. Il file originale resta conservato su Drive.','ok');
 });
 
 $('#sendShippedEmailBtn').addEventListener('click',async function(){
