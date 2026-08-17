@@ -1681,6 +1681,252 @@ td{font-size:12.5px}
   .order-utility-actions .order-secondary-actions{grid-template-columns:1fr}
 }
 
+
+/* ==========================================================
+   V26 — layout iPad-first + normalizzazione completa
+   Obiettivo: nessun elemento deve uscire lateralmente dalla pagina.
+   Tabelle e Kanban possono scorrere SOLO nei propri contenitori.
+   ========================================================== */
+
+/* Contenimento generale */
+#claManagerApp,
+.app,
+.top,
+.brand,
+.actions,
+.global-search,
+.stats,
+.tabs,
+.panel,
+.card,
+.formgrid,
+.tablewrap,
+.kanban-wrap,
+.attention-grid,
+.stats-detail-grid{
+  min-width:0;
+  max-width:100%;
+}
+.app{overflow:visible}
+.card>*{max-width:100%}
+
+/* Evita larghezze minime ereditate dai controlli */
+.formgrid>*{min-width:0}
+.formgrid input,
+.formgrid select,
+.formgrid textarea,
+.settings input,
+.settings select,
+.settings textarea{min-width:0;width:100%}
+
+/* Numeric input puliti su Safari/iPad */
+input[type="number"]{
+  -moz-appearance:textfield;
+  appearance:textfield;
+}
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button{
+  -webkit-appearance:none;
+  margin:0;
+}
+
+/* Header: niente bottoni sospesi a destra */
+.top{width:100%}
+.actions{width:100%;min-width:0}
+.actions>button,
+.actions>.file-label{
+  min-width:0!important;
+  max-width:100%;
+}
+
+/* Dashboard: testo/card non devono forzare la griglia */
+.stat{min-width:0}
+.stat small,
+.stat strong{
+  max-width:100%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+/* Navigazione stabile */
+.tabs{width:100%}
+.tab{min-width:0!important;max-width:100%}
+
+/* Centro operativo */
+.profile-head>.toolbar{flex:0 1 auto}
+.attention-stat{min-width:0}
+.attention-stat>div{min-width:0}
+
+/* Form ordine: gerarchia più chiara */
+#orderForm .submitrow,
+#orderForm .create-order-actions{
+  align-self:end;
+}
+#orderForm .create-order-actions button,
+#orderForm .submitrow button{
+  width:100%;
+  min-width:0;
+}
+
+/* Tabelle: lo scroll resta dentro la tabella, mai nella pagina */
+.tablewrap{overflow-x:auto;overflow-y:hidden}
+.tablewrap table{max-width:none}
+
+/* Kanban: il board largo resta confinato */
+.kanban-wrap{
+  overflow-x:auto!important;
+  overflow-y:hidden;
+  max-width:100%;
+  width:100%;
+}
+.kanban-board{min-width:max-content}
+
+/* Modal */
+.modal-box{max-width:calc(100vw - 28px)}
+.modal-head{min-width:0}
+.modal-head h2{min-width:0;overflow-wrap:anywhere}
+
+/* Foto ordine */
+.photo-picker-wrap,
+.photo-selected-name,
+.order-photo-info{min-width:0}
+.photo-selected-name{max-width:100%}
+.order-photo-actions button{max-width:100%}
+
+/* ---------- iPad / tablet, anche con zoom Safari ---------- */
+@media (max-width:1400px),
+       (min-width:700px) and (max-width:2200px) and (any-pointer:coarse){
+  .app{
+    width:100%;
+    padding-left:14px;
+    padding-right:14px;
+  }
+
+  /* Brand sopra, strumenti sotto: impossibile uscire a destra */
+  .top{
+    display:grid;
+    grid-template-columns:minmax(0,1fr)!important;
+    gap:10px;
+  }
+  .brand{width:100%;min-height:auto}
+  .actions{
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+    gap:8px;
+  }
+  .actions>button,.actions>.file-label{
+    width:100%;
+    min-height:48px;
+  }
+
+  /* 6 KPI = 3 + 3. Molto più leggibile su iPad */
+  .stats{
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    gap:9px;
+  }
+  .stat{min-height:100px;padding:14px}
+
+  /* Menu sempre dentro lo schermo */
+  .tabs{
+    display:grid!important;
+    grid-template-columns:repeat(6,minmax(0,1fr))!important;
+    overflow:visible!important;
+    gap:6px;
+  }
+  .tab{
+    width:100%;
+    min-width:0!important;
+    padding:8px 6px;
+    font-size:12px;
+    white-space:normal;
+  }
+
+  /* Tutti i form principali diventano 2 colonne su tablet */
+  .formgrid{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:12px!important;
+  }
+  .formgrid>.span2{grid-column:span 1!important}
+  .formgrid>.span4{grid-column:1/-1!important}
+
+  /* Centro operativo: 3 + 2 */
+  .attention-grid{
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  }
+
+  /* Statistiche leggibili */
+  .stats-detail-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+
+  /* Foto: Salva su riga intera, altre azioni sotto */
+  .order-photo-actions{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+  #uploadOrderPhotoBtn{grid-column:1/-1!important}
+
+  /* Modale ordine: il bottone salva è separato */
+  .order-utility-actions{grid-template-columns:1fr!important}
+  .order-utility-actions .order-secondary-actions{
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  }
+
+  /* Kanban leggermente più compatto su tablet */
+  .kanban-board{grid-template-columns:repeat(7,238px)}
+  .kanban-column{width:238px}
+}
+
+/* ---------- Tablet stretto / iPad portrait ---------- */
+@media (max-width:900px){
+  .actions{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+
+  .tabs{
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  }
+
+  .attention-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .stats-detail-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+
+  .order-utility-actions .order-secondary-actions{
+    grid-template-columns:1fr!important;
+  }
+
+  .modal-box{max-width:calc(100vw - 16px)}
+}
+
+/* ---------- iPhone ---------- */
+@media (max-width:640px){
+  .app{padding-left:8px;padding-right:8px}
+  .actions{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .formgrid{grid-template-columns:1fr!important}
+  .formgrid>.span2,.formgrid>.span4{grid-column:1/-1!important}
+  .attention-grid{grid-template-columns:1fr!important}
+  .stats-detail-grid{grid-template-columns:1fr!important}
+  .profile-stats{grid-template-columns:1fr!important}
+
+  .tabs{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+  .tab{min-height:46px;font-size:12px}
+
+  .order-photo-actions{grid-template-columns:1fr!important}
+  #uploadOrderPhotoBtn{grid-column:auto!important}
+
+  .photo-picker-wrap{grid-template-columns:1fr!important}
+  .photo-picker-button{width:100%}
+
+  .toolbar{grid-template-columns:1fr!important}
+  .toolbar>button,.toolbar>.file-label{width:100%}
+}
+
+/* ---------- Telefoni molto stretti ---------- */
+@media (max-width:390px){
+  .actions{grid-template-columns:1fr!important}
+  .stats{grid-template-columns:1fr 1fr!important}
+  .tabs{grid-template-columns:1fr 1fr!important}
+  .brand h1{font-size:20px}
+}
+
 </style>
 
 <script>
@@ -1793,7 +2039,7 @@ td{font-size:12.5px}
 <div id="claManagerApp" class="cla-locked"><div class="app" id="cla-root">
   <div class="top">
     <div class="brand"><h1>Card_Lab_Art — Gestione clienti e ordini</h1><p>Dashboard operativa Card_Lab_Art — ordini, clienti, spedizioni, premi e attività.</p>
-        <span id="uiVersionBadge" class="ui-version-badge">UI V25</span></div>
+        <span id="uiVersionBadge" class="ui-version-badge">UI V26</span></div>
     <div class="actions">
       <button class="secondary" id="exportBtn" type="button">Esporta backup</button>
       <label class="file-label" for="importFile">Importa backup</label><input id="importFile" type="file" accept="application/json" hidden>
