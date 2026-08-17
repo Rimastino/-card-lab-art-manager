@@ -342,6 +342,16 @@ tr:last-child td{border-bottom:0}
   .row-actions button{flex:1}
   .checklist{grid-template-columns:1fr}
 }
+
+.smart-import-box{
+  border:1px solid rgba(109,93,252,.18);
+  border-radius:18px;
+  padding:14px;
+  background:linear-gradient(135deg,rgba(109,93,252,.07),rgba(14,165,233,.05));
+}
+.smart-import-title{font-size:15px;font-weight:900;margin-bottom:5px}
+#clientPasteData{min-height:145px}
+
 </style>
 
 <script>
@@ -478,27 +488,39 @@ tr:last-child td{border-bottom:0}
 
   <section class="panel active" id="panel-clients">
     <div class="card">
-      <h2>Nuovo profilo cliente</h2>
-      <form id="clientForm" class="formgrid" novalidate>
-        <div><label for="clientFirstName">Nome *</label><input id="clientFirstName" autocomplete="given-name" required placeholder="Marco"></div>
-        <div><label for="clientLastName">Cognome *</label><input id="clientLastName" autocomplete="family-name" required placeholder="Rossi"></div>
-        <div><label for="clientEmail">E-mail</label><input id="clientEmail" type="email" autocomplete="email" placeholder="cliente@email.it"></div>
-        <div><label for="clientPhone">Telefono</label><input id="clientPhone" type="tel" autocomplete="tel" placeholder="+39 ..."></div>
-        <div class="span2"><label for="clientAddress">Indirizzo</label><input id="clientAddress" autocomplete="street-address" placeholder="Via e numero civico"></div>
-        <div><label for="clientZip">CAP</label><input id="clientZip" inputmode="numeric" autocomplete="postal-code" placeholder="00000"></div>
-        <div><label for="clientCity">Città</label><input id="clientCity" autocomplete="address-level2" placeholder="Roma"></div>
-        <div><label for="clientProvince">Provincia</label><input id="clientProvince" maxlength="2" autocomplete="address-level1" placeholder="RM"></div>
-        <div><label for="clientInstagram">Instagram</label><input id="clientInstagram" placeholder="@username"></div>
-        <div><label for="clientCode">Codice cliente</label><input id="clientCode" readonly></div>
-        <div class="submitrow"><button class="primary" type="submit">Salva profilo</button></div>
-        <div class="span4"><label for="clientNotes">Note cliente</label><textarea id="clientNotes" placeholder="Preferenze, dettagli utili, richieste..."></textarea></div>
-      </form>
-      <div class="notice" id="clientNotice" aria-live="polite"></div>
-    </div>
+      <div class="profile-head">
+        <div>
+          <h2 style="margin-bottom:4px">Clienti</h2>
+          <div class="reward">La schermata iniziale mostra direttamente tutti i clienti registrati.</div>
+        </div>
+        <div class="row-actions">
+          <button class="primary" id="newClientBtn" type="button">＋ Nuovo cliente</button>
+        </div>
+      </div>
 
-    <div class="card">
-      <div class="searchrow"><input id="clientSearch" placeholder="Cerca nome, codice, e-mail, telefono, città..."></div>
-      <div class="tablewrap"><table><thead><tr><th>Codice</th><th>Cliente</th><th>Contatti</th><th>Città</th><th>Totale speso</th><th>Saldo punti</th><th>Ultimo ordine</th><th>Pagamento</th><th>Profilo</th></tr></thead><tbody id="clientRows"></tbody></table></div>
+      <div class="searchrow" style="margin-top:14px">
+        <input id="clientSearch" placeholder="Cerca nome, codice, e-mail, telefono, città...">
+      </div>
+
+      <div class="tablewrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Codice</th>
+              <th>Cliente</th>
+              <th>Contatti</th>
+              <th>Città</th>
+              <th>Totale speso</th>
+              <th>Saldo punti</th>
+              <th>Ultimo ordine</th>
+              <th>Pagamento</th>
+              <th>Profilo</th>
+            </tr>
+          </thead>
+          <tbody id="clientRows"></tbody>
+        </table>
+      </div>
+      <div class="notice" id="clientNotice" aria-live="polite"></div>
     </div>
   </section>
 
@@ -598,6 +620,61 @@ tr:last-child td{border-bottom:0}
 
     <div class="card"><h2>Gestione dati</h2><p class="reward">Il browser mantiene una copia locale. Con la sincronizzazione cloud attiva, clienti e ordini vengono anche condivisi tra PC e iPhone. Continua comunque a fare un backup JSON periodico.</p><button class="danger" type="button" id="resetBtn">Azzera tutti i dati</button></div>
   </section>
+</div>
+
+
+<div class="modal" id="newClientModal" aria-hidden="true">
+  <div class="modal-box" style="width:min(900px,100%)">
+    <div class="profile-head">
+      <div>
+        <h2 style="margin:0">Nuovo cliente</h2>
+        <div class="profile-meta">Inserisci i dati manualmente oppure incollali tutti insieme: il gestionale prova a riconoscerli automaticamente.</div>
+      </div>
+      <button class="ghost modal-close" id="closeNewClient" type="button">Chiudi</button>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="smart-import-box">
+      <div class="smart-import-title">✨ Compilazione intelligente</div>
+      <div class="reward" style="margin-bottom:8px">
+        Puoi incollare testo preso da WhatsApp, e-mail o messaggi. Riconosce nome, cognome, indirizzo, CAP, città, provincia, e-mail, telefono e Instagram.
+      </div>
+      <textarea id="clientPasteData" placeholder="Esempio:
+
+Mario Rossi
+Via Roma 25
+00049 Velletri RM
+333 1234567
+mario@email.it
+@mariorossi"></textarea>
+      <div class="toolbar">
+        <button class="secondary" id="parseClientDataBtn" type="button">✨ Riconosci e compila</button>
+        <button class="ghost" id="clearClientPasteBtn" type="button">Pulisci testo</button>
+      </div>
+      <div class="notice" id="clientParseNotice"></div>
+    </div>
+
+    <div class="divider"></div>
+
+    <form id="clientForm" class="formgrid" novalidate>
+      <div><label for="clientFirstName">Nome *</label><input id="clientFirstName" autocomplete="given-name" required placeholder="Marco"></div>
+      <div><label for="clientLastName">Cognome *</label><input id="clientLastName" autocomplete="family-name" required placeholder="Rossi"></div>
+      <div><label for="clientEmail">E-mail</label><input id="clientEmail" type="email" autocomplete="email" placeholder="cliente@email.it"></div>
+      <div><label for="clientPhone">Telefono</label><input id="clientPhone" type="tel" autocomplete="tel" placeholder="+39 ..."></div>
+      <div class="span2"><label for="clientAddress">Indirizzo</label><input id="clientAddress" autocomplete="street-address" placeholder="Via e numero civico"></div>
+      <div><label for="clientZip">CAP</label><input id="clientZip" inputmode="numeric" autocomplete="postal-code" placeholder="00000"></div>
+      <div><label for="clientCity">Città</label><input id="clientCity" autocomplete="address-level2" placeholder="Roma"></div>
+      <div><label for="clientProvince">Provincia</label><input id="clientProvince" maxlength="2" autocomplete="address-level1" placeholder="RM"></div>
+      <div><label for="clientInstagram">Instagram</label><input id="clientInstagram" placeholder="@username"></div>
+      <div><label for="clientCode">Codice cliente</label><input id="clientCode" readonly></div>
+      <div class="span4"><label for="clientNotes">Note cliente</label><textarea id="clientNotes" placeholder="Preferenze, dettagli utili, richieste..."></textarea></div>
+      <div class="span4 toolbar">
+        <button class="primary" type="submit">Salva cliente</button>
+        <button class="ghost" id="cancelNewClient" type="button">Annulla</button>
+      </div>
+    </form>
+  </div>
 </div>
 
 <div class="modal" id="profileModal" aria-hidden="true">
@@ -1682,7 +1759,308 @@ function openOrderModal(id){var o=state.orders.find(function(x){return x.id===id
 function closeOrderModal(){var modal=$('#orderModal');modal.classList.remove('open');modal.setAttribute('aria-hidden','true')}
 function refreshOpenProfileIfNeeded(){if($('#profileModal').classList.contains('open')){var id=$('#profileId').value;if(id)openProfile(id)}}
 function safeTrackingUrl(v){var u=text(v).trim();return /^https?:\/\//i.test(u)?u:''}
+
+function resetNewClientForm(){
+  $('#clientForm').reset();
+  $('#clientCode').value=nextCode();
+  $('#clientPasteData').value='';
+  setNotice($('#clientParseNotice'),'','');
+}
+
+function openNewClientModal(){
+  resetNewClientForm();
+  var modal=$('#newClientModal');
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden','false');
+  setTimeout(function(){
+    try{$('#clientPasteData').focus()}catch(e){}
+  },80);
+}
+
+function closeNewClientModal(){
+  var modal=$('#newClientModal');
+  modal.classList.remove('open');
+  modal.setAttribute('aria-hidden','true');
+}
+
+function titleCaseClientText(value){
+  return text(value).trim().toLowerCase().replace(/(^|[\s'’\-])([a-zà-ÿ])/g,function(_,a,b){
+    return a+b.toUpperCase();
+  });
+}
+
+function cleanClientLine(value){
+  return text(value)
+    .replace(/^[\s•\-–—]+/,'')
+    .replace(/\s+/g,' ')
+    .trim();
+}
+
+function clientLabelValue(lines,labels){
+  var labelPattern=labels.map(function(x){
+    return x.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  }).join('|');
+
+  var re=new RegExp('^(?:'+labelPattern+')\\s*[:\\-]\\s*(.+)$','i');
+  for(var i=0;i<lines.length;i++){
+    var m=lines[i].match(re);
+    if(m&&m[1])return cleanClientLine(m[1]);
+  }
+  return '';
+}
+
+function parseItalianLocation(value){
+  value=cleanClientLine(value)
+    .replace(/\((\s*[A-Z]{2}\s*)\)$/i,' $1')
+    .replace(/,\s*/g,' ')
+    .replace(/\s+/g,' ')
+    .trim();
+
+  var m=value.match(/\b(\d{5})\s+(.+?)\s+([A-Z]{2})$/i);
+  if(m){
+    return {
+      zip:m[1],
+      city:titleCaseClientText(m[2]),
+      province:m[3].toUpperCase()
+    };
+  }
+
+  m=value.match(/^(.+?)\s+(\d{5})\s+(.+?)\s+([A-Z]{2})$/i);
+  if(m){
+    return {
+      address:titleCaseClientText(m[1]),
+      zip:m[2],
+      city:titleCaseClientText(m[3]),
+      province:m[4].toUpperCase()
+    };
+  }
+
+  return {};
+}
+
+function parseClientPastedData(raw){
+  raw=text(raw).replace(/\r/g,'\n');
+  var lines=raw.split(/\n+/).map(cleanClientLine).filter(Boolean);
+  var result={
+    firstName:'',
+    lastName:'',
+    email:'',
+    phone:'',
+    address:'',
+    zip:'',
+    city:'',
+    province:'',
+    instagram:'',
+    notes:''
+  };
+
+  if(!lines.length)return result;
+
+  var fullName=clientLabelValue(lines,['nome e cognome','nominativo','cliente','destinatario']);
+  result.firstName=clientLabelValue(lines,['nome']);
+  result.lastName=clientLabelValue(lines,['cognome']);
+  result.email=clientLabelValue(lines,['e-mail','email','mail']);
+  result.phone=clientLabelValue(lines,['telefono','tel','cellulare','cell','mobile']);
+  result.address=clientLabelValue(lines,['indirizzo','via','indirizzo di spedizione']);
+  result.zip=clientLabelValue(lines,['cap','codice postale']);
+  result.city=clientLabelValue(lines,['città','citta','comune','località','localita']);
+  result.province=clientLabelValue(lines,['provincia','prov']);
+  result.instagram=clientLabelValue(lines,['instagram','ig']);
+  result.notes=clientLabelValue(lines,['note','nota']);
+
+  // E-mail anche senza etichetta.
+  if(!result.email){
+    var emailMatch=raw.match(/[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,}/i);
+    if(emailMatch)result.email=emailMatch[0];
+  }
+
+  // Instagram: @username, ma evita la parte della mail.
+  if(!result.instagram){
+    for(var ii=0;ii<lines.length;ii++){
+      if(lines[ii].indexOf('@')===0&&/^[A-Za-z0-9._]{2,30}$/.test(lines[ii].slice(1))){
+        result.instagram=lines[ii];
+        break;
+      }
+      var igm=lines[ii].match(/(?:instagram|ig)\s*[:\-]?\s*@?([A-Za-z0-9._]{2,30})/i);
+      if(igm){result.instagram='@'+igm[1];break}
+    }
+  }
+  if(result.instagram&&result.instagram.charAt(0)!=='@')result.instagram='@'+result.instagram.replace(/^@/,'');
+
+  // Telefono anche senza etichetta.
+  if(!result.phone){
+    for(var p=0;p<lines.length;p++){
+      if(lines[p]===result.email||lines[p]===result.instagram)continue;
+      var compact=lines[p].replace(/[^\d+]/g,'');
+      var digits=compact.replace(/\D/g,'');
+      if(digits.length>=9&&digits.length<=15){
+        // Non confondere CAP + altri dati con telefono.
+        if(!/^\d{5}$/.test(digits)){
+          result.phone=lines[p];
+          break;
+        }
+      }
+    }
+  }
+
+  // CAP + città + provincia.
+  for(var l=0;l<lines.length;l++){
+    var loc=parseItalianLocation(lines[l]);
+    if(loc.zip&&!result.zip)result.zip=loc.zip;
+    if(loc.city&&!result.city)result.city=loc.city;
+    if(loc.province&&!result.province)result.province=loc.province;
+    if(loc.address&&!result.address)result.address=loc.address;
+  }
+
+  // Indirizzo non etichettato.
+  if(!result.address){
+    var streetRe=/^(via|viale|piazza|piazzale|corso|largo|vicolo|strada|contrada|località|localita|loc\.|frazione|borgo)\b/i;
+    for(var a=0;a<lines.length;a++){
+      var line=lines[a];
+      if(streetRe.test(line)){
+        // Se contiene anche CAP, separa la parte dell'indirizzo.
+        var capPos=line.search(/\b\d{5}\b/);
+        result.address=titleCaseClientText(capPos>0?line.slice(0,capPos).replace(/[,\s]+$/,''):line);
+        break;
+      }
+    }
+  }
+
+  // Se l'indirizzo etichettato contiene anche CAP/città/provincia, separali.
+  if(result.address){
+    var combined=parseItalianLocation(result.address);
+    if(combined.zip){
+      if(!result.zip)result.zip=combined.zip;
+      if(!result.city)result.city=combined.city;
+      if(!result.province)result.province=combined.province;
+      if(combined.address)result.address=combined.address;
+    }
+  }
+
+  // Nome completo etichettato oppure prima riga "umana".
+  if(fullName&&!result.firstName&&!result.lastName){
+    var nameParts=fullName.split(/\s+/).filter(Boolean);
+    result.firstName=titleCaseClientText(nameParts.shift()||'');
+    result.lastName=titleCaseClientText(nameParts.join(' '));
+  }
+
+  if(!result.firstName&&!result.lastName){
+    var excluded=[];
+    [result.email,result.phone,result.address,result.instagram].forEach(function(v){if(v)excluded.push(v.toLowerCase())});
+
+    for(var n=0;n<lines.length;n++){
+      var candidate=lines[n];
+      var low=candidate.toLowerCase();
+
+      if(excluded.indexOf(low)>=0)continue;
+      if(/\d/.test(candidate))continue;
+      if(candidate.indexOf('@')>=0)continue;
+      if(/^(nome|cognome|email|e-mail|mail|telefono|tel|cellulare|indirizzo|cap|città|citta|comune|provincia|instagram|ig|note)\b/i.test(candidate))continue;
+      if(candidate.split(/\s+/).length<2||candidate.split(/\s+/).length>6)continue;
+
+      var parts=candidate.split(/\s+/);
+      result.firstName=titleCaseClientText(parts.shift());
+      result.lastName=titleCaseClientText(parts.join(' '));
+      break;
+    }
+  }
+
+  // Se abbiamo solo nome completo nel campo nome, dividilo.
+  if(result.firstName&&!result.lastName&&result.firstName.indexOf(' ')>0){
+    var parts2=result.firstName.split(/\s+/);
+    result.firstName=titleCaseClientText(parts2.shift());
+    result.lastName=titleCaseClientText(parts2.join(' '));
+  }
+
+  result.firstName=titleCaseClientText(result.firstName);
+  result.lastName=titleCaseClientText(result.lastName);
+  result.city=titleCaseClientText(result.city);
+  result.province=text(result.province).replace(/[^A-Za-z]/g,'').slice(0,2).toUpperCase();
+  result.zip=text(result.zip).match(/\d{5}/)?text(result.zip).match(/\d{5}/)[0]:'';
+
+  // Conserva nelle note solo righe non già riconosciute e non puramente etichettate.
+  if(!result.notes){
+    var known=[
+      result.firstName,result.lastName,result.firstName+' '+result.lastName,
+      result.email,result.phone,result.address,result.zip,result.city,result.province,result.instagram
+    ].map(function(v){return text(v).toLowerCase().trim()}).filter(Boolean);
+
+    var leftovers=lines.filter(function(line){
+      var low=line.toLowerCase();
+      if(known.indexOf(low)>=0)return false;
+      if(result.email&&low.indexOf(result.email.toLowerCase())>=0)return false;
+      if(result.phone&&line===result.phone)return false;
+      if(result.address&&low.indexOf(result.address.toLowerCase())>=0)return false;
+      if(result.zip&&line.indexOf(result.zip)>=0)return false;
+      if(result.instagram&&low.indexOf(result.instagram.toLowerCase())>=0)return false;
+      if(/^(nome|cognome|nome e cognome|nominativo|cliente|destinatario|email|e-mail|mail|telefono|tel|cellulare|cell|mobile|indirizzo|indirizzo di spedizione|cap|codice postale|città|citta|comune|località|localita|provincia|prov|instagram|ig)\s*[:\-]/i.test(line))return false;
+      return true;
+    });
+
+    // Evita di mettere il nome come nota.
+    if(leftovers.length&&result.firstName&&result.lastName){
+      var full=(result.firstName+' '+result.lastName).toLowerCase();
+      leftovers=leftovers.filter(function(x){return x.toLowerCase()!==full});
+    }
+    result.notes=leftovers.join('\n').trim();
+  }
+
+  return result;
+}
+
+function applyParsedClientData(data){
+  if(data.firstName)$('#clientFirstName').value=data.firstName;
+  if(data.lastName)$('#clientLastName').value=data.lastName;
+  if(data.email)$('#clientEmail').value=data.email;
+  if(data.phone)$('#clientPhone').value=data.phone;
+  if(data.address)$('#clientAddress').value=data.address;
+  if(data.zip)$('#clientZip').value=data.zip;
+  if(data.city)$('#clientCity').value=data.city;
+  if(data.province)$('#clientProvince').value=data.province;
+  if(data.instagram)$('#clientInstagram').value=data.instagram;
+  if(data.notes)$('#clientNotes').value=data.notes;
+  $('#clientCode').value=nextCode();
+}
+
 $$('.tab').forEach(function(b){b.addEventListener('click',function(){$$('.tab').forEach(function(x){x.classList.remove('active')});$$('.panel').forEach(function(x){x.classList.remove('active')});b.classList.add('active');$('#panel-'+b.dataset.tab).classList.add('active')})});
+
+$('#newClientBtn').addEventListener('click',openNewClientModal);
+$('#closeNewClient').addEventListener('click',closeNewClientModal);
+$('#cancelNewClient').addEventListener('click',closeNewClientModal);
+$('#newClientModal').addEventListener('click',function(e){if(e.target===this)closeNewClientModal()});
+
+$('#clearClientPasteBtn').addEventListener('click',function(){
+  $('#clientPasteData').value='';
+  setNotice($('#clientParseNotice'),'','');
+});
+
+$('#parseClientDataBtn').addEventListener('click',function(){
+  var raw=$('#clientPasteData').value.trim();
+  if(!raw){
+    setNotice($('#clientParseNotice'),'Incolla prima i dati del cliente.','error');
+    return;
+  }
+
+  var parsed=parseClientPastedData(raw);
+  applyParsedClientData(parsed);
+
+  var found=[];
+  if(parsed.firstName||parsed.lastName)found.push('nome');
+  if(parsed.address)found.push('indirizzo');
+  if(parsed.zip)found.push('CAP');
+  if(parsed.city)found.push('città');
+  if(parsed.province)found.push('provincia');
+  if(parsed.email)found.push('e-mail');
+  if(parsed.phone)found.push('telefono');
+  if(parsed.instagram)found.push('Instagram');
+
+  if(found.length){
+    setNotice($('#clientParseNotice'),'Riconosciuti: '+found.join(', ')+'. Controlla i campi e poi salva.','ok');
+  }else{
+    setNotice($('#clientParseNotice'),'Non sono riuscito a riconoscere abbastanza dati. Puoi comunque compilare i campi manualmente.','error');
+  }
+});
+
 $('#clientForm').addEventListener('submit',async function(e){
   e.preventDefault();
   var first=$('#clientFirstName').value.trim(),last=$('#clientLastName').value.trim();
@@ -1692,7 +2070,7 @@ $('#clientForm').addEventListener('submit',async function(e){
   var c={id:uid(),code:nextCode(),firstName:first,lastName:last,name:(first+' '+last).trim(),email:email,phone:$('#clientPhone').value.trim(),address:$('#clientAddress').value.trim(),zip:$('#clientZip').value.trim(),city:$('#clientCity').value.trim(),province:$('#clientProvince').value.trim().toUpperCase(),instagram:$('#clientInstagram').value.trim(),notes:$('#clientNotes').value.trim(),intakeEmailSentAt:'',intakeEmailError:''};
   state.clients.push(c);
   if(!saveState()||!verifyClientSaved(c)){state.clients=state.clients.filter(function(x){return x.id!==c.id});setNotice($('#clientNotice'),'ERRORE: il profilo non è stato salvato. Riprova.','error');return}
-  e.target.reset();render();openProfile(c.id);setNotice($('#clientNotice'),'Profilo '+c.code+' salvato correttamente.','ok');
+  e.target.reset();closeNewClientModal();render();openProfile(c.id);setNotice($('#clientNotice'),'Profilo '+c.code+' salvato correttamente.','ok');
   if(c.email&&intakeEmailEnabled()){
     if(!intakeEmailConfigReady()){c.intakeEmailError='Configurazione EmailJS presa in carico incompleta';saveState();openProfile(c.id);setNotice($('#profileNotice'),'Profilo salvato, ma la configurazione e-mail di presa in carico è incompleta.','error');return}
     setNotice($('#profileNotice'),'Profilo salvato. Invio e-mail di presa in carico...','');
@@ -2149,7 +2527,7 @@ $('#exportBtn').addEventListener('click',function(){var blob=new Blob([JSON.stri
 $('#csvBtn').addEventListener('click',function(){var rows=[['Codice cliente','Cliente','Data ordine','Prodotto','Importo','Stato ordine','Consegna prevista','Pagamento','Incassato','Metodo','Costo materiali','Costo spedizione','Corriere','Tracking','Link tracking','Note','Checklist']];state.orders.forEach(function(o){var c=state.clients.find(function(x){return x.id===o.clientId}),p=orderChecklistProgress(o);rows.push([c?c.code:'',c?c.name:'Cliente rimosso',o.date,o.product,o.amount,o.orderStatus,o.dueDate,o.paymentStatus,o.paidAmount,o.paymentMethod,o.materialCost,o.shippingCost,o.carrier,o.trackingCode,o.trackingUrl,o.orderNotes,p.done+'/'+p.total])});var csv=rows.map(function(r){return r.map(function(v){return '"'+text(v).replace(/"/g,'""')+'"'}).join(';')}).join('\n');var blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='card-lab-art-ordini.csv';a.click();setTimeout(function(){URL.revokeObjectURL(a.href)},1000)});
 $('#importFile').addEventListener('change',function(e){var file=e.target.files&&e.target.files[0];if(!file)return;var reader=new FileReader();reader.onload=function(){try{state=normalizeState(JSON.parse(reader.result));saveState();render();setNotice($('#clientNotice'),'Backup importato correttamente.','ok')}catch(err){alert('Backup non valido.')}e.target.value=''};reader.readAsText(file)});
 $('#resetBtn').addEventListener('click',function(){if(!confirm('Vuoi davvero cancellare tutti i clienti e gli ordini?'))return;state=defaultState();saveState();render()});
-setSelectOptions();$('#orderDate').value=today();$('#orderStatus').value='Nuovo';$('#orderPaymentStatus').value='Da pagare';window.addEventListener('beforeunload',saveState);document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')saveState();if(document.visibilityState==='visible'&&cloudSyncConfigured())syncCloudData(false).catch(function(){})});render();
+setSelectOptions();$('#clientCode').value=nextCode();$('#orderDate').value=today();$('#orderStatus').value='Nuovo';$('#orderPaymentStatus').value='Da pagare';window.addEventListener('beforeunload',saveState);document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')saveState();if(document.visibilityState==='visible'&&cloudSyncConfigured())syncCloudData(false).catch(function(){})});render();
 setTimeout(function(){syncRecentTrackingsFromGmail(false,false).catch(function(){})},2500);
 setInterval(function(){syncRecentTrackingsFromGmail(false,false).catch(function(){})},60000);
 setTimeout(function(){if(cloudSyncConfigured())syncCloudData(false).catch(function(){})},3500);
