@@ -1397,20 +1397,55 @@ tbody tr:hover td{background:#111722!important}
     <div class="card"><h2>Soglie premi</h2><div id="rewardSettings" class="rewards"></div><button type="button" class="secondary" id="addReward" style="margin-top:12px">+ Aggiungi soglia</button></div>
 
     <div class="card">
-      <h2>E-mail automatiche</h2>
-      <p class="reward">Puoi gestire separatamente le due automazioni: <strong>presa in carico</strong> del nuovo cliente e <strong>spedizione</strong> quando imposti manualmente un ordine su “Spedito”.</p>
+      <h2>✉️ E-mail automatiche — Gmail diretto</h2>
+      <p class="reward">
+        Le e-mail partono direttamente dal <strong>Gmail collegato al tuo Google Apps Script</strong>.
+        Non serve più EmailJS e non serve nessun abbonamento. La mail “Spedito” può includere
+        automaticamente la piccola foto dell’ordine che hai caricato su Drive.
+      </p>
+
       <div class="formgrid">
-        <div class="span2"><label for="emailPublicKey">EmailJS Public Key</label><input id="emailPublicKey" autocomplete="off" placeholder="Public Key"></div>
-        <div class="span2"><label for="emailServiceId">Service ID</label><input id="emailServiceId" autocomplete="off" placeholder="service_xxxxx"></div>
-        <div class="span2"><label for="emailIntakeTemplateId">Template ID — Presa in carico</label><input id="emailIntakeTemplateId" autocomplete="off" placeholder="template_xxxxx"></div>
-        <div class="span2"><label for="emailShippedTemplateId">Template ID — Spedito</label><input id="emailShippedTemplateId" autocomplete="off" placeholder="template_xxxxx"></div>
-        <div class="span2"><label for="emailFromName">Nome mittente</label><input id="emailFromName" value="Card_Lab_Art" placeholder="Card_Lab_Art"></div>
-        <div class="span2"><label>Automazione presa in carico</label><label class="checkitem"><input id="emailIntakeEnabled" type="checkbox"> Invia quando creo un nuovo profilo cliente</label></div>
-        <div class="span2"><label>Automazione spedizione</label><label class="checkitem"><input id="emailShippedEnabled" type="checkbox"> Invia quando imposto l’ordine su “Spedito”</label></div>
-        <div class="span4 toolbar"><button class="primary" type="button" id="saveEmailSettings">Salva configurazione e-mail</button></div>
+        <div class="span2">
+          <label for="emailFromName">Nome mittente</label>
+          <input id="emailFromName" value="Card_Lab_Art" placeholder="Card_Lab_Art">
+        </div>
+
+        <div class="span2">
+          <label for="gmailReplyTo">E-mail per le risposte (facoltativa)</label>
+          <input id="gmailReplyTo" type="email" autocomplete="email" placeholder="Lascia vuoto per usare il Gmail dello script">
+        </div>
+
+        <div class="span2">
+          <label>Automazione presa in carico</label>
+          <label class="checkitem">
+            <input id="emailIntakeEnabled" type="checkbox">
+            Invia quando creo un nuovo profilo cliente
+          </label>
+        </div>
+
+        <div class="span2">
+          <label>Automazione spedizione</label>
+          <label class="checkitem">
+            <input id="emailShippedEnabled" type="checkbox">
+            Invia quando imposto l’ordine su “Spedito”
+          </label>
+        </div>
+
+        <div class="span4 toolbar">
+          <button class="primary" type="button" id="saveEmailSettings">Salva automazioni Gmail</button>
+          <button class="secondary" type="button" id="gmailSenderStatusBtn">🔎 Verifica Gmail</button>
+        </div>
       </div>
+
       <div class="notice" id="emailSettingsNotice"></div>
-      <div class="reward" style="margin-top:10px">Variabili template: <strong>{{to_email}}</strong>, {{first_name}}, {{last_name}}, {{client_name}}, {{client_code}}, {{product}}, {{order_date}}, {{order_status}}, {{carrier}}, {{tracking_code}}, {{tracking_url}}, {{subject}}, {{message}}, <strong>{{has_product_preview}}</strong> e allegato dinamico <strong>product_preview</strong>. La mail “Spedito” parte una sola volta quando cambi manualmente lo stato in <strong>Spedito</strong> e il tracking è presente.</div>
+      <div id="gmailSenderStatus" class="cloud-server-status">Gmail: non verificato.</div>
+
+      <div class="reward" style="margin-top:10px">
+        <strong>Presa in carico:</strong> parte dal tuo Gmail quando crei il cliente.
+        <br>
+        <strong>Spedito:</strong> parte quando imposti manualmente l’ordine su “Spedito” e il tracking è presente.
+        Se l’ordine ha una foto, Apps Script la incorpora direttamente nel corpo della mail.
+      </div>
     </div>
 
     <div class="card">
@@ -1438,13 +1473,13 @@ tbody tr:hover td{background:#111722!important}
       </div>
       <div class="notice" id="cloudSyncNotice"></div>
       <div id="cloudServerStatus" class="cloud-server-status">Database cloud: non verificato.</div>
-      <div class="reward" style="margin-top:10px">Le configurazioni EmailJS e il token restano locali sul singolo dispositivo; vengono condivisi solo <strong>clienti e ordini</strong>.</div>
+      <div class="reward" style="margin-top:10px">Le impostazioni Gmail e il token restano locali sul singolo dispositivo; vengono condivisi solo <strong>clienti e ordini</strong>.</div>
       <div class="reward" style="margin-top:6px"><strong>Ripubblica dati</strong> va usato solo sul dispositivo che contiene già i clienti/ordini corretti (es. Mac/PC). Se il dispositivo è vuoto, il pulsante si rifiuta di procedere.</div>
     </div>
 
     <div class="card">
       <h2>Backup automatico su Google Drive</h2>
-      <p class="reward">Ogni modifica salvata nel gestionale crea automaticamente un backup JSON privato su Drive: <strong>clienti, ordini, punti/premi, impostazioni EmailJS, tracking e configurazioni</strong>. Le foto degli ordini vengono conservate separatamente nella cartella <strong>Card_Lab_Art — Foto ordini</strong>. Vengono mantenute le ultime 100 versioni più un file “ULTIMO_BACKUP”.</p>
+      <p class="reward">Ogni modifica salvata nel gestionale crea automaticamente un backup JSON privato su Drive: <strong>clienti, ordini, punti/premi, impostazioni Gmail, tracking e configurazioni</strong>. Le foto degli ordini vengono conservate separatamente nella cartella <strong>Card_Lab_Art — Foto ordini</strong>. Vengono mantenute le ultime 100 versioni più un file “ULTIMO_BACKUP”.</p>
       <div class="formgrid">
         <div class="span4"><label class="checkitem"><input id="driveBackupEnabled" type="checkbox"> Attiva backup automatico dopo ogni modifica</label></div>
         <div class="span4 toolbar">
@@ -1651,8 +1686,6 @@ mario@email.it
     <div class="notice" id="orderEditNotice"></div>
   </div>
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script>
 (function(){
 'use strict';
@@ -1675,7 +1708,7 @@ var CHECKLIST_ITEMS=[
   {key:'shipped',label:'Spedita'}
 ];
 function defaultChecklist(){var x={};CHECKLIST_ITEMS.forEach(function(i){x[i.key]=false});return x}
-function defaultEmailSettings(){return {enabled:false,intakeEnabled:false,shippedEnabled:false,publicKey:'',serviceId:'',intakeTemplateId:'',shippedTemplateId:'',fromName:'Card_Lab_Art'}}
+function defaultEmailSettings(){return {provider:'gmail',enabled:false,intakeEnabled:false,shippedEnabled:false,fromName:'Card_Lab_Art',replyTo:''}}
 function defaultTrackingIntegration(){return {webAppUrl:'',token:''}}
 function defaultState(){return {clients:[],orders:[],settings:{eurosPerPoint:10,rewards:[{points:5,name:'Sticker o piccolo gadget'},{points:10,name:'Upgrade olografico o gadget 3D'},{points:15,name:'10 EUR di sconto sul prossimo ordine'},{points:20,name:'Prodotto personalizzato o stand base'}],email:defaultEmailSettings(),trackingIntegration:defaultTrackingIntegration()}}}
 function text(v){return v==null?'':String(v)}
@@ -2121,29 +2154,86 @@ function statusBadge(v){return '<span class="status-pill">'+esc(v)+'</span>'}
 function dueHtml(o){if(!o.dueDate)return '—';return '<span class="'+(isOverdue(o)?'overdue':'')+'">'+esc(o.dueDate)+(isOverdue(o)?' • IN RITARDO':'')+'</span>'}
 function trackingHtml(o){if(!o.trackingCode)return '—';return '<strong>'+esc(o.trackingCode)+'</strong>'+(o.carrier?'<div class="small">'+esc(o.carrier)+'</div>':'')}
 
-function emailSettings(){if(!state.settings.email)state.settings.email=defaultEmailSettings();return state.settings.email}
-function intakeEmailConfigReady(){var e=emailSettings();return !!(text(e.publicKey).trim()&&text(e.serviceId).trim()&&text(e.intakeTemplateId).trim())}
-function shippedEmailConfigReady(){var e=emailSettings();return !!(text(e.publicKey).trim()&&text(e.serviceId).trim()&&text(e.shippedTemplateId).trim())}
+function emailSettings(){
+  if(!state.settings.email)state.settings.email=defaultEmailSettings();
+  var e=state.settings.email;
+  if(!e.provider)e.provider='gmail';
+  if(typeof e.fromName!=='string')e.fromName='Card_Lab_Art';
+  if(typeof e.replyTo!=='string')e.replyTo='';
+  if(typeof e.intakeEnabled!=='boolean')e.intakeEnabled=!!e.enabled;
+  if(typeof e.shippedEnabled!=='boolean')e.shippedEnabled=false;
+  return e;
+}
+function intakeEmailConfigReady(){return trackingIntegrationReady()}
+function shippedEmailConfigReady(){return trackingIntegrationReady()}
 function emailStatusLabel(sentAt,error){if(sentAt)return 'Inviata ✓ '+sentAt.replace('T',' ').slice(0,16);if(error)return 'Errore invio';return 'Non inviata'}
 function nowIso(){return new Date().toISOString()}
-function emailBaseParams(c){return {to_email:text(c.email).trim(),first_name:text(c.firstName).trim(),last_name:text(c.lastName).trim(),client_name:text(c.name).trim(),client_code:text(c.code).trim(),from_name:text(emailSettings().fromName||'Card_Lab_Art').trim()}}
-function sendEmailTemplate(templateId,params){
-  var cfg=emailSettings();
-  if(!window.emailjs||typeof window.emailjs.send!=='function')return Promise.reject(new Error('EmailJS non è stato caricato. Controlla la connessione internet.'));
-  if(!text(cfg.publicKey).trim()||!text(cfg.serviceId).trim()||!text(templateId).trim())return Promise.reject(new Error('Configurazione EmailJS incompleta.'));
-  return window.emailjs.send(text(cfg.serviceId).trim(),text(templateId).trim(),params,{publicKey:text(cfg.publicKey).trim()});
-}
-function sendIntakeEmail(c,force){
-  if(!c||!text(c.email).trim())return Promise.reject(new Error('Il cliente non ha un indirizzo e-mail.'));
-  if(c.intakeEmailSentAt&&!force)return Promise.resolve({alreadySent:true});
-  var p=emailBaseParams(c);
-  p.subject='Il tuo progetto è stato preso in carico 🎨';
-  p.message='Ciao '+(c.firstName||c.name)+', il tuo progetto è stato preso in carico da Card_Lab_Art. Ti aggiorneremo durante la lavorazione.';
-  c.intakeEmailError='';saveState();
-  return sendEmailTemplate(emailSettings().intakeTemplateId,p).then(function(r){c.intakeEmailSentAt=nowIso();c.intakeEmailError='';saveState();return r}).catch(function(err){c.intakeEmailError=text(err&&err.text||err&&err.message||err||'Errore invio');saveState();throw err});
+
+function gmailEmailBaseParams(c){
+  var em=emailSettings();
+  return {
+    toEmail:text(c.email).trim(),
+    firstName:text(c.firstName).trim(),
+    lastName:text(c.lastName).trim(),
+    clientName:text(c.name).trim(),
+    clientCode:text(c.code).trim(),
+    fromName:text(em.fromName||'Card_Lab_Art').trim(),
+    replyTo:text(em.replyTo||'').trim()
+  };
 }
 
-var EMPTY_EMAIL_PRODUCT_PREVIEW='data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAoHBwgHBgoICAgLCgoLDhgQDg0NDh0VFhEYIx8lJCIfIiEmKzcvJik0KSEiMEExNDk7Pj4+JS5ESUM8SDc9Pjv/2wBDAQoLCw4NDhwQEBw7KCIoOzs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozv/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAf/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFAEBAAAAAAAAAAAAAAAAAAAAAP/EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAMAwEAAhEDEQA/ALMAD//Z';
+function gmailApi(params){
+  if(!trackingIntegrationReady()){
+    return Promise.reject(new Error('Configura prima URL Apps Script e token nelle Impostazioni.'));
+  }
+  return cloudApi(params).then(function(r){
+    if(!r||r.ok!==true)throw new Error(text(r&&r.error||'Invio Gmail non riuscito.'));
+    return r;
+  });
+}
+
+async function checkGmailSender(showNotice){
+  if(showNotice)setNotice($('#emailSettingsNotice'),'Verifico il Gmail collegato ad Apps Script...','');
+  try{
+    var r=await gmailApi({action:'gmailSenderStatus'});
+    var line='Gmail pronto';
+    if(r.senderEmail)line+=' • '+r.senderEmail;
+    if(r.remainingQuota!=null)line+=' • quota residua oggi: '+r.remainingQuota;
+    $('#gmailSenderStatus').textContent=line;
+    $('#gmailSenderStatus').className='cloud-server-status ok';
+    if(showNotice)setNotice($('#emailSettingsNotice'),'Gmail collegato correttamente ✅','ok');
+    return r;
+  }catch(err){
+    $('#gmailSenderStatus').textContent='Gmail non disponibile: '+text(err&&err.message||err);
+    $('#gmailSenderStatus').className='cloud-server-status warn';
+    if(showNotice)setNotice($('#emailSettingsNotice'),'Verifica Gmail fallita: '+text(err&&err.message||err),'error');
+    throw err;
+  }
+}
+
+async function sendIntakeEmail(c,force){
+  if(!c||!text(c.email).trim())throw new Error('Il cliente non ha un indirizzo e-mail.');
+  if(c.intakeEmailSentAt&&!force)return {alreadySent:true};
+
+  c.intakeEmailError='';
+  saveState();
+
+  try{
+    var p=gmailEmailBaseParams(c);
+    p.action='sendIntakeGmail';
+    p.requestId=uid();
+
+    var r=await gmailApi(p);
+    c.intakeEmailSentAt=nowIso();
+    c.intakeEmailError='';
+    saveState();
+    return r;
+  }catch(err){
+    c.intakeEmailError=text(err&&err.message||err||'Errore invio');
+    saveState();
+    throw err;
+  }
+}
 
 function orderEmailPreviewStatus(o){
   if(!o||!o.attachment||!o.attachment.fileId){
@@ -2164,47 +2254,8 @@ function updateOrderEmailPreviewStatus(o){
   var st=orderEmailPreviewStatus(o);
   el.textContent=st.text;
   el.className='status-pill'+(st.cls?' '+st.cls:'');
-  if(o&&o.shippedEmailPreviewError){
-    el.title=text(o.shippedEmailPreviewError);
-  }else{
-    el.removeAttribute('title');
-  }
-}
-
-async function loadOrderEmailPreview(o){
-  var result={
-    hasProductPreview:false,
-    content:EMPTY_EMAIL_PRODUCT_PREVIEW,
-    fileName:'anteprima-prodotto.jpg',
-    error:''
-  };
-
-  if(!o||!o.attachment||!o.attachment.fileId)return result;
-
-  if(!trackingIntegrationReady()){
-    result.error='URL Apps Script o token non configurati.';
-    return result;
-  }
-
-  try{
-    var response=await cloudApi({
-      action:'attachmentEmailPreview',
-      fileId:o.attachment.fileId
-    });
-
-    if(!response||response.ok!==true||!text(response.content).trim()){
-      result.error=text(response&&response.error||'Anteprima foto non disponibile.');
-      return result;
-    }
-
-    result.hasProductPreview=true;
-    result.content=text(response.content);
-    result.fileName=text(response.fileName||'anteprima-prodotto.jpg');
-    return result;
-  }catch(err){
-    result.error=text(err&&err.message||err||'Errore recupero anteprima foto.');
-    return result;
-  }
+  if(o&&o.shippedEmailPreviewError)el.title=text(o.shippedEmailPreviewError);
+  else el.removeAttribute('title');
 }
 
 function shippedEmailSuccessMessage(result,email){
@@ -2219,47 +2270,47 @@ async function sendShippedEmail(o,force){
   var c=state.clients.find(function(x){return x.id===o.clientId});
   if(!c||!text(c.email).trim())throw new Error('Il cliente non ha un indirizzo e-mail.');
   if(!text(o.trackingCode).trim())throw new Error('Manca il codice tracking. Importalo da Gmail prima di inviare la mail di spedizione.');
-  if(o.shippedEmailSentAt&&!force)return {alreadySent:true,previewIncluded:!!o.shippedEmailPreviewIncluded,previewError:text(o.shippedEmailPreviewError)};
-
-  var preview=await loadOrderEmailPreview(o);
-  var p=emailBaseParams(c);
-  p.product=text(o.product);
-  p.order_date=text(o.date);
-  p.order_status=text(o.orderStatus);
-  p.carrier=text(o.carrier);
-  p.tracking_code=text(o.trackingCode);
-  p.tracking_url=text(o.trackingUrl);
-  p.subject='Il tuo ordine è stato spedito 📦';
-  p.message='Ciao '+(c.firstName||c.name)+', il tuo ordine è stato spedito.'+(o.carrier?' Corriere: '+o.carrier+'.':'')+(o.trackingCode?' Tracking: '+o.trackingCode+'.':'');
-
-  // Variabili per EmailJS:
-  // product_preview = Dynamic Variable Attachment (CID: product_preview)
-  // has_product_preview = mostra/nasconde il blocco immagine nel template
-  p.product_preview=preview.content;
-  p.product_preview_name=preview.fileName;
-  p.has_product_preview=preview.hasProductPreview;
-  p.product_preview_alt='Anteprima del tuo progetto Card_Lab_Art';
+  if(o.shippedEmailSentAt&&!force){
+    return {
+      alreadySent:true,
+      previewIncluded:!!o.shippedEmailPreviewIncluded,
+      previewError:text(o.shippedEmailPreviewError)
+    };
+  }
 
   o.shippedEmailError='';
   o.shippedEmailPreviewError='';
   saveState();
 
   try{
-    var r=await sendEmailTemplate(emailSettings().shippedTemplateId,p);
+    var p=gmailEmailBaseParams(c);
+    p.action='sendShippedGmail';
+    p.requestId=uid();
+    p.product=text(o.product);
+    p.orderDate=text(o.date);
+    p.orderStatus=text(o.orderStatus);
+    p.carrier=text(o.carrier);
+    p.trackingCode=text(o.trackingCode);
+    p.trackingUrl=text(o.trackingUrl);
+    p.fileId=o.attachment&&o.attachment.fileId?text(o.attachment.fileId):'';
+
+    var r=await gmailApi(p);
+
     o.shippedEmailSentAt=nowIso();
     o.shippedEmailError='';
-    o.shippedEmailPreviewIncluded=!!preview.hasProductPreview;
-    o.shippedEmailPreviewError=text(preview.error);
+    o.shippedEmailPreviewIncluded=!!r.previewIncluded;
+    o.shippedEmailPreviewError=text(r.previewError);
     saveState();
+
     return {
       email:r,
-      previewIncluded:!!preview.hasProductPreview,
-      previewError:text(preview.error)
+      previewIncluded:!!r.previewIncluded,
+      previewError:text(r.previewError)
     };
   }catch(err){
-    o.shippedEmailError=text(err&&err.text||err&&err.message||err||'Errore invio');
+    o.shippedEmailError=text(err&&err.message||err||'Errore invio');
     o.shippedEmailPreviewIncluded=false;
-    o.shippedEmailPreviewError=text(preview.error);
+    o.shippedEmailPreviewError='';
     saveState();
     throw err;
   }
@@ -3264,7 +3315,10 @@ function render(){
   ensureCodes();showStorageStatus();
   $('#clientCode').value=nextCode();$('#eurosPerPoint').value=state.settings.eurosPerPoint;
   var em=emailSettings();
-  $('#emailPublicKey').value=em.publicKey||'';$('#emailServiceId').value=em.serviceId||'';$('#emailIntakeTemplateId').value=em.intakeTemplateId||'';$('#emailShippedTemplateId').value=em.shippedTemplateId||'';$('#emailFromName').value=em.fromName||'Card_Lab_Art';$('#emailIntakeEnabled').checked=intakeEmailEnabled();$('#emailShippedEnabled').checked=shippedEmailEnabled();
+  $('#emailFromName').value=em.fromName||'Card_Lab_Art';
+  $('#gmailReplyTo').value=em.replyTo||'';
+  $('#emailIntakeEnabled').checked=intakeEmailEnabled();
+  $('#emailShippedEnabled').checked=shippedEmailEnabled();
   var ti=trackingIntegration();$('#trackingWebAppUrl').value=ti.webAppUrl||'';$('#trackingWebAppToken').value=ti.token||'';$('#cloudSyncEnabled').checked=!!cloudMeta.enabled;$('#driveBackupEnabled').checked=!!driveBackupMeta.enabled;updateDriveBackupStatus();
   var revenue=state.orders.reduce(function(a,o){return a+num(o.amount)},0);
   $('#sClients').textContent=state.clients.length;$('#sOrders').textContent=state.orders.length;$('#sRevenue').textContent=money(revenue);$('#sWork').textContent=state.orders.filter(function(o){return ['Nuovo','In lavorazione','Da approvare','Pronto'].indexOf(o.orderStatus)>=0}).length;$('#sShip').textContent=state.orders.filter(function(o){return o.orderStatus==='Da spedire'}).length;$('#sPoints').textContent=state.clients.reduce(function(a,c){return a+clientStats(c.id).balance},0);
@@ -3480,10 +3534,10 @@ async function updateOrderStatusQuick(orderId,newStatus){
       return;
     }
     if(!shippedEmailConfigReady()){
-      o.shippedEmailError='Configurazione EmailJS spedizione incompleta';
+      o.shippedEmailError='Gmail / Apps Script non configurato';
       saveState();
       render();
-      setNotice($('#kanbanNotice'),'Ordine impostato su Spedito. E-mail spedizione non configurata.','error');
+      setNotice($('#kanbanNotice'),'Ordine impostato su Spedito. Gmail non è configurato: controlla URL Apps Script e token.','error');
       return;
     }
     try{
@@ -4010,7 +4064,7 @@ $('#clientForm').addEventListener('submit',async function(e){
   if(!saveState()||!verifyClientSaved(c)){state.clients=state.clients.filter(function(x){return x.id!==c.id});setNotice($('#clientNotice'),'ERRORE: il profilo non è stato salvato. Riprova.','error');return}
   e.target.reset();closeNewClientModal();render();openProfile(c.id);setNotice($('#clientNotice'),'Profilo '+c.code+' salvato correttamente.','ok');
   if(c.email&&intakeEmailEnabled()){
-    if(!intakeEmailConfigReady()){c.intakeEmailError='Configurazione EmailJS presa in carico incompleta';saveState();openProfile(c.id);setNotice($('#profileNotice'),'Profilo salvato, ma la configurazione e-mail di presa in carico è incompleta.','error');return}
+    if(!intakeEmailConfigReady()){c.intakeEmailError='Gmail / Apps Script non configurato';saveState();openProfile(c.id);setNotice($('#profileNotice'),'Profilo salvato, ma Gmail non è configurato. Controlla URL Apps Script e token nelle Impostazioni.','error');return}
     setNotice($('#profileNotice'),'Profilo salvato. Invio e-mail di presa in carico...','');
     try{await sendIntakeEmail(c,false);openProfile(c.id);setNotice($('#profileNotice'),'E-mail di presa in carico inviata a '+c.email+'.','ok')}
     catch(err){openProfile(c.id);setNotice($('#profileNotice'),'Profilo salvato, ma l’e-mail non è partita: '+text(err&&err.text||err&&err.message||err),'error')}
@@ -4034,7 +4088,7 @@ var backup=JSON.parse(JSON.stringify(c));c.firstName=first;c.lastName=last;c.nam
 $('#sendIntakeEmailBtn').addEventListener('click',async function(){
   var id=$('#profileId').value,c=state.clients.find(function(x){return x.id===id});if(!c)return;
   if(!c.email){setNotice($('#profileNotice'),'Inserisci e salva prima l’e-mail del cliente.','error');return}
-  if(!intakeEmailConfigReady()){setNotice($('#profileNotice'),'Completa Public Key, Service ID e Template ID — Presa in carico nelle Impostazioni.','error');return}
+  if(!intakeEmailConfigReady()){setNotice($('#profileNotice'),'Configura prima URL Apps Script e token nelle Impostazioni, poi verifica Gmail.','error');return}
   if(c.intakeEmailSentAt&&!confirm('L’e-mail risulta già inviata. Vuoi inviarla di nuovo?'))return;
   setNotice($('#profileNotice'),'Invio e-mail di presa in carico...','');
   try{await sendIntakeEmail(c,true);openProfile(id);setNotice($('#profileNotice'),'E-mail di presa in carico inviata a '+c.email+'.','ok')}
@@ -4057,7 +4111,7 @@ $('#orderForm').addEventListener('submit',async function(e){
   render();setNotice($('#orderNotice'),'Ordine registrato. Apri “Gestisci” per la checklist e gli aggiornamenti.','ok');openOrderModal(order.id);
   if(status==='Spedito'&&shippedEmailEnabled()){
     if(!text(order.trackingCode).trim()){order.shippedEmailError='Tracking mancante';saveState();openOrderModal(order.id);setNotice($('#orderEditNotice'),'Ordine salvato come Spedito, ma la mail NON è partita perché manca il tracking.','error');return}
-    if(!shippedEmailConfigReady()){order.shippedEmailError='Configurazione EmailJS spedizione incompleta';saveState();openOrderModal(order.id);setNotice($('#orderEditNotice'),'Ordine salvato. E-mail spedizione non configurata.','error');return}
+    if(!shippedEmailConfigReady()){order.shippedEmailError='Gmail / Apps Script non configurato';saveState();openOrderModal(order.id);setNotice($('#orderEditNotice'),'Ordine salvato. Gmail non è configurato: controlla URL Apps Script e token.','error');return}
     setNotice($('#orderEditNotice'),'Ordine salvato. Invio e-mail di spedizione...','');
     try{var sentResult=await sendShippedEmail(order,false);openOrderModal(order.id);setNotice($('#orderEditNotice'),shippedEmailSuccessMessage(sentResult,''),'ok')}
     catch(err){openOrderModal(order.id);setNotice($('#orderEditNotice'),'Ordine salvato, ma l’e-mail non è partita: '+text(err&&err.text||err&&err.message||err),'error')}
@@ -4245,7 +4299,7 @@ $('#orderEditForm').addEventListener('submit',async function(e){
   render();refreshOpenProfileIfNeeded();openOrderModal(id);setNotice($('#orderEditNotice'),'Ordine aggiornato e salvato.','ok');
   if(previousStatus!=='Spedito'&&status==='Spedito'&&!o.shippedEmailSentAt&&shippedEmailEnabled()){
     if(!text(o.trackingCode).trim()){o.shippedEmailError='Tracking mancante';saveState();openOrderModal(id);setNotice($('#orderEditNotice'),'Ordine impostato su Spedito, ma la mail NON è partita perché manca il tracking. Importalo da Gmail e usa “Invia e-mail spedizione”.','error');return}
-    if(!shippedEmailConfigReady()){o.shippedEmailError='Configurazione EmailJS spedizione incompleta';saveState();openOrderModal(id);setNotice($('#orderEditNotice'),'Ordine salvato. E-mail spedizione non configurata.','error');return}
+    if(!shippedEmailConfigReady()){o.shippedEmailError='Gmail / Apps Script non configurato';saveState();openOrderModal(id);setNotice($('#orderEditNotice'),'Ordine salvato. Gmail non è configurato: controlla URL Apps Script e token.','error');return}
     setNotice($('#orderEditNotice'),'Ordine salvato. Invio e-mail di spedizione...','');
     try{var sentResult=await sendShippedEmail(o,false);openOrderModal(id);setNotice($('#orderEditNotice'),'Invio automatico: '+shippedEmailSuccessMessage(sentResult,''),'ok')}
     catch(err){openOrderModal(id);setNotice($('#orderEditNotice'),'Ordine salvato, ma l’e-mail non è partita: '+text(err&&err.text||err&&err.message||err),'error')}
@@ -4269,7 +4323,7 @@ $('#uploadOrderPhotoBtn').addEventListener('click',async function(){
     render();
     refreshOpenProfileIfNeeded();
     renderOrderPhotoBox(o);
-    setNotice($('#orderPhotoNotice'),'Foto allegata ✅ Salvata su Google Drive e pronta per l’anteprima nella mail di spedizione.','ok');
+    setNotice($('#orderPhotoNotice'),'Foto allegata ✅ Salvata su Google Drive. Gmail la userà come anteprima nella mail di spedizione.','ok');
   }catch(err){
     setNotice($('#orderPhotoNotice'),'Caricamento fallito: '+text(err&&err.message||err),'error');
   }finally{
@@ -4313,7 +4367,7 @@ $('#sendShippedEmailBtn').addEventListener('click',async function(){
   var c=state.clients.find(function(x){return x.id===o.clientId});
   if(!c||!c.email){setNotice($('#orderEditNotice'),'Il cliente non ha un indirizzo e-mail salvato.','error');return}
   if(!text(o.trackingCode).trim()){setNotice($('#orderEditNotice'),'Manca il tracking. Importalo da Gmail prima di inviare la mail.','error');return}
-  if(!shippedEmailConfigReady()){setNotice($('#orderEditNotice'),'Configura prima il Template ID — Spedito nelle Impostazioni.','error');return}
+  if(!shippedEmailConfigReady()){setNotice($('#orderEditNotice'),'Configura prima URL Apps Script e token nelle Impostazioni, poi verifica Gmail.','error');return}
   if(o.shippedEmailSentAt&&!confirm('L’e-mail di spedizione risulta già inviata. Vuoi inviarla di nuovo?'))return;
   setNotice($('#orderEditNotice'),'Invio e-mail di spedizione...','');
   try{var sentResult=await sendShippedEmail(o,true);openOrderModal(id);setNotice($('#orderEditNotice'),shippedEmailSuccessMessage(sentResult,c.email),'ok')}
@@ -4345,27 +4399,49 @@ $('#openTrackingBtn').addEventListener('click',function(){var url=safeTrackingUr
 $('#deleteOrderFromModal').addEventListener('click',function(){var id=$('#editOrderId').value,o=state.orders.find(function(x){return x.id===id});if(!o)return;if(!confirm('Eliminare definitivamente questo ordine?'))return;state.orders=state.orders.filter(function(x){return x.id!==id});saveState();closeOrderModal();render();refreshOpenProfileIfNeeded();setNotice($('#orderNotice'),'Ordine eliminato.','ok')});
 $('#saveSettings').addEventListener('click',function(){state.settings.eurosPerPoint=Math.max(1,Math.floor(num($('#eurosPerPoint').value)||10));var ps=$$('[data-rp]'),ns=$$('[data-rn]');state.settings.rewards=ps.map(function(p,i){return {points:Math.max(1,Math.floor(num(p.value)||1)),name:(ns[i].value||'Premio').trim()}}).sort(function(a,b){return a.points-b.points});saveState();render();setNotice($('#settingsNotice'),'Impostazioni salvate.','ok')});
 
+
+$('#gmailSenderStatusBtn').addEventListener('click',async function(){
+  this.disabled=true;
+  try{await checkGmailSender(true)}
+  catch(e){}
+  finally{this.disabled=false}
+});
+
 $('#saveEmailSettings').addEventListener('click',function(){
   var em=emailSettings();
-  em.publicKey=$('#emailPublicKey').value.trim();
-  em.serviceId=$('#emailServiceId').value.trim();
-  em.intakeTemplateId=$('#emailIntakeTemplateId').value.trim();
-  em.shippedTemplateId=$('#emailShippedTemplateId').value.trim();
+  em.provider='gmail';
   em.fromName=$('#emailFromName').value.trim()||'Card_Lab_Art';
+  em.replyTo=$('#gmailReplyTo').value.trim();
   em.intakeEnabled=$('#emailIntakeEnabled').checked;
   em.shippedEnabled=$('#emailShippedEnabled').checked;
   em.enabled=em.intakeEnabled;
   saveState();
 
-  var errors=[];
-  if(em.intakeEnabled&&!intakeEmailConfigReady())errors.push('presa in carico: manca il Template ID o la configurazione EmailJS');
-  if(em.shippedEnabled&&!shippedEmailConfigReady())errors.push('spedizione: manca il Template ID — Spedito o la configurazione EmailJS');
-  if(errors.length){setNotice($('#emailSettingsNotice'),'Configurazione salvata, ma '+errors.join(' • ')+'.','error');return}
+  if(em.replyTo&&!$('#gmailReplyTo').checkValidity()){
+    setNotice($('#emailSettingsNotice'),'Configurazione salvata, ma l’e-mail per le risposte non è valida.','error');
+    return;
+  }
+
+  if((em.intakeEnabled||em.shippedEnabled)&&!trackingIntegrationReady()){
+    setNotice(
+      $('#emailSettingsNotice'),
+      'Automazioni salvate, ma prima devi configurare URL Apps Script e token nella sezione “Import tracking da Gmail”.',
+      'error'
+    );
+    return;
+  }
 
   var active=[];
   if(em.intakeEnabled)active.push('presa in carico');
   if(em.shippedEnabled)active.push('spedizione');
-  setNotice($('#emailSettingsNotice'),active.length?'Configurazione salvata. Automazioni attive: '+active.join(' + ')+'.':'Configurazione salvata. E-mail automatiche disattivate.','ok');
+
+  setNotice(
+    $('#emailSettingsNotice'),
+    active.length
+      ? 'Gmail diretto configurato ✅ Automazioni attive: '+active.join(' + ')+'.'
+      : 'Configurazione salvata. E-mail automatiche disattivate.',
+    'ok'
+  );
 });
 
 
