@@ -352,6 +352,107 @@ tr:last-child td{border-bottom:0}
 .smart-import-title{font-size:15px;font-weight:900;margin-bottom:5px}
 #clientPasteData{min-height:145px}
 
+
+.button-badge{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:22px;height:22px;padding:0 6px;border-radius:999px;
+  margin-left:5px;background:rgba(255,255,255,.22);font-size:11px;font-weight:900
+}
+.attention-grid{
+  display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-top:16px
+}
+.attention-stat{
+  min-height:84px;border-radius:18px;padding:13px;
+  display:flex;align-items:center;gap:11px;color:#fff;box-shadow:var(--shadow-soft)
+}
+.attention-stat small{display:block;font-size:11px;color:rgba(255,255,255,.88);font-weight:800;margin-bottom:3px}
+.attention-stat strong{display:block;font-size:24px;line-height:1}
+.attention-icon{
+  width:42px;height:42px;border-radius:14px;display:flex;align-items:center;justify-content:center;
+  background:rgba(255,255,255,.17);font-size:22px;flex:0 0 auto
+}
+.attention-overdue{background:linear-gradient(135deg,#ef4444,#f97316)}
+.attention-approval{background:linear-gradient(135deg,#8b5cf6,#d946ef)}
+.attention-ship{background:linear-gradient(135deg,#f59e0b,#fbbf24)}
+.attention-track{background:linear-gradient(135deg,#0ea5e9,#38bdf8)}
+.attention-pay{background:linear-gradient(135deg,#22c55e,#10b981)}
+.attention-list{display:grid;gap:8px;margin-top:12px}
+.attention-item{
+  border:1px solid var(--line);border-radius:16px;padding:11px 12px;
+  background:linear-gradient(180deg,rgba(109,93,252,.035),rgba(14,165,233,.025));
+  display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center
+}
+.attention-item-title{font-weight:900;font-size:13px}
+.attention-item-meta{font-size:12px;color:var(--muted);margin-top:4px}
+.attention-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+.attention-tag{
+  display:inline-flex;padding:4px 7px;border-radius:999px;font-size:10px;font-weight:900;
+  background:var(--soft);border:1px solid var(--line)
+}
+.attention-tag.urgent{color:#fff;background:linear-gradient(135deg,#ef4444,#f97316);border:0}
+.attention-tag.warn{color:#7c2d12;background:#ffedd5;border-color:#fed7aa}
+.attention-tag.info{color:#075985;background:#e0f2fe;border-color:#bae6fd}
+.attention-tag.money{color:#166534;background:#dcfce7;border-color:#bbf7d0}
+
+.kanban-wrap{overflow-x:auto;padding-bottom:8px;-webkit-overflow-scrolling:touch}
+.kanban-board{
+  display:grid;grid-template-columns:repeat(7,minmax(260px,1fr));gap:12px;
+  min-width:1900px;align-items:start
+}
+.kanban-column{
+  border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.34);
+  overflow:hidden;min-height:220px
+}
+.kanban-column.drag-over{outline:3px solid rgba(109,93,252,.22);outline-offset:2px}
+.kanban-head{
+  padding:11px 12px;color:#fff;font-weight:900;display:flex;align-items:center;
+  justify-content:space-between;gap:8px
+}
+.kanban-head-count{
+  min-width:26px;height:26px;border-radius:999px;background:rgba(255,255,255,.2);
+  display:inline-flex;align-items:center;justify-content:center;font-size:11px
+}
+.kanban-column[data-status="Nuovo"] .kanban-head{background:linear-gradient(135deg,#6d5dfc,#8b7bff)}
+.kanban-column[data-status="In lavorazione"] .kanban-head{background:linear-gradient(135deg,#0ea5e9,#38bdf8)}
+.kanban-column[data-status="Da approvare"] .kanban-head{background:linear-gradient(135deg,#8b5cf6,#d946ef)}
+.kanban-column[data-status="Pronto"] .kanban-head{background:linear-gradient(135deg,#22c55e,#34d399)}
+.kanban-column[data-status="Da spedire"] .kanban-head{background:linear-gradient(135deg,#f59e0b,#fbbf24)}
+.kanban-column[data-status="Spedito"] .kanban-head{background:linear-gradient(135deg,#14b8a6,#06b6d4)}
+.kanban-column[data-status="Consegnato"] .kanban-head{background:linear-gradient(135deg,#64748b,#94a3b8)}
+.kanban-column-body{padding:9px;display:grid;gap:9px;min-height:170px}
+.kanban-empty{padding:22px 8px;text-align:center;color:var(--muted);font-size:12px}
+.kanban-card{
+  border:1px solid var(--line);border-radius:16px;padding:11px;background:var(--card-strong);
+  box-shadow:var(--shadow-soft);cursor:grab
+}
+.kanban-card:active{cursor:grabbing}
+.kanban-card.dragging{opacity:.45}
+.kanban-card-top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.kanban-client{font-weight:900;font-size:13px}
+.kanban-product{font-size:12px;color:var(--muted);margin-top:3px}
+.kanban-amount{font-size:12px;font-weight:900;white-space:nowrap}
+.kanban-meta{display:flex;gap:5px;flex-wrap:wrap;margin:9px 0}
+.kanban-chip{
+  display:inline-flex;align-items:center;padding:4px 7px;border-radius:999px;font-size:10px;
+  font-weight:850;background:var(--soft);border:1px solid var(--line)
+}
+.kanban-chip.overdue-chip{color:#b91c1c;background:#fee2e2;border-color:#fecaca}
+.kanban-chip.photo-chip{color:#6d28d9;background:#f3e8ff;border-color:#e9d5ff}
+.kanban-chip.track-chip{color:#075985;background:#e0f2fe;border-color:#bae6fd}
+.kanban-card select{min-height:36px;font-size:12px;border-radius:11px;padding:6px 8px;margin-top:5px}
+.kanban-card-actions{display:flex;gap:6px;margin-top:8px}
+.kanban-card-actions button{flex:1;min-height:34px}
+@media(max-width:950px){
+  .attention-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:560px){
+  .attention-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .attention-stat{min-height:76px;padding:11px}
+  .attention-item{grid-template-columns:1fr}
+  .attention-item .row-actions{width:100%}
+  .kanban-board{grid-template-columns:repeat(7,270px);min-width:max-content}
+}
+
 </style>
 
 <script>
@@ -481,6 +582,7 @@ tr:last-child td{border-bottom:0}
 
   <div class="tabs" role="tablist">
     <button class="tab active" data-tab="clients" type="button">Clienti</button>
+    <button class="tab" data-tab="board" type="button">⚡ Bacheca</button>
     <button class="tab" data-tab="orders" type="button">Ordini</button>
     <button class="tab" data-tab="rewards" type="button">Premi</button>
     <button class="tab" data-tab="settings" type="button">Impostazioni</button>
@@ -494,6 +596,7 @@ tr:last-child td{border-bottom:0}
           <div class="reward">La schermata iniziale mostra direttamente tutti i clienti registrati.</div>
         </div>
         <div class="row-actions">
+          <button class="secondary" id="openBoardBtn" type="button">⚡ Bacheca <span id="clientAttentionBadge" class="button-badge">0</span></button>
           <button class="primary" id="newClientBtn" type="button">＋ Nuovo cliente</button>
         </div>
       </div>
@@ -521,6 +624,66 @@ tr:last-child td{border-bottom:0}
         </table>
       </div>
       <div class="notice" id="clientNotice" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-board">
+    <div class="card">
+      <div class="profile-head">
+        <div>
+          <h2 style="margin-bottom:4px">⚡ Centro operativo</h2>
+          <div class="reward">Le cose che richiedono attenzione e lo stato di tutti gli ordini in un’unica schermata.</div>
+        </div>
+        <div class="row-actions">
+          <button class="secondary" id="refreshBoardBtn" type="button">↻ Aggiorna</button>
+          <button class="primary" id="newOrderFromBoardBtn" type="button">＋ Nuovo ordine</button>
+        </div>
+      </div>
+
+      <div class="attention-grid">
+        <div class="attention-stat attention-overdue">
+          <div class="attention-icon">⏰</div>
+          <div><small>In ritardo</small><strong id="aOverdue">0</strong></div>
+        </div>
+        <div class="attention-stat attention-approval">
+          <div class="attention-icon">👀</div>
+          <div><small>Da approvare</small><strong id="aApproval">0</strong></div>
+        </div>
+        <div class="attention-stat attention-ship">
+          <div class="attention-icon">📦</div>
+          <div><small>Da spedire</small><strong id="aShip">0</strong></div>
+        </div>
+        <div class="attention-stat attention-track">
+          <div class="attention-icon">🔎</div>
+          <div><small>Senza tracking</small><strong id="aTracking">0</strong></div>
+        </div>
+        <div class="attention-stat attention-pay">
+          <div class="attention-icon">💶</div>
+          <div><small>Pagamento da chiudere</small><strong id="aPayment">0</strong></div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <div class="profile-head">
+        <div>
+          <h3 style="margin:0">Da fare / controllare</h3>
+          <div class="reward">Mostro prima le attività più urgenti.</div>
+        </div>
+      </div>
+      <div id="attentionList" class="attention-list"></div>
+    </div>
+
+    <div class="card">
+      <div class="profile-head">
+        <div>
+          <h2 style="margin-bottom:4px">🗂️ Bacheca ordini</h2>
+          <div class="reward">Da PC puoi trascinare le card tra le colonne. Da iPhone usa il menu “Sposta in”.</div>
+        </div>
+      </div>
+      <div class="notice" id="kanbanNotice"></div>
+      <div class="kanban-wrap">
+        <div id="kanbanBoard" class="kanban-board"></div>
+      </div>
     </div>
   </section>
 
@@ -1749,6 +1912,7 @@ function render(){
   var rewardData=state.clients.map(function(c){var s=clientStats(c.id);return {c:c,s:s,r:rewardFor(s.balance)}}).sort(function(a,b){return b.s.balance-a.s.balance});
   $('#rewardRows').innerHTML=rewardData.length?rewardData.map(function(x){return '<tr><td><strong>'+esc(x.c.name)+'</strong><div class="reward">'+esc(x.c.code)+'</div></td><td><span class="pill">'+x.s.balance+' pt</span></td><td>'+(x.r.current?esc(x.r.current.name):'—')+'</td><td>'+(x.r.next?esc(x.r.next.name):'Soglia massima raggiunta')+'</td><td>'+(x.r.next?Math.max(0,x.r.next.points-x.s.balance)+' pt':'—')+'</td></tr>'}).join(''):'<tr><td colspan="5" class="empty">Aggiungi clienti per vedere i premi.</td></tr>';
   renderRewardsSettings();
+  renderOperationsBoard();
 }
 function setNotice(el,msg,type){el.textContent=msg;el.className='notice'+(type?' '+type:'')}
 function openProfile(id){var c=state.clients.find(function(x){return x.id===id});if(!c)return;var s=clientStats(id);$('#profileId').value=c.id;$('#profileCode').textContent=c.code;$('#profileHeading').textContent=c.name||'Profilo cliente';$('#profileMeta').textContent=[c.email,c.phone,c.city].filter(Boolean).join(' • ')||'Nessun contatto inserito';$('#pSpent').textContent=money(s.spent);$('#pBalance').textContent=s.balance;$('#pFirstName').value=c.firstName;$('#pLastName').value=c.lastName;$('#pEmail').value=c.email;$('#pPhone').value=c.phone;$('#pAddress').value=c.address;$('#pZip').value=c.zip;$('#pCity').value=c.city;$('#pProvince').value=c.province;$('#pInstagram').value=c.instagram;$('#pNotes').value=c.notes;setNotice($('#profileNotice'),'','');$('#profileIntakeEmailStatus').textContent=emailStatusLabel(c.intakeEmailSentAt,c.intakeEmailError);$('#sendIntakeEmailBtn').disabled=!c.email;var os=state.orders.filter(function(o){return o.clientId===id}).slice().reverse();$('#profileOrders').innerHTML=os.length?os.map(function(o){return '<tr><td>'+esc(o.date)+'</td><td>'+esc(o.product)+(o.attachment&&o.attachment.fileId?'<div class="photo-dot">📷 Foto allegata</div>':'')+'</td><td>'+money(o.amount)+'</td><td>'+statusBadge(o.paymentStatus)+'</td><td>'+statusBadge(o.orderStatus)+'</td><td>'+dueHtml(o)+'</td><td><button type="button" class="mini primary manage-order" data-id="'+esc(o.id)+'">Gestisci</button></td></tr>'}).join(''):'<tr><td colspan="7" class="empty">Nessun ordine per questo cliente.</td></tr>';var modal=$('#profileModal');modal.classList.add('open');modal.setAttribute('aria-hidden','false')}
@@ -1759,6 +1923,174 @@ function openOrderModal(id){var o=state.orders.find(function(x){return x.id===id
 function closeOrderModal(){var modal=$('#orderModal');modal.classList.remove('open');modal.setAttribute('aria-hidden','true')}
 function refreshOpenProfileIfNeeded(){if($('#profileModal').classList.contains('open')){var id=$('#profileId').value;if(id)openProfile(id)}}
 function safeTrackingUrl(v){var u=text(v).trim();return /^https?:\/\//i.test(u)?u:''}
+
+
+function orderClient(o){
+  return state.clients.find(function(c){return c.id===o.clientId});
+}
+function isClosedOrder(o){
+  return o.orderStatus==='Consegnato';
+}
+function isOrderOverdue(o){
+  return !!o.dueDate && o.dueDate<today() && !isClosedOrder(o);
+}
+function orderNeedsPayment(o){
+  if(o.paymentStatus==='Pagato'||o.paymentStatus==='Rimborsato')return false;
+  return num(o.paidAmount)<num(o.amount);
+}
+function orderNeedsTracking(o){
+  return (o.orderStatus==='Da spedire'||o.orderStatus==='Spedito')&&!text(o.trackingCode).trim();
+}
+function operationalIssueCount(){
+  return state.orders.filter(function(o){
+    return isOrderOverdue(o)||
+      o.orderStatus==='Da approvare'||
+      o.orderStatus==='Da spedire'||
+      orderNeedsTracking(o)||
+      orderNeedsPayment(o);
+  }).length;
+}
+function orderIssueData(o){
+  var issues=[];
+  if(isOrderOverdue(o))issues.push({label:'In ritardo',cls:'urgent',weight:100});
+  if(o.orderStatus==='Da spedire')issues.push({label:'Da spedire',cls:'warn',weight:80});
+  if(orderNeedsTracking(o))issues.push({label:'Tracking mancante',cls:'info',weight:75});
+  if(o.orderStatus==='Da approvare')issues.push({label:'Da approvare',cls:'info',weight:70});
+  if(orderNeedsPayment(o))issues.push({label:'Pagamento da chiudere',cls:'money',weight:40});
+  return issues;
+}
+function renderAttentionCenter(){
+  var overdue=state.orders.filter(isOrderOverdue).length;
+  var approval=state.orders.filter(function(o){return o.orderStatus==='Da approvare'}).length;
+  var ship=state.orders.filter(function(o){return o.orderStatus==='Da spedire'}).length;
+  var tracking=state.orders.filter(orderNeedsTracking).length;
+  var payment=state.orders.filter(orderNeedsPayment).length;
+
+  $('#aOverdue').textContent=overdue;
+  $('#aApproval').textContent=approval;
+  $('#aShip').textContent=ship;
+  $('#aTracking').textContent=tracking;
+  $('#aPayment').textContent=payment;
+  $('#clientAttentionBadge').textContent=operationalIssueCount();
+
+  var rows=state.orders.map(function(o){
+    var issues=orderIssueData(o);
+    return {
+      order:o,
+      issues:issues,
+      weight:issues.reduce(function(a,x){return Math.max(a,x.weight)},0)
+    };
+  }).filter(function(x){return x.issues.length})
+    .sort(function(a,b){
+      if(b.weight!==a.weight)return b.weight-a.weight;
+      var ad=a.order.dueDate||'9999-99-99',bd=b.order.dueDate||'9999-99-99';
+      return ad.localeCompare(bd);
+    }).slice(0,12);
+
+  $('#attentionList').innerHTML=rows.length?rows.map(function(x){
+    var o=x.order,c=orderClient(o);
+    return '<div class="attention-item">'+
+      '<div>'+
+        '<div class="attention-item-title">'+esc(c?c.name:'Cliente rimosso')+' — '+esc(o.product)+'</div>'+
+        '<div class="attention-item-meta">'+esc(o.date)+(o.dueDate?' • Consegna '+esc(o.dueDate):'')+' • '+money(o.amount)+'</div>'+
+        '<div class="attention-tags">'+x.issues.map(function(i){return '<span class="attention-tag '+i.cls+'">'+esc(i.label)+'</span>'}).join('')+'</div>'+
+      '</div>'+
+      '<div class="row-actions"><button class="mini primary attention-open-order" type="button" data-id="'+esc(o.id)+'">Gestisci</button></div>'+
+    '</div>';
+  }).join(''):'<div class="empty">🎉 Nessuna attività urgente. Tutto sotto controllo.</div>';
+}
+function kanbanCardHtml(o){
+  var c=orderClient(o);
+  var chips=[];
+  if(isOrderOverdue(o))chips.push('<span class="kanban-chip overdue-chip">⏰ In ritardo</span>');
+  if(o.attachment&&o.attachment.fileId)chips.push('<span class="kanban-chip photo-chip">📷 Foto</span>');
+  if(o.trackingCode)chips.push('<span class="kanban-chip track-chip">🔎 Tracking</span>');
+  if(orderNeedsPayment(o))chips.push('<span class="kanban-chip">💶 '+esc(o.paymentStatus)+'</span>');
+  if(o.dueDate&&!isOrderOverdue(o))chips.push('<span class="kanban-chip">📅 '+esc(o.dueDate)+'</span>');
+
+  return '<div class="kanban-card" draggable="true" data-order-id="'+esc(o.id)+'">'+
+    '<div class="kanban-card-top">'+
+      '<div><div class="kanban-client">'+esc(c?c.name:'Cliente rimosso')+'</div><div class="kanban-product">'+esc(o.product)+'</div></div>'+
+      '<div class="kanban-amount">'+money(o.amount)+'</div>'+
+    '</div>'+
+    '<div class="kanban-meta">'+chips.join('')+'</div>'+
+    '<label style="margin-top:5px">Sposta in</label>'+
+    '<select class="kanban-status-select" data-id="'+esc(o.id)+'">'+
+      ORDER_STATUSES.map(function(st){return '<option value="'+esc(st)+'"'+(st===o.orderStatus?' selected':'')+'>'+esc(st)+'</option>'}).join('')+
+    '</select>'+
+    '<div class="kanban-card-actions">'+
+      '<button type="button" class="mini primary kanban-open-order" data-id="'+esc(o.id)+'">Gestisci</button>'+
+    '</div>'+
+  '</div>';
+}
+function renderKanban(){
+  $('#kanbanBoard').innerHTML=ORDER_STATUSES.map(function(status){
+    var orders=state.orders.filter(function(o){return o.orderStatus===status})
+      .sort(function(a,b){
+        var ad=a.dueDate||'9999-99-99',bd=b.dueDate||'9999-99-99';
+        if(ad!==bd)return ad.localeCompare(bd);
+        return text(a.date).localeCompare(text(b.date));
+      });
+    return '<div class="kanban-column" data-status="'+esc(status)+'">'+
+      '<div class="kanban-head"><span>'+esc(status)+'</span><span class="kanban-head-count">'+orders.length+'</span></div>'+
+      '<div class="kanban-column-body" data-status="'+esc(status)+'">'+
+        (orders.length?orders.map(kanbanCardHtml).join(''):'<div class="kanban-empty">Nessun ordine</div>')+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+function renderOperationsBoard(){
+  if(!$('#kanbanBoard'))return;
+  renderAttentionCenter();
+  renderKanban();
+}
+async function updateOrderStatusQuick(orderId,newStatus){
+  var o=state.orders.find(function(x){return x.id===orderId});
+  if(!o||ORDER_STATUSES.indexOf(newStatus)<0)return;
+  var previousStatus=o.orderStatus;
+  if(previousStatus===newStatus)return;
+
+  o.orderStatus=newStatus;
+  if(newStatus==='Spedito'||newStatus==='Consegnato'){
+    o.checklist=Object.assign(defaultChecklist(),o.checklist||{});
+    o.checklist.shipped=true;
+  }
+
+  if(!saveState()){
+    o.orderStatus=previousStatus;
+    render();
+    setNotice($('#kanbanNotice'),'Errore durante il salvataggio dello stato.','error');
+    return;
+  }
+
+  render();
+  setNotice($('#kanbanNotice'),'Ordine spostato: '+previousStatus+' → '+newStatus+'.','ok');
+
+  if(previousStatus!=='Spedito'&&newStatus==='Spedito'&&!o.shippedEmailSentAt&&shippedEmailEnabled()){
+    if(!text(o.trackingCode).trim()){
+      o.shippedEmailError='Tracking mancante';
+      saveState();
+      render();
+      setNotice($('#kanbanNotice'),'Ordine impostato su Spedito, ma la mail NON è partita perché manca il tracking.','error');
+      return;
+    }
+    if(!shippedEmailConfigReady()){
+      o.shippedEmailError='Configurazione EmailJS spedizione incompleta';
+      saveState();
+      render();
+      setNotice($('#kanbanNotice'),'Ordine impostato su Spedito. E-mail spedizione non configurata.','error');
+      return;
+    }
+    try{
+      await sendShippedEmail(o,false);
+      render();
+      setNotice($('#kanbanNotice'),'Ordine impostato su Spedito ed e-mail inviata automaticamente ✅','ok');
+    }catch(err){
+      render();
+      setNotice($('#kanbanNotice'),'Stato salvato, ma e-mail non inviata: '+text(err&&err.message||err),'error');
+    }
+  }
+}
 
 function resetNewClientForm(){
   $('#clientForm').reset();
@@ -2022,7 +2354,88 @@ function applyParsedClientData(data){
   $('#clientCode').value=nextCode();
 }
 
-$$('.tab').forEach(function(b){b.addEventListener('click',function(){$$('.tab').forEach(function(x){x.classList.remove('active')});$$('.panel').forEach(function(x){x.classList.remove('active')});b.classList.add('active');$('#panel-'+b.dataset.tab).classList.add('active')})});
+function activateTab(name){
+  var btn=$('.tab[data-tab="'+name+'"]');
+  var panel=$('#panel-'+name);
+  if(!btn||!panel)return;
+  $$('.tab').forEach(function(x){x.classList.remove('active')});
+  $$('.panel').forEach(function(x){x.classList.remove('active')});
+  btn.classList.add('active');
+  panel.classList.add('active');
+  if(name==='board')renderOperationsBoard();
+}
+$$('.tab').forEach(function(b){
+  b.addEventListener('click',function(){activateTab(b.dataset.tab)});
+});
+
+
+$('#openBoardBtn').addEventListener('click',function(){activateTab('board')});
+$('#refreshBoardBtn').addEventListener('click',function(){
+  renderOperationsBoard();
+  if(cloudSyncConfigured()){
+    syncCloudData(false).then(function(){
+      renderOperationsBoard();
+      setNotice($('#kanbanNotice'),'Bacheca aggiornata e sincronizzata ✅','ok');
+    }).catch(function(){
+      setNotice($('#kanbanNotice'),'Bacheca aggiornata localmente. Sincronizzazione cloud non riuscita.','error');
+    });
+  }else{
+    setNotice($('#kanbanNotice'),'Bacheca aggiornata.','ok');
+  }
+});
+$('#newOrderFromBoardBtn').addEventListener('click',function(){activateTab('orders');setTimeout(function(){try{$('#orderClient').focus()}catch(e){}},80)});
+
+$('#attentionList').addEventListener('click',function(e){
+  var b=e.target.closest('.attention-open-order');
+  if(b)openOrderModal(b.dataset.id);
+});
+
+$('#kanbanBoard').addEventListener('click',function(e){
+  var b=e.target.closest('.kanban-open-order');
+  if(b)openOrderModal(b.dataset.id);
+});
+$('#kanbanBoard').addEventListener('change',function(e){
+  if(e.target.classList.contains('kanban-status-select')){
+    updateOrderStatusQuick(e.target.dataset.id,e.target.value);
+  }
+});
+
+var draggedKanbanOrderId='';
+$('#kanbanBoard').addEventListener('dragstart',function(e){
+  var card=e.target.closest('.kanban-card');
+  if(!card)return;
+  draggedKanbanOrderId=card.dataset.orderId||'';
+  card.classList.add('dragging');
+  try{
+    e.dataTransfer.effectAllowed='move';
+    e.dataTransfer.setData('text/plain',draggedKanbanOrderId);
+  }catch(err){}
+});
+$('#kanbanBoard').addEventListener('dragend',function(e){
+  var card=e.target.closest('.kanban-card');
+  if(card)card.classList.remove('dragging');
+  $$('.kanban-column').forEach(function(x){x.classList.remove('drag-over')});
+  draggedKanbanOrderId='';
+});
+$('#kanbanBoard').addEventListener('dragover',function(e){
+  var body=e.target.closest('.kanban-column-body');
+  if(!body)return;
+  e.preventDefault();
+  $$('.kanban-column').forEach(function(x){x.classList.remove('drag-over')});
+  var col=body.closest('.kanban-column');
+  if(col)col.classList.add('drag-over');
+  try{e.dataTransfer.dropEffect='move'}catch(err){}
+});
+$('#kanbanBoard').addEventListener('drop',function(e){
+  var body=e.target.closest('.kanban-column-body');
+  if(!body)return;
+  e.preventDefault();
+  var id=draggedKanbanOrderId;
+  try{id=e.dataTransfer.getData('text/plain')||id}catch(err){}
+  var status=body.dataset.status;
+  $$('.kanban-column').forEach(function(x){x.classList.remove('drag-over')});
+  if(id&&status)updateOrderStatusQuick(id,status);
+});
 
 $('#newClientBtn').addEventListener('click',openNewClientModal);
 $('#closeNewClient').addEventListener('click',closeNewClientModal);
