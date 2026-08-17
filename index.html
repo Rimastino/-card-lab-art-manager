@@ -1012,6 +1012,17 @@ tbody tr:hover td{background:#111722!important}
   }
 }
 
+
+.email-preview-ready{
+  color:#bfdbfe!important;background:#0c2030!important;border-color:#075985!important
+}
+.email-preview-included{
+  color:#bbf7d0!important;background:#0d2818!important;border-color:#166534!important
+}
+.email-preview-warning{
+  color:#fed7aa!important;background:#2a1709!important;border-color:#9a3412!important
+}
+
 </style>
 
 <script>
@@ -1386,7 +1397,7 @@ tbody tr:hover td{background:#111722!important}
         <div class="span4 toolbar"><button class="primary" type="button" id="saveEmailSettings">Salva configurazione e-mail</button></div>
       </div>
       <div class="notice" id="emailSettingsNotice"></div>
-      <div class="reward" style="margin-top:10px">Variabili template: <strong>{{to_email}}</strong>, {{first_name}}, {{last_name}}, {{client_name}}, {{client_code}}, {{product}}, {{order_date}}, {{order_status}}, {{carrier}}, {{tracking_code}}, {{tracking_url}}, {{subject}}, {{message}}. La mail “Spedito” parte una sola volta quando cambi manualmente lo stato in <strong>Spedito</strong> e il tracking è presente.</div>
+      <div class="reward" style="margin-top:10px">Variabili template: <strong>{{to_email}}</strong>, {{first_name}}, {{last_name}}, {{client_name}}, {{client_code}}, {{product}}, {{order_date}}, {{order_status}}, {{carrier}}, {{tracking_code}}, {{tracking_url}}, {{subject}}, {{message}}, <strong>{{has_product_preview}}</strong> e allegato dinamico <strong>product_preview</strong>. La mail “Spedito” parte una sola volta quando cambi manualmente lo stato in <strong>Spedito</strong> e il tracking è presente.</div>
     </div>
 
     <div class="card">
@@ -1613,8 +1624,10 @@ mario@email.it
         <label>E-mail spedizione</label>
         <div class="toolbar">
           <span class="status-pill" id="orderShippedEmailStatus">Non inviata</span>
+          <span class="status-pill" id="orderEmailPreviewStatus">📷 Nessuna anteprima</span>
           <button class="secondary" type="button" id="sendShippedEmailBtn">Invia e-mail spedizione</button>
         </div>
+        <div class="reward" style="margin-top:7px">Se questo ordine ha una foto allegata, il gestionale prova a inserirla come piccola anteprima direttamente nella mail di spedizione.</div>
       </div>
       <div class="span4 toolbar"><button class="primary" type="submit">Salva ordine</button><button class="secondary" type="button" id="importTrackingGmailBtn">Importa ultimo tracking Gmail</button><button class="secondary" type="button" id="copyTrackingBtn">Copia tracking</button><button class="secondary" type="button" id="openTrackingBtn">Apri tracking</button><button class="danger" type="button" id="deleteOrderFromModal">Elimina ordine</button></div>
     </form>
@@ -1656,7 +1669,7 @@ function money(n){return new Intl.NumberFormat('it-IT',{style:'currency',currenc
 function today(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function migrateClient(c){c=c||{};var pieces=text(c.name).trim().split(/\s+/).filter(Boolean);var first=text(c.firstName||pieces[0]||'');var last=text(c.lastName||pieces.slice(1).join(' '));return {id:c.id||uid(),code:c.code||'',firstName:first,lastName:last,name:(first+' '+last).trim(),email:text(c.email),phone:text(c.phone),address:text(c.address),zip:text(c.zip),city:text(c.city),province:text(c.province),instagram:text(c.instagram||c.contact),notes:text(c.notes),intakeEmailSentAt:text(c.intakeEmailSentAt),intakeEmailError:text(c.intakeEmailError),_syncUpdatedAt:text(c._syncUpdatedAt||'2000-01-01T00:00:00.000Z')}}
 function legacyOrderProductAndNotes(o){var product=text(o.product),notes=text(o.orderNotes||o.notes);if(product)return {product:PRODUCTS.indexOf(product)>=0?product:'Altro',notes:notes||text(o.note)};var legacy=text(o.note);var parts=legacy.split(' — ');if(parts.length>1&&PRODUCTS.indexOf(parts[0])>=0)return {product:parts[0],notes:parts.slice(1).join(' — ')};if(PRODUCTS.indexOf(legacy)>=0)return {product:legacy,notes:''};return {product:'Altro',notes:legacy}}
-function normalizeOrder(o){o=o||{};var pn=legacyOrderProductAndNotes(o);var st=text(o.orderStatus||o.shippingStatus||o.status||'In lavorazione');if(st==='Arrivato')st='Consegnato';if(ORDER_STATUSES.indexOf(st)<0)st='In lavorazione';var ps=text(o.paymentStatus||'Da pagare');if(PAYMENT_STATUSES.indexOf(ps)<0)ps='Da pagare';var cl=Object.assign(defaultChecklist(),o.checklist||{});if(st==='Spedito'||st==='Consegnato')cl.shipped=true;return Object.assign({},o,{id:o.id||uid(),date:text(o.date||today()),clientId:text(o.clientId),amount:num(o.amount),earned:num(o.earned),redeemed:num(o.redeemed),product:pn.product,orderNotes:pn.notes,orderStatus:st,dueDate:text(o.dueDate),paymentStatus:ps,paidAmount:num(o.paidAmount),paymentMethod:text(o.paymentMethod),materialCost:num(o.materialCost),shippingCost:num(o.shippingCost),carrier:text(o.carrier),trackingCode:text(o.trackingCode),trackingUrl:text(o.trackingUrl),checklist:cl,shippedEmailSentAt:text(o.shippedEmailSentAt),shippedEmailError:text(o.shippedEmailError),attachment:(o.attachment&&o.attachment.fileId)?{fileId:text(o.attachment.fileId),fileName:text(o.attachment.fileName),mimeType:text(o.attachment.mimeType),uploadedAt:text(o.attachment.uploadedAt)}:null,_syncUpdatedAt:text(o._syncUpdatedAt||'2000-01-01T00:00:00.000Z')})}
+function normalizeOrder(o){o=o||{};var pn=legacyOrderProductAndNotes(o);var st=text(o.orderStatus||o.shippingStatus||o.status||'In lavorazione');if(st==='Arrivato')st='Consegnato';if(ORDER_STATUSES.indexOf(st)<0)st='In lavorazione';var ps=text(o.paymentStatus||'Da pagare');if(PAYMENT_STATUSES.indexOf(ps)<0)ps='Da pagare';var cl=Object.assign(defaultChecklist(),o.checklist||{});if(st==='Spedito'||st==='Consegnato')cl.shipped=true;return Object.assign({},o,{id:o.id||uid(),date:text(o.date||today()),clientId:text(o.clientId),amount:num(o.amount),earned:num(o.earned),redeemed:num(o.redeemed),product:pn.product,orderNotes:pn.notes,orderStatus:st,dueDate:text(o.dueDate),paymentStatus:ps,paidAmount:num(o.paidAmount),paymentMethod:text(o.paymentMethod),materialCost:num(o.materialCost),shippingCost:num(o.shippingCost),carrier:text(o.carrier),trackingCode:text(o.trackingCode),trackingUrl:text(o.trackingUrl),checklist:cl,shippedEmailSentAt:text(o.shippedEmailSentAt),shippedEmailError:text(o.shippedEmailError),shippedEmailPreviewIncluded:!!o.shippedEmailPreviewIncluded,shippedEmailPreviewError:text(o.shippedEmailPreviewError),attachment:(o.attachment&&o.attachment.fileId)?{fileId:text(o.attachment.fileId),fileName:text(o.attachment.fileName),mimeType:text(o.attachment.mimeType),uploadedAt:text(o.attachment.uploadedAt)}:null,_syncUpdatedAt:text(o._syncUpdatedAt||'2000-01-01T00:00:00.000Z')})}
 function normalizeState(data){var d=defaultState();if(!data||!Array.isArray(data.clients)||!Array.isArray(data.orders))return d;d.clients=data.clients.map(migrateClient);d.orders=data.orders.map(normalizeOrder);if(data.settings){d.settings.eurosPerPoint=Math.max(1,num(data.settings.eurosPerPoint)||10);if(Array.isArray(data.settings.rewards)&&data.settings.rewards.length)d.settings.rewards=data.settings.rewards.map(function(r){return {points:Math.max(1,num(r.points)||1),name:text(r.name||'Premio')}});d.settings.email=Object.assign(defaultEmailSettings(),data.settings.email||{});
 if(typeof d.settings.email.intakeEnabled!=='boolean')d.settings.email.intakeEnabled=!!d.settings.email.enabled;
 if(typeof d.settings.email.shippedEnabled!=='boolean')d.settings.email.shippedEnabled=false;
@@ -2112,18 +2125,127 @@ function sendIntakeEmail(c,force){
   c.intakeEmailError='';saveState();
   return sendEmailTemplate(emailSettings().intakeTemplateId,p).then(function(r){c.intakeEmailSentAt=nowIso();c.intakeEmailError='';saveState();return r}).catch(function(err){c.intakeEmailError=text(err&&err.text||err&&err.message||err||'Errore invio');saveState();throw err});
 }
-function sendShippedEmail(o,force){
-  if(!o)return Promise.reject(new Error('Ordine non trovato.'));
+
+var EMPTY_EMAIL_PRODUCT_PREVIEW='data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAoHBwgHBgoICAgLCgoLDhgQDg0NDh0VFhEYIx8lJCIfIiEmKzcvJik0KSEiMEExNDk7Pj4+JS5ESUM8SDc9Pjv/2wBDAQoLCw4NDhwQEBw7KCIoOzs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozv/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAf/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFAEBAAAAAAAAAAAAAAAAAAAAAP/EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAMAwEAAhEDEQA/ALMAD//Z';
+
+function orderEmailPreviewStatus(o){
+  if(!o||!o.attachment||!o.attachment.fileId){
+    return {text:'📷 Nessuna anteprima',cls:''};
+  }
+  if(o.shippedEmailSentAt&&o.shippedEmailPreviewIncluded){
+    return {text:'🖼️ Anteprima inclusa',cls:'email-preview-included'};
+  }
+  if(o.shippedEmailPreviewError){
+    return {text:'⚠️ Foto non inclusa',cls:'email-preview-warning'};
+  }
+  return {text:'🖼️ Foto pronta per la mail',cls:'email-preview-ready'};
+}
+
+function updateOrderEmailPreviewStatus(o){
+  var el=$('#orderEmailPreviewStatus');
+  if(!el)return;
+  var st=orderEmailPreviewStatus(o);
+  el.textContent=st.text;
+  el.className='status-pill'+(st.cls?' '+st.cls:'');
+  if(o&&o.shippedEmailPreviewError){
+    el.title=text(o.shippedEmailPreviewError);
+  }else{
+    el.removeAttribute('title');
+  }
+}
+
+async function loadOrderEmailPreview(o){
+  var result={
+    hasProductPreview:false,
+    content:EMPTY_EMAIL_PRODUCT_PREVIEW,
+    fileName:'anteprima-prodotto.jpg',
+    error:''
+  };
+
+  if(!o||!o.attachment||!o.attachment.fileId)return result;
+
+  if(!trackingIntegrationReady()){
+    result.error='URL Apps Script o token non configurati.';
+    return result;
+  }
+
+  try{
+    var response=await cloudApi({
+      action:'attachmentEmailPreview',
+      fileId:o.attachment.fileId
+    });
+
+    if(!response||response.ok!==true||!text(response.content).trim()){
+      result.error=text(response&&response.error||'Anteprima foto non disponibile.');
+      return result;
+    }
+
+    result.hasProductPreview=true;
+    result.content=text(response.content);
+    result.fileName=text(response.fileName||'anteprima-prodotto.jpg');
+    return result;
+  }catch(err){
+    result.error=text(err&&err.message||err||'Errore recupero anteprima foto.');
+    return result;
+  }
+}
+
+function shippedEmailSuccessMessage(result,email){
+  var base='E-mail di spedizione inviata'+(email?' a '+email:'')+'.';
+  if(result&&result.previewIncluded)return base+' 🖼️ Anteprima prodotto inclusa.';
+  if(result&&result.previewError)return base+' La foto non è stata inclusa: '+result.previewError;
+  return base;
+}
+
+async function sendShippedEmail(o,force){
+  if(!o)throw new Error('Ordine non trovato.');
   var c=state.clients.find(function(x){return x.id===o.clientId});
-  if(!c||!text(c.email).trim())return Promise.reject(new Error('Il cliente non ha un indirizzo e-mail.'));
-  if(!text(o.trackingCode).trim())return Promise.reject(new Error('Manca il codice tracking. Importalo da Gmail prima di inviare la mail di spedizione.'));
-  if(o.shippedEmailSentAt&&!force)return Promise.resolve({alreadySent:true});
+  if(!c||!text(c.email).trim())throw new Error('Il cliente non ha un indirizzo e-mail.');
+  if(!text(o.trackingCode).trim())throw new Error('Manca il codice tracking. Importalo da Gmail prima di inviare la mail di spedizione.');
+  if(o.shippedEmailSentAt&&!force)return {alreadySent:true,previewIncluded:!!o.shippedEmailPreviewIncluded,previewError:text(o.shippedEmailPreviewError)};
+
+  var preview=await loadOrderEmailPreview(o);
   var p=emailBaseParams(c);
-  p.product=text(o.product);p.order_date=text(o.date);p.order_status=text(o.orderStatus);p.carrier=text(o.carrier);p.tracking_code=text(o.trackingCode);p.tracking_url=text(o.trackingUrl);
+  p.product=text(o.product);
+  p.order_date=text(o.date);
+  p.order_status=text(o.orderStatus);
+  p.carrier=text(o.carrier);
+  p.tracking_code=text(o.trackingCode);
+  p.tracking_url=text(o.trackingUrl);
   p.subject='Il tuo ordine è stato spedito 📦';
   p.message='Ciao '+(c.firstName||c.name)+', il tuo ordine è stato spedito.'+(o.carrier?' Corriere: '+o.carrier+'.':'')+(o.trackingCode?' Tracking: '+o.trackingCode+'.':'');
-  o.shippedEmailError='';saveState();
-  return sendEmailTemplate(emailSettings().shippedTemplateId,p).then(function(r){o.shippedEmailSentAt=nowIso();o.shippedEmailError='';saveState();return r}).catch(function(err){o.shippedEmailError=text(err&&err.text||err&&err.message||err||'Errore invio');saveState();throw err});
+
+  // Variabili per EmailJS:
+  // product_preview = Dynamic Variable Attachment (CID: product_preview)
+  // has_product_preview = mostra/nasconde il blocco immagine nel template
+  p.product_preview=preview.content;
+  p.product_preview_name=preview.fileName;
+  p.has_product_preview=preview.hasProductPreview;
+  p.product_preview_alt='Anteprima del tuo progetto Card_Lab_Art';
+
+  o.shippedEmailError='';
+  o.shippedEmailPreviewError='';
+  saveState();
+
+  try{
+    var r=await sendEmailTemplate(emailSettings().shippedTemplateId,p);
+    o.shippedEmailSentAt=nowIso();
+    o.shippedEmailError='';
+    o.shippedEmailPreviewIncluded=!!preview.hasProductPreview;
+    o.shippedEmailPreviewError=text(preview.error);
+    saveState();
+    return {
+      email:r,
+      previewIncluded:!!preview.hasProductPreview,
+      previewError:text(preview.error)
+    };
+  }catch(err){
+    o.shippedEmailError=text(err&&err.text||err&&err.message||err||'Errore invio');
+    o.shippedEmailPreviewIncluded=false;
+    o.shippedEmailPreviewError=text(preview.error);
+    saveState();
+    throw err;
+  }
 }
 function intakeEmailEnabled(){var e=emailSettings();return typeof e.intakeEnabled==='boolean'?e.intakeEnabled:!!e.enabled}
 function shippedEmailEnabled(){return !!emailSettings().shippedEnabled}
@@ -3066,7 +3188,7 @@ function openProfile(id){
 function closeProfile(){var modal=$('#profileModal');modal.classList.remove('open');modal.setAttribute('aria-hidden','true')}
 function renderChecklist(o){var box=$('#checklistBox');box.innerHTML=CHECKLIST_ITEMS.map(function(i){var checked=o.checklist&&o.checklist[i.key];return '<div class="checkitem"><input type="checkbox" id="check_'+esc(i.key)+'" data-check="'+esc(i.key)+'"'+(checked?' checked':'')+'><label for="check_'+esc(i.key)+'">'+esc(i.label)+'</label></div>'}).join('')}
 function updateOrderEditPreview(){var done=$$('[data-check]:checked',$('#checklistBox')).length;$('#editChecklistPreview').textContent='Checklist: '+done+'/'+CHECKLIST_ITEMS.length}
-function openOrderModal(id){var o=state.orders.find(function(x){return x.id===id});if(!o)return;var c=state.clients.find(function(x){return x.id===o.clientId});$('#editOrderId').value=o.id;$('#orderModalHeading').textContent='Gestisci ordine';$('#orderModalMeta').textContent=(c?c.code+' — '+c.name:'Cliente rimosso')+' • '+o.date;$('#editOrderDate').value=o.date;$('#editOrderProduct').value=PRODUCTS.indexOf(o.product)>=0?o.product:'Altro';$('#editOrderAmount').value=o.amount;$('#editOrderStatus').value=o.orderStatus;$('#editOrderDueDate').value=o.dueDate;$('#editPaymentStatus').value=o.paymentStatus;$('#editPaidAmount').value=o.paidAmount;$('#editPaymentMethod').value=PAYMENT_METHODS.indexOf(o.paymentMethod)>=0?o.paymentMethod:'Altro';$('#editMaterialCost').value=o.materialCost;$('#editShippingCost').value=o.shippingCost;$('#editCarrier').value=CARRIERS.indexOf(o.carrier)>=0?o.carrier:'Altro';$('#editTrackingCode').value=o.trackingCode;$('#editTrackingUrl').value=o.trackingUrl;$('#editRedeem').value=o.redeemed;$('#editOrderNotes').value=o.orderNotes;renderChecklist(o);setNotice($('#orderEditNotice'),'','');$('#orderShippedEmailStatus').textContent=emailStatusLabel(o.shippedEmailSentAt,o.shippedEmailError);$('#sendShippedEmailBtn').disabled=!(c&&c.email);updateOrderEditPreview();renderOrderPhotoBox(o);var modal=$('#orderModal');modal.classList.add('open');modal.setAttribute('aria-hidden','false')}
+function openOrderModal(id){var o=state.orders.find(function(x){return x.id===id});if(!o)return;var c=state.clients.find(function(x){return x.id===o.clientId});$('#editOrderId').value=o.id;$('#orderModalHeading').textContent='Gestisci ordine';$('#orderModalMeta').textContent=(c?c.code+' — '+c.name:'Cliente rimosso')+' • '+o.date;$('#editOrderDate').value=o.date;$('#editOrderProduct').value=PRODUCTS.indexOf(o.product)>=0?o.product:'Altro';$('#editOrderAmount').value=o.amount;$('#editOrderStatus').value=o.orderStatus;$('#editOrderDueDate').value=o.dueDate;$('#editPaymentStatus').value=o.paymentStatus;$('#editPaidAmount').value=o.paidAmount;$('#editPaymentMethod').value=PAYMENT_METHODS.indexOf(o.paymentMethod)>=0?o.paymentMethod:'Altro';$('#editMaterialCost').value=o.materialCost;$('#editShippingCost').value=o.shippingCost;$('#editCarrier').value=CARRIERS.indexOf(o.carrier)>=0?o.carrier:'Altro';$('#editTrackingCode').value=o.trackingCode;$('#editTrackingUrl').value=o.trackingUrl;$('#editRedeem').value=o.redeemed;$('#editOrderNotes').value=o.orderNotes;renderChecklist(o);setNotice($('#orderEditNotice'),'','');$('#orderShippedEmailStatus').textContent=emailStatusLabel(o.shippedEmailSentAt,o.shippedEmailError);updateOrderEmailPreviewStatus(o);$('#sendShippedEmailBtn').disabled=!(c&&c.email);updateOrderEditPreview();renderOrderPhotoBox(o);var modal=$('#orderModal');modal.classList.add('open');modal.setAttribute('aria-hidden','false')}
 function closeOrderModal(){var modal=$('#orderModal');modal.classList.remove('open');modal.setAttribute('aria-hidden','true')}
 function refreshOpenProfileIfNeeded(){if($('#profileModal').classList.contains('open')){var id=$('#profileId').value;if(id)openProfile(id)}}
 function safeTrackingUrl(v){var u=text(v).trim();return /^https?:\/\//i.test(u)?u:''}
@@ -3229,9 +3351,9 @@ async function updateOrderStatusQuick(orderId,newStatus){
       return;
     }
     try{
-      await sendShippedEmail(o,false);
+      var sentResult=await sendShippedEmail(o,false);
       render();
-      setNotice($('#kanbanNotice'),'Ordine impostato su Spedito ed e-mail inviata automaticamente ✅','ok');
+      setNotice($('#kanbanNotice'),'Ordine impostato su Spedito. '+shippedEmailSuccessMessage(sentResult,''),'ok');
     }catch(err){
       render();
       setNotice($('#kanbanNotice'),'Stato salvato, ma e-mail non inviata: '+text(err&&err.message||err),'error');
@@ -3801,7 +3923,7 @@ $('#orderForm').addEventListener('submit',async function(e){
     if(!text(order.trackingCode).trim()){order.shippedEmailError='Tracking mancante';saveState();openOrderModal(order.id);setNotice($('#orderEditNotice'),'Ordine salvato come Spedito, ma la mail NON è partita perché manca il tracking.','error');return}
     if(!shippedEmailConfigReady()){order.shippedEmailError='Configurazione EmailJS spedizione incompleta';saveState();openOrderModal(order.id);setNotice($('#orderEditNotice'),'Ordine salvato. E-mail spedizione non configurata.','error');return}
     setNotice($('#orderEditNotice'),'Ordine salvato. Invio e-mail di spedizione...','');
-    try{await sendShippedEmail(order,false);openOrderModal(order.id);setNotice($('#orderEditNotice'),'E-mail di spedizione inviata.','ok')}
+    try{var sentResult=await sendShippedEmail(order,false);openOrderModal(order.id);setNotice($('#orderEditNotice'),shippedEmailSuccessMessage(sentResult,''),'ok')}
     catch(err){openOrderModal(order.id);setNotice($('#orderEditNotice'),'Ordine salvato, ma l’e-mail non è partita: '+text(err&&err.text||err&&err.message||err),'error')}
   }
 });
@@ -3989,7 +4111,7 @@ $('#orderEditForm').addEventListener('submit',async function(e){
     if(!text(o.trackingCode).trim()){o.shippedEmailError='Tracking mancante';saveState();openOrderModal(id);setNotice($('#orderEditNotice'),'Ordine impostato su Spedito, ma la mail NON è partita perché manca il tracking. Importalo da Gmail e usa “Invia e-mail spedizione”.','error');return}
     if(!shippedEmailConfigReady()){o.shippedEmailError='Configurazione EmailJS spedizione incompleta';saveState();openOrderModal(id);setNotice($('#orderEditNotice'),'Ordine salvato. E-mail spedizione non configurata.','error');return}
     setNotice($('#orderEditNotice'),'Ordine salvato. Invio e-mail di spedizione...','');
-    try{await sendShippedEmail(o,false);openOrderModal(id);setNotice($('#orderEditNotice'),'E-mail di spedizione inviata automaticamente.','ok')}
+    try{var sentResult=await sendShippedEmail(o,false);openOrderModal(id);setNotice($('#orderEditNotice'),'Invio automatico: '+shippedEmailSuccessMessage(sentResult,''),'ok')}
     catch(err){openOrderModal(id);setNotice($('#orderEditNotice'),'Ordine salvato, ma l’e-mail non è partita: '+text(err&&err.text||err&&err.message||err),'error')}
   }
 });
@@ -4011,7 +4133,7 @@ $('#uploadOrderPhotoBtn').addEventListener('click',async function(){
     render();
     refreshOpenProfileIfNeeded();
     renderOrderPhotoBox(o);
-    setNotice($('#orderPhotoNotice'),'Foto allegata ✅ Salvata su Google Drive.','ok');
+    setNotice($('#orderPhotoNotice'),'Foto allegata ✅ Salvata su Google Drive e pronta per l’anteprima nella mail di spedizione.','ok');
   }catch(err){
     setNotice($('#orderPhotoNotice'),'Caricamento fallito: '+text(err&&err.message||err),'error');
   }finally{
@@ -4041,6 +4163,8 @@ $('#removeOrderPhotoBtn').addEventListener('click',function(){
   if(!o||!o.attachment)return;
   if(!confirm('Rimuovere la foto da questo ordine? Il file resterà nel Drive come storico/backup.'))return;
   o.attachment=null;
+  o.shippedEmailPreviewIncluded=false;
+  o.shippedEmailPreviewError='';
   saveState();
   render();
   refreshOpenProfileIfNeeded();
@@ -4056,7 +4180,7 @@ $('#sendShippedEmailBtn').addEventListener('click',async function(){
   if(!shippedEmailConfigReady()){setNotice($('#orderEditNotice'),'Configura prima il Template ID — Spedito nelle Impostazioni.','error');return}
   if(o.shippedEmailSentAt&&!confirm('L’e-mail di spedizione risulta già inviata. Vuoi inviarla di nuovo?'))return;
   setNotice($('#orderEditNotice'),'Invio e-mail di spedizione...','');
-  try{await sendShippedEmail(o,true);openOrderModal(id);setNotice($('#orderEditNotice'),'E-mail di spedizione inviata a '+c.email+'.','ok')}
+  try{var sentResult=await sendShippedEmail(o,true);openOrderModal(id);setNotice($('#orderEditNotice'),shippedEmailSuccessMessage(sentResult,c.email),'ok')}
   catch(err){openOrderModal(id);setNotice($('#orderEditNotice'),'Errore invio: '+text(err&&err.text||err&&err.message||err),'error')}
 });
 
