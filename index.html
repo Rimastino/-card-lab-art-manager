@@ -352,6 +352,104 @@ th{position:sticky;top:0;z-index:2;background:#121720;color:#b9c3cf;font-size:10
   #saveNewClientBtn{order:-1}
 }
 
+
+/* V30 — fix creazione cliente su iPhone */
+.new-client-head-actions{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+#saveNewClientTopBtn{
+  min-width:110px;
+}
+.iphone-client-status{
+  display:none;
+  align-items:flex-start;
+  gap:8px;
+  padding:10px 11px;
+  border:1px solid #243248;
+  border-radius:13px;
+  background:#0b1522;
+  color:#b9d5ff;
+  font-size:11px;
+  line-height:1.35;
+}
+.iphone-client-status strong{
+  display:block;
+  color:#e7f0ff;
+  font-size:11px;
+}
+@media(max-width:640px){
+  #newClientModal{
+    padding:0!important;
+    align-items:stretch!important;
+  }
+  #newClientModal .modal-box{
+    width:100%!important;
+    max-width:none!important;
+    height:100dvh!important;
+    max-height:100dvh!important;
+    border-radius:0!important;
+    border-left:0!important;
+    border-right:0!important;
+    padding:11px 11px calc(14px + env(safe-area-inset-bottom))!important;
+  }
+  #newClientModal .modal-head{
+    top:-11px!important;
+    margin:-11px -11px 0!important;
+    padding:
+      calc(10px + env(safe-area-inset-top))
+      11px
+      10px!important;
+  }
+  .new-client-head-actions{
+    flex:0 0 auto;
+  }
+  #saveNewClientTopBtn,
+  #closeNewClient{
+    min-height:42px;
+    min-width:92px;
+    padding:8px 11px;
+  }
+  .iphone-client-status{
+    display:flex;
+    position:sticky;
+    top:58px;
+    z-index:16;
+    background:rgba(11,21,34,.97);
+    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
+  }
+  .new-client-savebar{
+    position:sticky;
+    bottom:calc(-1px + env(safe-area-inset-bottom));
+    z-index:30;
+    margin-left:-1px;
+    margin-right:-1px;
+    background:rgba(8,11,16,.98);
+  }
+  .new-client-save-actions{
+    grid-template-columns:1fr;
+  }
+  #saveNewClientBtn{
+    order:-1;
+  }
+}
+@media(max-width:390px){
+  #newClientModal .profile-meta{
+    font-size:10.5px;
+  }
+  #saveNewClientTopBtn{
+    min-width:82px;
+    font-size:12px;
+  }
+  #closeNewClient{
+    min-width:72px;
+    font-size:12px;
+  }
+}
+
 </style>
 
 <script>
@@ -465,7 +563,7 @@ th{position:sticky;top:0;z-index:2;background:#121720;color:#b9c3cf;font-size:10
 <div id="claManagerApp" class="cla-locked"><div class="app" id="cla-root">
   <div class="top">
     <div class="brand"><h1>Card_Lab_Art — Gestione clienti e ordini</h1><p>Dashboard operativa Card_Lab_Art — ordini, clienti, spedizioni, premi e attività.</p>
-        <span id="uiVersionBadge" class="ui-version-badge">UI V29</span></div>
+        <span id="uiVersionBadge" class="ui-version-badge">UI V30</span></div>
     <div class="actions">
       <button class="secondary" id="exportBtn" type="button">Esporta backup</button>
       <label class="file-label" for="importFile">Importa backup</label><input id="importFile" type="file" accept="application/json" hidden>
@@ -849,7 +947,10 @@ th{position:sticky;top:0;z-index:2;background:#121720;color:#b9c3cf;font-size:10
         <h2 style="margin:0">Nuovo cliente</h2>
         <div class="profile-meta">Inserisci i dati manualmente oppure incollali tutti insieme: il gestionale prova a riconoscerli automaticamente.</div>
       </div>
-      <button class="ghost modal-close" id="closeNewClient" type="button">Chiudi</button>
+      <div class="new-client-head-actions">
+        <button class="primary" id="saveNewClientTopBtn" type="submit" form="clientForm">💾 Salva</button>
+        <button class="ghost modal-close" id="closeNewClient" type="button">Chiudi</button>
+      </div>
     </div>
 
     <div class="divider"></div>
@@ -877,6 +978,10 @@ mario@email.it
     <div class="divider"></div>
 
     <form id="clientForm" class="formgrid" novalidate>
+      <div class="span4 iphone-client-status" id="iphoneClientStatus">
+        <span>📱 Salvataggio locale pronto</span>
+        <strong id="iphoneClientStatusText">Inserisci nome e cognome, poi premi Salva.</strong>
+      </div>
       <div><label for="clientFirstName">Nome *</label><input id="clientFirstName" autocomplete="given-name" required placeholder="Marco"></div>
       <div><label for="clientLastName">Cognome *</label><input id="clientLastName" autocomplete="family-name" required placeholder="Rossi"></div>
       <div><label for="clientEmail">E-mail</label><input id="clientEmail" type="email" autocomplete="email" placeholder="cliente@email.it"></div>
@@ -3187,6 +3292,14 @@ function resetNewClientForm(){
     $('#saveNewClientBtn').classList.remove('is-saving');
     $('#saveNewClientBtn').textContent='💾 Salva nuovo cliente';
   }
+  if($('#saveNewClientTopBtn')){
+    $('#saveNewClientTopBtn').disabled=false;
+    $('#saveNewClientTopBtn').classList.remove('is-saving');
+    $('#saveNewClientTopBtn').textContent='💾 Salva';
+  }
+  if($('#iphoneClientStatusText')){
+    $('#iphoneClientStatusText').textContent='Inserisci nome e cognome, poi premi Salva.';
+  }
   if($('#clientDuplicateNotice')){$('#clientDuplicateNotice').style.display='none';$('#clientDuplicateNotice').innerHTML=''}
 }
 
@@ -3642,6 +3755,14 @@ $('#copyQuickMessageBtn').addEventListener('click',async function(){
 });
 
 $('#newClientBtn').addEventListener('click',openNewClientModal);
+
+$('#saveNewClientTopBtn').addEventListener('click',function(e){
+  e.preventDefault();
+  var form=$('#clientForm');
+  if(form.requestSubmit)form.requestSubmit();
+  else form.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));
+});
+
 $('#closeNewClient').addEventListener('click',closeNewClientModal);
 $('#cancelNewClient').addEventListener('click',closeNewClientModal);
 $('#newClientModal').addEventListener('click',function(e){if(e.target===this)closeNewClientModal()});
@@ -3679,11 +3800,12 @@ $('#parseClientDataBtn').addEventListener('click',function(){
   }
 });
 
-$('#clientForm').addEventListener('submit',async function(e){
+$('#clientForm').addEventListener('submit',function(e){
   e.preventDefault();
 
-  var btn=$('#saveNewClientBtn');
-  if(btn.disabled)return;
+  var bottomBtn=$('#saveNewClientBtn');
+  var topBtn=$('#saveNewClientTopBtn');
+  if((bottomBtn&&bottomBtn.disabled)||(topBtn&&topBtn.disabled))return;
 
   setNotice($('#newClientSaveNotice'),'','');
 
@@ -3692,40 +3814,34 @@ $('#clientForm').addEventListener('submit',async function(e){
   var email=$('#clientEmail').value.trim();
 
   if(!first||!last){
+    var missing=!first?$('#clientFirstName'):$('#clientLastName');
     setNotice($('#newClientSaveNotice'),'Inserisci almeno nome e cognome.','error');
-    (!first?$('#clientFirstName'):$('#clientLastName')).focus();
+    if($('#iphoneClientStatusText'))$('#iphoneClientStatusText').textContent='Mancano nome o cognome.';
+    try{missing.scrollIntoView({behavior:'smooth',block:'center'});missing.focus()}catch(err){missing.focus()}
     return;
   }
 
   if(email&&!$('#clientEmail').checkValidity()){
     setNotice($('#newClientSaveNotice'),'L’indirizzo e-mail non è valido.','error');
-    $('#clientEmail').focus();
+    if($('#iphoneClientStatusText'))$('#iphoneClientStatusText').textContent='Controlla l’indirizzo e-mail.';
+    try{$('#clientEmail').scrollIntoView({behavior:'smooth',block:'center'});$('#clientEmail').focus()}catch(err){$('#clientEmail').focus()}
     return;
   }
 
-  var duplicates=findClientDuplicates(newClientCandidate(),'');
-  if(duplicates.length){
-    renderDuplicateNotice();
-
-    var exact=duplicates.filter(function(x){return x.strong});
-    var duplicateNames=duplicates.slice(0,3).map(function(x){
-      return x.client.name+' ('+x.reasons.join(', ')+')';
-    }).join('\n');
-
-    var question=exact.length
-      ? 'Ho trovato dati già usati da un altro cliente:\\n\\n'+duplicateNames+'\\n\\nSe si tratta davvero di una persona diversa (es. stessa famiglia/indirizzo/telefono), vuoi creare comunque il nuovo profilo?'
-      : 'Ho trovato un cliente con dati simili:\\n\\n'+duplicateNames+'\\n\\nVuoi creare comunque un nuovo profilo?';
-
-    if(!confirm(question)){
-      setNotice($('#newClientSaveNotice'),'Creazione annullata. Puoi controllare il possibile duplicato indicato sopra.','');
-      return;
-    }
+  if(bottomBtn){
+    bottomBtn.disabled=true;
+    bottomBtn.classList.add('is-saving');
+    bottomBtn.textContent='Salvataggio...';
   }
+  if(topBtn){
+    topBtn.disabled=true;
+    topBtn.classList.add('is-saving');
+    topBtn.textContent='...';
+  }
+  if($('#iphoneClientStatusText'))$('#iphoneClientStatusText').textContent='Salvataggio sul dispositivo...';
+  setNotice($('#newClientSaveNotice'),'Salvo il nuovo cliente sul dispositivo...','');
 
-  btn.disabled=true;
-  btn.classList.add('is-saving');
-  btn.textContent='Salvataggio...';
-  setNotice($('#newClientSaveNotice'),'Salvo il nuovo cliente...','');
+  var duplicates=findClientDuplicates(newClientCandidate(),'');
 
   var c={
     id:uid(),
@@ -3745,84 +3861,68 @@ $('#clientForm').addEventListener('submit',async function(e){
     intakeEmailError:''
   };
 
-  // Inserimento locale.
+  // Salvataggio LOCALE PRIMA di qualsiasi rete/cloud/Gmail.
   state.clients.push(c);
 
   if(!saveState()||!verifyClientSaved(c)){
     state.clients=state.clients.filter(function(x){return text(x.id)!==text(c.id)});
     saveState();
-    btn.disabled=false;
-    btn.classList.remove('is-saving');
-    btn.textContent='💾 Salva nuovo cliente';
-    setNotice($('#newClientSaveNotice'),'ERRORE: il profilo non è rimasto salvato sul dispositivo. Nessun dato è stato perso: riprova.','error');
+
+    if(bottomBtn){
+      bottomBtn.disabled=false;
+      bottomBtn.classList.remove('is-saving');
+      bottomBtn.textContent='💾 Salva nuovo cliente';
+    }
+    if(topBtn){
+      topBtn.disabled=false;
+      topBtn.classList.remove('is-saving');
+      topBtn.textContent='💾 Salva';
+    }
+
+    if($('#iphoneClientStatusText'))$('#iphoneClientStatusText').textContent='Errore di salvataggio locale.';
+    setNotice($('#newClientSaveNotice'),'ERRORE: Safari non ha conservato il profilo. Riprova; se succede ancora mandami questo messaggio.','error');
     return;
   }
 
-  // Controllo ulteriore sullo state corrente: una sync già in corso non deve
-  // far sparire il record appena creato.
-  var current=state.clients.find(function(x){return text(x.id)===text(c.id)});
-  if(!current){
-    state.clients.push(c);
-    if(!saveState()||!verifyClientSaved(c)){
-      btn.disabled=false;
-      btn.classList.remove('is-saving');
-      btn.textContent='💾 Salva nuovo cliente';
-      setNotice($('#newClientSaveNotice'),'ERRORE: sincronizzazione in conflitto. Riprova tra un secondo.','error');
-      return;
-    }
-  }
-
-  // UI: il cliente è già salvato a questo punto.
-  setNotice($('#newClientSaveNotice'),'Cliente salvato ✅','ok');
+  // Il cliente è già realmente salvato. Chiudiamo SUBITO il form su iPhone:
+  // niente sync o Gmail deve poter bloccare la creazione.
   render();
-
-  // Se la sync era già in corso, il meccanismo queued farà un secondo giro.
-  // Se è libera, proviamo a mandare subito il nuovo record al cloud senza
-  // rendere il salvataggio dipendente dalla rete.
-  if(cloudSyncConfigured()){
-    try{
-      await syncCloudData(false);
-    }catch(syncErr){
-      // Non blocchiamo il nuovo cliente: resta salvato localmente e dirty.
-    }
-  }
-
-  // Verifica finale dopo eventuale merge cloud.
-  current=state.clients.find(function(x){return text(x.id)===text(c.id)});
-  if(!current){
-    state.clients.push(c);
-    saveState();
-    current=c;
-  }
-
   closeNewClientModal();
-  render();
-  openProfile(current.id);
-  setNotice($('#profileNotice'),'Profilo '+current.code+' creato correttamente ✅','ok');
+  openProfile(c.id);
 
-  btn.disabled=false;
-  btn.classList.remove('is-saving');
-  btn.textContent='💾 Salva nuovo cliente';
+  var profileMsg='Profilo '+c.code+' creato correttamente ✅';
+  if(duplicates.length){
+    profileMsg+=' • Nota: ho rilevato dati simili a un altro cliente.';
+  }
+  setNotice($('#profileNotice'),profileMsg,'ok');
 
-  // La mail è un passaggio successivo: un errore Gmail non annulla mai
-  // la creazione del cliente.
-  if(current.email&&intakeEmailEnabled()){
+  // Cloud in background, senza await.
+  if(cloudSyncConfigured()){
+    setTimeout(function(){
+      syncCloudData(false).catch(function(){});
+    },120);
+  }
+
+  // Mail automatica in background: non può più bloccare la creazione.
+  if(c.email&&intakeEmailEnabled()){
     if(!intakeEmailConfigReady()){
-      current.intakeEmailError='Gmail / Apps Script non configurato';
+      c.intakeEmailError='Gmail / Apps Script non configurato';
       saveState();
-      openProfile(current.id);
-      setNotice($('#profileNotice'),'Cliente creato ✅ La mail non è partita perché Gmail non è configurato.','error');
-      return;
-    }
-
-    setNotice($('#profileNotice'),'Cliente creato ✅ Invio e-mail di presa in carico...','');
-    try{
-      await sendIntakeEmail(current,false);
-      openProfile(current.id);
-      setNotice($('#profileNotice'),'Cliente creato ✅ E-mail di presa in carico inviata a '+current.email+'.','ok');
-    }catch(err){
-      openProfile(current.id);
-      setNotice($('#profileNotice'),'Cliente creato ✅ ma l’e-mail non è partita: '+text(err&&err.text||err&&err.message||err),'error');
+      setNotice($('#profileNotice'),profileMsg+' La mail non è partita perché Gmail non è configurato.','error');
+    }else{
+      setTimeout(function(){
+        sendIntakeEmail(c,false).then(function(){
+          if($('#profileModal').classList.contains('open')&&text($('#profileId').value)===text(c.id)){
+            openProfile(c.id);
+            setNotice($('#profileNotice'),profileMsg+' • E-mail di presa in carico inviata.','ok');
+          }
+        }).catch(function(err){
+          if($('#profileModal').classList.contains('open')&&text($('#profileId').value)===text(c.id)){
+            openProfile(c.id);
+            setNotice($('#profileNotice'),profileMsg+' • E-mail non inviata: '+text(err&&err.text||err&&err.message||err),'error');
+          }
+        });
+      },250);
     }
   }
 });
