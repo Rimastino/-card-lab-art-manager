@@ -274,6 +274,32 @@ th{position:sticky;top:0;z-index:2;background:#121720;color:#b9c3cf;font-size:10
 @media(max-width:390px){
   .actions{grid-template-columns:1fr 1fr}.stats{grid-template-columns:1fr 1fr}.attention-grid{grid-template-columns:1fr}.stats-detail-grid{grid-template-columns:1fr}.profile-stats{grid-template-columns:1fr}
 }
+
+/* V28 — WhatsApp templates */
+.client-contact-tools{
+  display:grid;
+  grid-template-columns:minmax(220px,1.35fr) minmax(160px,.8fr) minmax(160px,.8fr);
+  gap:8px;
+  margin:5px 0 13px;
+}
+.client-contact-tools button{width:100%;min-width:0}
+.shipping-contact-actions{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(190px,1fr));
+  gap:8px;
+  min-width:min(100%,470px);
+}
+.shipping-contact-actions button{width:100%;min-width:0}
+@media(max-width:900px){
+  .client-contact-tools{grid-template-columns:1fr 1fr}
+  #sendIntakeWhatsAppBtn{grid-column:1/-1}
+  .shipping-contact-actions{grid-template-columns:1fr;min-width:0;width:100%}
+}
+@media(max-width:640px){
+  .client-contact-tools{grid-template-columns:1fr}
+  #sendIntakeWhatsAppBtn{grid-column:auto}
+}
+
 </style>
 
 <script>
@@ -387,7 +413,7 @@ th{position:sticky;top:0;z-index:2;background:#121720;color:#b9c3cf;font-size:10
 <div id="claManagerApp" class="cla-locked"><div class="app" id="cla-root">
   <div class="top">
     <div class="brand"><h1>Card_Lab_Art — Gestione clienti e ordini</h1><p>Dashboard operativa Card_Lab_Art — ordini, clienti, spedizioni, premi e attività.</p>
-        <span id="uiVersionBadge" class="ui-version-badge">UI V27</span></div>
+        <span id="uiVersionBadge" class="ui-version-badge">UI V28</span></div>
     <div class="actions">
       <button class="secondary" id="exportBtn" type="button">Esporta backup</button>
       <label class="file-label" for="importFile">Importa backup</label><input id="importFile" type="file" accept="application/json" hidden>
@@ -832,8 +858,9 @@ mario@email.it
     </div>
 
     <div class="client-contact-tools">
-      <button class="whatsapp-btn" type="button" id="profileWhatsAppBtn">💬 Apri WhatsApp</button>
-      <button class="secondary" type="button" id="openQuickMessagesBtn">⚡ Messaggi pronti</button>
+      <button class="whatsapp-btn" type="button" id="sendIntakeWhatsAppBtn">💬 WhatsApp presa in carico</button>
+      <button class="ghost" type="button" id="profileWhatsAppBtn">💬 Chat WhatsApp</button>
+      <button class="secondary" type="button" id="openQuickMessagesBtn">⚡ Altri messaggi</button>
     </div>
 
     <div class="quick-message-box" id="quickMessagesBox" style="display:none">
@@ -964,9 +991,12 @@ mario@email.it
             <span class="status-pill" id="orderShippedEmailStatus">Non inviata</span>
             <span class="status-pill" id="orderEmailPreviewStatus">📷 Nessuna anteprima</span>
           </div>
-          <button class="secondary" type="button" id="sendShippedEmailBtn">✉️ Invia e-mail manualmente</button>
+          <div class="shipping-contact-actions">
+            <button class="secondary" type="button" id="sendShippedEmailBtn">✉️ Invia e-mail manualmente</button>
+            <button class="whatsapp-btn" type="button" id="sendShippedWhatsAppBtn">💬 WhatsApp spedizione</button>
+          </div>
         </div>
-        <div class="reward" style="margin-top:7px">Puoi inviare questa mail manualmente anche senza cambiare lo stato dell’ordine. Se c’è una foto allegata, Gmail la inserisce come piccola anteprima.</div>
+        <div class="reward" style="margin-top:7px">Puoi inviare e-mail e WhatsApp manualmente senza cambiare lo stato dell’ordine. Il messaggio WhatsApp usa automaticamente nome, prodotto, corriere, tracking e link.</div>
       </div>
       <div class="span4 order-utility-actions">
         <div class="order-secondary-actions">
@@ -1290,17 +1320,62 @@ function openWhatsAppForClient(c,message){
   if(text(message).trim())url+='?text='+encodeURIComponent(text(message).trim());
   window.open(url,'_blank','noopener');
 }
+function whatsappIntakeMessage(c){
+  var first=text(c&&c.firstName||c&&c.name||'').trim()||'Cliente';
+  var code=text(c&&c.code||'').trim()||'—';
+  return '🎨✨ *Card_Lab_Art — Progetto preso in carico*\n\n'+
+    'Ciao *'+first+'*! 👋\n'+
+    'Abbiamo preso in carico il tuo progetto e possiamo ufficialmente iniziare a lavorarci. 🔥\n\n'+
+    '🆔 Codice cliente: *'+code+'*\n\n'+
+    'Ti aggiorneremo durante le varie fasi della lavorazione fino alla realizzazione finale. 💜\n\n'+
+    'Grazie per aver scelto *Card_Lab_Art*.\n\n'+
+    '_Your idea becomes art._ 🎨✨';
+}
+
+function whatsappShippedMessage(c,o){
+  var first=text(c&&c.firstName||c&&c.name||'').trim()||'Cliente';
+  var product=text(o&&o.product||'il tuo ordine').trim()||'il tuo ordine';
+  var carrier=text(o&&o.carrier||'').trim();
+  var tracking=text(o&&o.trackingCode||'').trim();
+  var trackingUrl=safeTrackingUrl(o&&o.trackingUrl);
+
+  var msg='📦✨ *Il tuo ordine è stato spedito!*\n\n'+
+    'Ciao *'+first+'*!\n'+
+    'Il tuo ordine *'+product+'* è ufficialmente partito. 🚚💨';
+
+  if(carrier)msg+='\n\n📮 Corriere: *'+carrier+'*';
+  if(tracking)msg+='\n🔎 Tracking: *'+tracking+'*';
+  if(trackingUrl)msg+='\n\n🔗 '+trackingUrl;
+
+  msg+='\n\nNon vediamo l’ora che arrivi nelle tue mani! 🔥\n\n'+
+    'Quando lo ricevi, se ti va, taggaci nelle tue storie: *@Card_Lab_Art_* 📸💜\n\n'+
+    'Grazie ancora per averci scelto.\n\n'+
+    '_Your idea becomes art._ 🎨';
+
+  return msg;
+}
+
+function currentOrderWhatsAppDraft(){
+  var id=$('#editOrderId').value;
+  var saved=state.orders.find(function(x){return text(x.id)===text(id)});
+  if(!saved)return null;
+  return Object.assign({},saved,{
+    product:$('#editOrderProduct').value||saved.product,
+    carrier:$('#editCarrier').value||'',
+    trackingCode:$('#editTrackingCode').value.trim(),
+    trackingUrl:$('#editTrackingUrl').value.trim()
+  });
+}
+
 function quickMessageFor(c,key){
   var last=latestOrderForClient(c.id);
   var first=c.firstName||c.name||'';
   var product=last?last.product:'il tuo progetto';
-  var tracking=last&&last.trackingCode?last.trackingCode:'';
-  var carrier=last&&last.carrier?last.carrier:'';
   var amount=last?money(last.amount):'';
   var base='Ciao '+first+',\n\n';
 
   if(key==='intake'){
-    return base+'il tuo progetto è stato preso in carico da Card_Lab_Art 🎨\n\nTi aggiornerò durante le varie fasi di lavorazione.\n\nGrazie per aver scelto Card_Lab_Art ✨\nYour idea becomes art.';
+    return whatsappIntakeMessage(c);
   }
   if(key==='draft'){
     return base+'la bozza del tuo progetto Card_Lab_Art è pronta 🎨✨\n\nQuando puoi, dagli un’occhiata e fammi sapere se è tutto ok oppure se vuoi apportare qualche modifica.';
@@ -1312,10 +1387,7 @@ function quickMessageFor(c,key){
     return base+'ti scrivo per il tuo ordine Card_Lab_Art'+(last?' ('+product+')':'')+'.\n\nRisulta ancora da completare il pagamento'+(amount?' dell’ordine da '+amount:'')+'. Quando hai fatto fammi sapere, grazie! ❤️';
   }
   if(key==='shipped'){
-    return base+'il tuo ordine è stato spedito! 📦✨\n\nIl tuo progetto Card_Lab_Art è ufficialmente in viaggio verso di te.'+
-      (carrier?'\n\nCorriere: '+carrier:'')+
-      (tracking?'\nCodice tracking: '+tracking:'')+
-      '\n\nGrazie per aver scelto Card_Lab_Art ❤️\nYour idea becomes art. 🎨';
+    return whatsappShippedMessage(c,last||{});
   }
   if(key==='thanks'){
     return base+'spero che il tuo ordine Card_Lab_Art sia arrivato e che ti sia piaciuto! ❤️\n\nSe ti fa piacere, condividilo su Instagram e tagga @Card_Lab_Art_ ✨\n\nGrazie ancora!\nYour idea becomes art. 🎨';
@@ -2843,6 +2915,7 @@ function openProfile(id){
   $('#pProvince').value=c.province;$('#pInstagram').value=c.instagram;$('#pNotes').value=c.notes;
 
   $('#profileWhatsAppBtn').disabled=!whatsappNumber(c.phone);
+  $('#sendIntakeWhatsAppBtn').disabled=!whatsappNumber(c.phone);
   $('#sendQuickWhatsAppBtn').disabled=!whatsappNumber(c.phone);
 
   setNotice($('#profileNotice'),'','');
@@ -2863,7 +2936,7 @@ function syncModalBodyLock(){document.body.classList.toggle('body-modal-open',!!
 function closeProfile(){var modal=$('#profileModal');modal.classList.remove('open');modal.setAttribute('aria-hidden','true');syncModalBodyLock()}
 function renderChecklist(o){var box=$('#checklistBox');box.innerHTML=CHECKLIST_ITEMS.map(function(i){var checked=o.checklist&&o.checklist[i.key];return '<div class="checkitem"><input type="checkbox" id="check_'+esc(i.key)+'" data-check="'+esc(i.key)+'"'+(checked?' checked':'')+'><label for="check_'+esc(i.key)+'">'+esc(i.label)+'</label></div>'}).join('')}
 function updateOrderEditPreview(){var done=$$('[data-check]:checked',$('#checklistBox')).length;$('#editChecklistPreview').textContent='Checklist: '+done+'/'+CHECKLIST_ITEMS.length}
-function openOrderModal(id){var o=state.orders.find(function(x){return x.id===id});if(!o)return;var c=state.clients.find(function(x){return x.id===o.clientId});$('#editOrderId').value=o.id;$('#orderModalHeading').textContent='Gestisci ordine';$('#orderModalMeta').textContent=(c?c.code+' — '+c.name:'Cliente rimosso')+' • '+o.date;$('#editOrderDate').value=o.date;$('#editOrderProduct').value=PRODUCTS.indexOf(o.product)>=0?o.product:'Altro';$('#editOrderAmount').value=o.amount;$('#editOrderStatus').value=o.orderStatus;$('#editOrderDueDate').value=o.dueDate;$('#editPaymentStatus').value=o.paymentStatus;$('#editPaidAmount').value=o.paidAmount;$('#editPaymentMethod').value=PAYMENT_METHODS.indexOf(o.paymentMethod)>=0?o.paymentMethod:'Altro';$('#editMaterialCost').value=o.materialCost;$('#editShippingCost').value=o.shippingCost;$('#editCarrier').value=CARRIERS.indexOf(o.carrier)>=0?o.carrier:'Altro';$('#editTrackingCode').value=o.trackingCode;$('#editTrackingUrl').value=o.trackingUrl;$('#editRedeem').value=o.redeemed;$('#editOrderNotes').value=o.orderNotes;renderChecklist(o);setNotice($('#orderEditNotice'),'','');$('#orderShippedEmailStatus').textContent=emailStatusLabel(o.shippedEmailSentAt,o.shippedEmailError);updateOrderEmailPreviewStatus(o);$('#sendShippedEmailBtn').disabled=!(c&&c.email);updateOrderEditPreview();renderOrderPhotoBox(o);var modal=$('#orderModal');modal.classList.add('open');modal.setAttribute('aria-hidden','false');modal.scrollTop=0;syncModalBodyLock()}
+function openOrderModal(id){var o=state.orders.find(function(x){return x.id===id});if(!o)return;var c=state.clients.find(function(x){return x.id===o.clientId});$('#editOrderId').value=o.id;$('#orderModalHeading').textContent='Gestisci ordine';$('#orderModalMeta').textContent=(c?c.code+' — '+c.name:'Cliente rimosso')+' • '+o.date;$('#editOrderDate').value=o.date;$('#editOrderProduct').value=PRODUCTS.indexOf(o.product)>=0?o.product:'Altro';$('#editOrderAmount').value=o.amount;$('#editOrderStatus').value=o.orderStatus;$('#editOrderDueDate').value=o.dueDate;$('#editPaymentStatus').value=o.paymentStatus;$('#editPaidAmount').value=o.paidAmount;$('#editPaymentMethod').value=PAYMENT_METHODS.indexOf(o.paymentMethod)>=0?o.paymentMethod:'Altro';$('#editMaterialCost').value=o.materialCost;$('#editShippingCost').value=o.shippingCost;$('#editCarrier').value=CARRIERS.indexOf(o.carrier)>=0?o.carrier:'Altro';$('#editTrackingCode').value=o.trackingCode;$('#editTrackingUrl').value=o.trackingUrl;$('#editRedeem').value=o.redeemed;$('#editOrderNotes').value=o.orderNotes;renderChecklist(o);setNotice($('#orderEditNotice'),'','');$('#orderShippedEmailStatus').textContent=emailStatusLabel(o.shippedEmailSentAt,o.shippedEmailError);updateOrderEmailPreviewStatus(o);$('#sendShippedEmailBtn').disabled=!(c&&c.email);$('#sendShippedWhatsAppBtn').disabled=!(c&&whatsappNumber(c.phone));updateOrderEditPreview();renderOrderPhotoBox(o);var modal=$('#orderModal');modal.classList.add('open');modal.setAttribute('aria-hidden','false');modal.scrollTop=0;syncModalBodyLock()}
 function closeOrderModal(){var modal=$('#orderModal');modal.classList.remove('open');modal.setAttribute('aria-hidden','true');syncModalBodyLock()}
 function refreshOpenProfileIfNeeded(){if($('#profileModal').classList.contains('open')){var id=$('#profileId').value;if(id)openProfile(id)}}
 function safeTrackingUrl(v){var u=text(v).trim();return /^https?:\/\//i.test(u)?u:''}
@@ -3465,6 +3538,10 @@ $('#clientDuplicateNotice').addEventListener('click',function(e){
   $('#'+id).addEventListener('input',function(){renderDuplicateNotice()});
 });
 
+$('#sendIntakeWhatsAppBtn').addEventListener('click',function(){
+  var c=state.clients.find(function(x){return text(x.id)===text($('#profileId').value)});
+  if(c)openWhatsAppForClient(c,whatsappIntakeMessage(c));
+});
 $('#profileWhatsAppBtn').addEventListener('click',function(){
   var c=state.clients.find(function(x){return x.id===$('#profileId').value});
   if(c)openWhatsAppForClient(c,'');
@@ -4011,6 +4088,24 @@ $('#removeOrderPhotoBtn').addEventListener('click',function(){
   refreshOpenProfileIfNeeded();
   renderOrderPhotoBox(o);
   setNotice($('#orderPhotoNotice'),'Foto rimossa dal gestionale. Il file originale resta conservato su Drive.','ok');
+});
+
+$('#sendShippedWhatsAppBtn').addEventListener('click',function(){
+  var o=currentOrderWhatsAppDraft();
+  if(!o){
+    setNotice($('#orderEditNotice'),'Ordine non trovato.','error');
+    return;
+  }
+  var c=state.clients.find(function(x){return text(x.id)===text(o.clientId)});
+  if(!c){
+    setNotice($('#orderEditNotice'),'Cliente non trovato.','error');
+    return;
+  }
+  if(!whatsappNumber(c.phone)){
+    setNotice($('#orderEditNotice'),'Inserisci e salva prima il numero di telefono del cliente.','error');
+    return;
+  }
+  openWhatsAppForClient(c,whatsappShippedMessage(c,o));
 });
 
 $('#sendShippedEmailBtn').addEventListener('click',async function(){
