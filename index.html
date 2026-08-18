@@ -300,6 +300,58 @@ th{position:sticky;top:0;z-index:2;background:#121720;color:#b9c3cf;font-size:10
   #sendIntakeWhatsAppBtn{grid-column:auto}
 }
 
+
+/* V29 — nuovo cliente affidabile */
+.new-client-savebar{
+  position:sticky;
+  bottom:-1px;
+  z-index:25;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:12px;
+  align-items:center;
+  margin:7px -2px -2px;
+  padding:12px;
+  border:1px solid #2f3846;
+  border-radius:15px;
+  background:rgba(10,13,18,.97);
+  box-shadow:0 -10px 32px rgba(0,0,0,.34);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+}
+.new-client-save-notice{
+  min-height:20px;
+  margin:0;
+  padding:0 2px;
+}
+.new-client-save-actions{
+  display:grid;
+  grid-template-columns:minmax(110px,.65fr) minmax(190px,1.25fr);
+  gap:8px;
+}
+.new-client-save-actions button{
+  width:100%;
+  min-width:0;
+}
+#saveNewClientBtn.is-saving{
+  cursor:wait;
+  opacity:.72;
+}
+@media(max-width:760px){
+  .new-client-savebar{
+    grid-template-columns:1fr;
+  }
+  .new-client-save-actions{
+    grid-template-columns:1fr 1.3fr;
+  }
+}
+@media(max-width:470px){
+  .new-client-save-actions{
+    grid-template-columns:1fr;
+  }
+  #saveNewClientBtn{order:-1}
+}
+
 </style>
 
 <script>
@@ -413,7 +465,7 @@ th{position:sticky;top:0;z-index:2;background:#121720;color:#b9c3cf;font-size:10
 <div id="claManagerApp" class="cla-locked"><div class="app" id="cla-root">
   <div class="top">
     <div class="brand"><h1>Card_Lab_Art — Gestione clienti e ordini</h1><p>Dashboard operativa Card_Lab_Art — ordini, clienti, spedizioni, premi e attività.</p>
-        <span id="uiVersionBadge" class="ui-version-badge">UI V28</span></div>
+        <span id="uiVersionBadge" class="ui-version-badge">UI V29</span></div>
     <div class="actions">
       <button class="secondary" id="exportBtn" type="button">Esporta backup</button>
       <label class="file-label" for="importFile">Importa backup</label><input id="importFile" type="file" accept="application/json" hidden>
@@ -839,9 +891,12 @@ mario@email.it
       <div class="span4">
         <div id="clientDuplicateNotice" class="duplicate-box" style="display:none"></div>
       </div>
-      <div class="span4 toolbar">
-        <button class="primary" type="submit">Salva cliente</button>
-        <button class="ghost" id="cancelNewClient" type="button">Annulla</button>
+      <div class="span4 new-client-savebar">
+        <div class="notice new-client-save-notice" id="newClientSaveNotice" aria-live="polite"></div>
+        <div class="new-client-save-actions">
+          <button class="ghost" id="cancelNewClient" type="button">Annulla</button>
+          <button class="primary" id="saveNewClientBtn" type="submit">💾 Salva nuovo cliente</button>
+        </div>
       </div>
     </form>
   </div>
@@ -1197,7 +1252,19 @@ function saveState(opts){
     return false
   }
 }
-function verifyClientSaved(client){try{var raw=localStorage.getItem(STORAGE_KEY);if(!raw)return false;var saved=JSON.parse(raw),found=(saved.clients||[]).find(function(x){return x.id===client.id});if(!found)return false;var fields=['code','firstName','lastName','name','email','phone','address','zip','city','province','instagram','notes'];return fields.every(function(k){return text(found[k])===text(client[k])})}catch(e){return false}}
+function verifyClientSaved(client){
+  try{
+    var raw=localStorage.getItem(STORAGE_KEY);
+    if(!raw)return false;
+    var saved=JSON.parse(raw),wanted=text(client.id);
+    var found=(saved.clients||[]).find(function(x){return text(x.id)===wanted});
+    if(!found)return false;
+    var fields=['code','firstName','lastName','name','email','phone','address','zip','city','province','instagram','notes'];
+    return fields.every(function(k){return text(found[k])===text(client[k])});
+  }catch(e){
+    return false;
+  }
+}
 function verifyOrderSaved(order){
   try{
     var raw=localStorage.getItem(STORAGE_KEY);if(!raw)return false;
@@ -1294,7 +1361,7 @@ function renderDuplicateNotice(){
   var dups=findClientDuplicates(newClientCandidate(),'');
   if(!dups.length){box.style.display='none';box.innerHTML='';return []}
   box.style.display='block';
-  box.innerHTML='<strong>⚠️ Possibile cliente già presente</strong>'+
+  box.innerHTML='<strong>⚠️ Possibile cliente già presente</strong><div class="small" style="margin-top:3px">È solo un avviso: se è una persona diversa puoi comunque salvarla.</div>'+
     dups.slice(0,3).map(function(x){
       return '<div style="margin-top:7px"><b>'+esc(x.client.name)+'</b> — '+esc(x.reasons.join(', '))+
         '<div class="duplicate-actions"><button type="button" class="mini secondary open-duplicate-client" data-id="'+esc(x.client.id)+'">Apri profilo esistente</button></div></div>';
@@ -3114,6 +3181,12 @@ function resetNewClientForm(){
   $('#clientCode').value=nextCode();
   $('#clientPasteData').value='';
   setNotice($('#clientParseNotice'),'','');
+  setNotice($('#newClientSaveNotice'),'','');
+  if($('#saveNewClientBtn')){
+    $('#saveNewClientBtn').disabled=false;
+    $('#saveNewClientBtn').classList.remove('is-saving');
+    $('#saveNewClientBtn').textContent='💾 Salva nuovo cliente';
+  }
   if($('#clientDuplicateNotice')){$('#clientDuplicateNotice').style.display='none';$('#clientDuplicateNotice').innerHTML=''}
 }
 
@@ -3608,32 +3681,149 @@ $('#parseClientDataBtn').addEventListener('click',function(){
 
 $('#clientForm').addEventListener('submit',async function(e){
   e.preventDefault();
-  var first=$('#clientFirstName').value.trim(),last=$('#clientLastName').value.trim();
-  if(!first||!last){setNotice($('#clientNotice'),'Inserisci nome e cognome.','error');return}
-  var email=$('#clientEmail').value.trim();
-  if(email&&!$('#clientEmail').checkValidity()){setNotice($('#clientParseNotice'),'L’indirizzo e-mail non è valido.','error');return}
 
-  var duplicates=findClientDuplicates(newClientCandidate(),'');
-  var strongDuplicates=duplicates.filter(function(x){return x.strong});
-  if(strongDuplicates.length){
-    renderDuplicateNotice();
-    setNotice($('#clientParseNotice'),'Cliente non salvato: ho trovato un possibile duplicato forte. Apri il profilo esistente e controlla.','error');
+  var btn=$('#saveNewClientBtn');
+  if(btn.disabled)return;
+
+  setNotice($('#newClientSaveNotice'),'','');
+
+  var first=$('#clientFirstName').value.trim();
+  var last=$('#clientLastName').value.trim();
+  var email=$('#clientEmail').value.trim();
+
+  if(!first||!last){
+    setNotice($('#newClientSaveNotice'),'Inserisci almeno nome e cognome.','error');
+    (!first?$('#clientFirstName'):$('#clientLastName')).focus();
     return;
   }
-  if(duplicates.length){
-    renderDuplicateNotice();
-    if(!confirm('Esiste già un cliente con nome/dati simili. Vuoi creare comunque un nuovo profilo?'))return;
+
+  if(email&&!$('#clientEmail').checkValidity()){
+    setNotice($('#newClientSaveNotice'),'L’indirizzo e-mail non è valido.','error');
+    $('#clientEmail').focus();
+    return;
   }
 
-  var c={id:uid(),code:nextCode(),firstName:first,lastName:last,name:(first+' '+last).trim(),email:email,phone:$('#clientPhone').value.trim(),address:$('#clientAddress').value.trim(),zip:$('#clientZip').value.trim(),city:$('#clientCity').value.trim(),province:$('#clientProvince').value.trim().toUpperCase(),instagram:$('#clientInstagram').value.trim(),notes:$('#clientNotes').value.trim(),intakeEmailSentAt:'',intakeEmailError:''};
+  var duplicates=findClientDuplicates(newClientCandidate(),'');
+  if(duplicates.length){
+    renderDuplicateNotice();
+
+    var exact=duplicates.filter(function(x){return x.strong});
+    var duplicateNames=duplicates.slice(0,3).map(function(x){
+      return x.client.name+' ('+x.reasons.join(', ')+')';
+    }).join('\n');
+
+    var question=exact.length
+      ? 'Ho trovato dati già usati da un altro cliente:\\n\\n'+duplicateNames+'\\n\\nSe si tratta davvero di una persona diversa (es. stessa famiglia/indirizzo/telefono), vuoi creare comunque il nuovo profilo?'
+      : 'Ho trovato un cliente con dati simili:\\n\\n'+duplicateNames+'\\n\\nVuoi creare comunque un nuovo profilo?';
+
+    if(!confirm(question)){
+      setNotice($('#newClientSaveNotice'),'Creazione annullata. Puoi controllare il possibile duplicato indicato sopra.','');
+      return;
+    }
+  }
+
+  btn.disabled=true;
+  btn.classList.add('is-saving');
+  btn.textContent='Salvataggio...';
+  setNotice($('#newClientSaveNotice'),'Salvo il nuovo cliente...','');
+
+  var c={
+    id:uid(),
+    code:nextCode(),
+    firstName:first,
+    lastName:last,
+    name:(first+' '+last).trim(),
+    email:email,
+    phone:$('#clientPhone').value.trim(),
+    address:$('#clientAddress').value.trim(),
+    zip:$('#clientZip').value.trim(),
+    city:$('#clientCity').value.trim(),
+    province:$('#clientProvince').value.trim().toUpperCase(),
+    instagram:$('#clientInstagram').value.trim(),
+    notes:$('#clientNotes').value.trim(),
+    intakeEmailSentAt:'',
+    intakeEmailError:''
+  };
+
+  // Inserimento locale.
   state.clients.push(c);
-  if(!saveState()||!verifyClientSaved(c)){state.clients=state.clients.filter(function(x){return x.id!==c.id});setNotice($('#clientNotice'),'ERRORE: il profilo non è stato salvato. Riprova.','error');return}
-  e.target.reset();closeNewClientModal();render();openProfile(c.id);setNotice($('#clientNotice'),'Profilo '+c.code+' salvato correttamente.','ok');
-  if(c.email&&intakeEmailEnabled()){
-    if(!intakeEmailConfigReady()){c.intakeEmailError='Gmail / Apps Script non configurato';saveState();openProfile(c.id);setNotice($('#profileNotice'),'Profilo salvato, ma Gmail non è configurato. Controlla URL Apps Script e token nelle Impostazioni.','error');return}
-    setNotice($('#profileNotice'),'Profilo salvato. Invio e-mail di presa in carico...','');
-    try{await sendIntakeEmail(c,false);openProfile(c.id);setNotice($('#profileNotice'),'E-mail di presa in carico inviata a '+c.email+'.','ok')}
-    catch(err){openProfile(c.id);setNotice($('#profileNotice'),'Profilo salvato, ma l’e-mail non è partita: '+text(err&&err.text||err&&err.message||err),'error')}
+
+  if(!saveState()||!verifyClientSaved(c)){
+    state.clients=state.clients.filter(function(x){return text(x.id)!==text(c.id)});
+    saveState();
+    btn.disabled=false;
+    btn.classList.remove('is-saving');
+    btn.textContent='💾 Salva nuovo cliente';
+    setNotice($('#newClientSaveNotice'),'ERRORE: il profilo non è rimasto salvato sul dispositivo. Nessun dato è stato perso: riprova.','error');
+    return;
+  }
+
+  // Controllo ulteriore sullo state corrente: una sync già in corso non deve
+  // far sparire il record appena creato.
+  var current=state.clients.find(function(x){return text(x.id)===text(c.id)});
+  if(!current){
+    state.clients.push(c);
+    if(!saveState()||!verifyClientSaved(c)){
+      btn.disabled=false;
+      btn.classList.remove('is-saving');
+      btn.textContent='💾 Salva nuovo cliente';
+      setNotice($('#newClientSaveNotice'),'ERRORE: sincronizzazione in conflitto. Riprova tra un secondo.','error');
+      return;
+    }
+  }
+
+  // UI: il cliente è già salvato a questo punto.
+  setNotice($('#newClientSaveNotice'),'Cliente salvato ✅','ok');
+  render();
+
+  // Se la sync era già in corso, il meccanismo queued farà un secondo giro.
+  // Se è libera, proviamo a mandare subito il nuovo record al cloud senza
+  // rendere il salvataggio dipendente dalla rete.
+  if(cloudSyncConfigured()){
+    try{
+      await syncCloudData(false);
+    }catch(syncErr){
+      // Non blocchiamo il nuovo cliente: resta salvato localmente e dirty.
+    }
+  }
+
+  // Verifica finale dopo eventuale merge cloud.
+  current=state.clients.find(function(x){return text(x.id)===text(c.id)});
+  if(!current){
+    state.clients.push(c);
+    saveState();
+    current=c;
+  }
+
+  closeNewClientModal();
+  render();
+  openProfile(current.id);
+  setNotice($('#profileNotice'),'Profilo '+current.code+' creato correttamente ✅','ok');
+
+  btn.disabled=false;
+  btn.classList.remove('is-saving');
+  btn.textContent='💾 Salva nuovo cliente';
+
+  // La mail è un passaggio successivo: un errore Gmail non annulla mai
+  // la creazione del cliente.
+  if(current.email&&intakeEmailEnabled()){
+    if(!intakeEmailConfigReady()){
+      current.intakeEmailError='Gmail / Apps Script non configurato';
+      saveState();
+      openProfile(current.id);
+      setNotice($('#profileNotice'),'Cliente creato ✅ La mail non è partita perché Gmail non è configurato.','error');
+      return;
+    }
+
+    setNotice($('#profileNotice'),'Cliente creato ✅ Invio e-mail di presa in carico...','');
+    try{
+      await sendIntakeEmail(current,false);
+      openProfile(current.id);
+      setNotice($('#profileNotice'),'Cliente creato ✅ E-mail di presa in carico inviata a '+current.email+'.','ok');
+    }catch(err){
+      openProfile(current.id);
+      setNotice($('#profileNotice'),'Cliente creato ✅ ma l’e-mail non è partita: '+text(err&&err.text||err&&err.message||err),'error');
+    }
   }
 });
 $('#clientSearch').addEventListener('input',render);$('#orderSearch').addEventListener('input',render);
